@@ -20,12 +20,17 @@ See README for the scope decision.
 
 import json
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from mcp.server.fastmcp import FastMCP
 
 from synthetic_data import generate_information_stream, generate_activity_events
 from friction_radar import FrictionRadar
 from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
+from bedrock_narrator import BedrockNarrator
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -44,8 +49,16 @@ with open(events_path) as f:
 
 friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
+narrator = BedrockNarrator()
 
-mcp = FastMCP("friction-radar")
+# host 0.0.0.0 so this is reachable from outside the container when run via
+# Docker; port configurable so it doesn't collide with anything else the
+# judge already has running locally.
+mcp = FastMCP(
+    "friction-radar",
+    host="0.0.0.0",
+    port=int(os.environ.get("MCP_SERVER_PORT", "8000")),
+)
 
 
 # ---------------------------- Discovery tools -------------------------------
@@ -103,6 +116,43 @@ def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
     unusual happened, or wants to know about a specific bad instance rather
     than the average."""
     return workflow_discovery.detect_anomalous_runs(workflow_name, top_k=top_k)
+
+
+# ---------------------------- Narration tool (AWS Bedrock) ------------------
+
+@mcp.tool()
+def narrate_briefing(top_k: int = 3) -> dict:
+    """Compose one short, spoken-ready briefing covering the top friction
+    points and any anomalous runs, using Amazon Bedrock to phrase the
+    already-computed analysis (Bedrock never sees raw data and never scores
+    anything -- it only turns finished numbers into sentences). Falls back
+    to a plain templated summary if Bedrock isn't configured. Use this when
+    the user wants one pulled-together update rather than calling several
+    tools themselves."""
+    points = friction_radar.top_friction_points(top_k=top_k)
+    anomaly_notes = []
+    for p in points:
+        result = workflow_discovery.detect_anomalous_runs(p["workflow_name"], top_k=1)
+        if result.get("anomalies"):
+            anomaly_notes.append({"workflow_name": p["workflow_name"], **result["anomalies"][0]})
+
+    payload = {"top_friction_points": points, "anomalies": anomaly_notes}
+
+    fallback_lines = [
+        f"Your biggest time sink is '{points[0]['workflow_name']}' at "
+        f"{round(points[0]['total_time_cost_minutes'] / 60, 1)} hours, "
+        f"rated {points[0]['automation_tier']}."
+    ] if points else ["No workflow data available yet."]
+    if anomaly_notes:
+        a = anomaly_notes[0]
+        fallback_lines.append(
+            f"One run of '{a['workflow_name']}' ran long, mainly because of "
+            f"'{a['likely_cause_step']}'."
+        )
+    fallback = " ".join(fallback_lines)
+
+    narration = narrator.narrate(payload, fallback=fallback)
+    return {**narration, "based_on": payload}
 
 
 # ---------------------------- Action tools ----------------------------------
