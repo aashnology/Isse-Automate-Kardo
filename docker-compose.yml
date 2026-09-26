@@ -1,0 +1,9 @@
+services:
+  friction-radar:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env  # cp .env.example .env first; safe defaults (Bedrock off) if you skip this
+    volumes:
+      - ./data:/app/data  # persist the generated synthetic data across restarts

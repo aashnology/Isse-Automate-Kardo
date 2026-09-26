@@ -14,7 +14,7 @@ important for a reliable live demo.
 
 import random
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 random.seed(42)
 
@@ -59,7 +59,7 @@ def _make_item(item_id, ts, topic, near_dup_of=None):
 
 
 def generate_information_stream(n_items=220, days_back=10, out_path=None):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     items = []
     for i in range(n_items):
         ts = now - timedelta(
@@ -102,7 +102,7 @@ STEP_JUDGMENT_COST = {
 
 
 def generate_activity_events(n_weeks=6, out_path=None):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     events = []
     workflow_run_id = 0
 
