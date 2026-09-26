@@ -1,0 +1,1378 @@
+[
+  {
+    "workflow_run_id": 4,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-08-17T09:56:45.324936",
+    "duration_minutes": 5.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 4,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-08-17T10:02:14.612292",
+    "duration_minutes": 21.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 4,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-08-17T10:23:41.405454",
+    "duration_minutes": 11.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 4,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-08-17T10:34:43.522438",
+    "duration_minutes": 48.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 4,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-08-17T11:23:36.705617",
+    "duration_minutes": 5.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 5,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-08-17T17:19:27.347201",
+    "duration_minutes": 4.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 5,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-08-17T17:23:28.915234",
+    "duration_minutes": 39.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 5,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-08-17T18:02:27.974070",
+    "duration_minutes": 8.4,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 5,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-08-17T18:10:50.605863",
+    "duration_minutes": 9.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 5,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-08-17T18:20:18.202458",
+    "duration_minutes": 20.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-08-17T20:17:29.565770",
+    "duration_minutes": 1.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-08-17T20:19:23.908282",
+    "duration_minutes": 1.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-08-17T20:20:30.930035",
+    "duration_minutes": 16.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-08-17T20:37:20.629754",
+    "duration_minutes": 1.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-08-17T20:38:21.762258",
+    "duration_minutes": 2.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 1,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-08-17T20:41:05.857547",
+    "duration_minutes": 3.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 3,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-08-19T22:56:40.876513",
+    "duration_minutes": 5.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 3,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-08-19T23:01:53.173378",
+    "duration_minutes": 20.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 3,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-08-19T23:22:43.182154",
+    "duration_minutes": 13.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 3,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-08-19T23:36:04.081791",
+    "duration_minutes": 48.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 3,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-08-20T00:24:11.080393",
+    "duration_minutes": 6.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 6,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-08-20T01:44:33.169391",
+    "duration_minutes": 5.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 6,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-08-20T01:49:47.983480",
+    "duration_minutes": 19.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 6,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-08-20T02:09:13.670539",
+    "duration_minutes": 8.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 6,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-08-20T02:17:44.240415",
+    "duration_minutes": 7.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 6,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-08-20T02:25:28.540940",
+    "duration_minutes": 24.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-08-20T04:33:00.791685",
+    "duration_minutes": 2.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-08-20T04:35:05.696981",
+    "duration_minutes": 0.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-08-20T04:36:00.190508",
+    "duration_minutes": 17.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-08-20T04:52:59.162939",
+    "duration_minutes": 1.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-08-20T04:53:57.880209",
+    "duration_minutes": 3.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 2,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-08-20T04:57:23.146323",
+    "duration_minutes": 4.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 11,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-08-23T16:19:41.056585",
+    "duration_minutes": 4.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 11,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-08-23T16:24:37.318767",
+    "duration_minutes": 19.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 11,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-08-23T16:44:31.731463",
+    "duration_minutes": 9.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 11,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-08-23T16:53:51.150265",
+    "duration_minutes": 12.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 11,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-08-23T17:06:26.054046",
+    "duration_minutes": 17.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-08-23T19:33:13.762127",
+    "duration_minutes": 1.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-08-23T19:35:01.917984",
+    "duration_minutes": 1.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-08-23T19:36:00.541996",
+    "duration_minutes": 14.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-08-23T19:50:51.523433",
+    "duration_minutes": 1.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-08-23T19:51:49.569930",
+    "duration_minutes": 2.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 7,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-08-23T19:54:37.532745",
+    "duration_minutes": 3.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 10,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-08-25T02:49:04.825625",
+    "duration_minutes": 4.2,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 10,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-08-25T02:53:15.063742",
+    "duration_minutes": 24.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 10,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-08-25T03:17:31.590950",
+    "duration_minutes": 4.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 10,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-08-25T03:22:04.089507",
+    "duration_minutes": 10.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 10,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-08-25T03:32:51.484770",
+    "duration_minutes": 13.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 8,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-08-25T04:26:58.338761",
+    "duration_minutes": 4.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 8,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-08-25T04:31:36.085731",
+    "duration_minutes": 18.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 8,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-08-25T04:50:02.971384",
+    "duration_minutes": 12.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 8,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-08-25T05:02:30.730949",
+    "duration_minutes": 47.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 8,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-08-25T05:49:43.655024",
+    "duration_minutes": 6.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 9,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-08-26T12:15:23.449015",
+    "duration_minutes": 5.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 9,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-08-26T12:20:24.484770",
+    "duration_minutes": 21.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 9,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-08-26T12:42:18.235502",
+    "duration_minutes": 13.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 9,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-08-26T12:55:16.707394",
+    "duration_minutes": 46.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 9,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-08-26T13:42:04.394562",
+    "duration_minutes": 6.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 12,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-08-26T14:56:20.642156",
+    "duration_minutes": 6.3,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 12,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-08-26T15:02:39.074837",
+    "duration_minutes": 24.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 12,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-08-26T15:27:21.972797",
+    "duration_minutes": 5.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 12,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-08-26T15:32:39.048679",
+    "duration_minutes": 15.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 12,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-08-26T15:48:19.918975",
+    "duration_minutes": 17.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-09-01T04:01:00.058645",
+    "duration_minutes": 2.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-09-01T04:02:59.340304",
+    "duration_minutes": 1.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-09-01T04:04:05.587722",
+    "duration_minutes": 15.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-09-01T04:19:03.998126",
+    "duration_minutes": 0.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-09-01T04:19:59.706443",
+    "duration_minutes": 3.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 13,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-09-01T04:23:07.079716",
+    "duration_minutes": 4.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 15,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-01T18:40:43.846792",
+    "duration_minutes": 5.6,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 15,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-01T18:46:22.287373",
+    "duration_minutes": 39.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 15,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-01T19:26:09.733202",
+    "duration_minutes": 6.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 15,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-01T19:32:31.594054",
+    "duration_minutes": 15.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 15,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-01T19:47:48.605834",
+    "duration_minutes": 21.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 14,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-03T03:27:49.326483",
+    "duration_minutes": 5.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 14,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-03T03:33:10.333766",
+    "duration_minutes": 24.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 14,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-03T03:57:13.630897",
+    "duration_minutes": 8.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 14,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-03T04:05:50.975741",
+    "duration_minutes": 10.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 14,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-03T04:16:31.912200",
+    "duration_minutes": 22.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 21,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-07T11:19:50.502954",
+    "duration_minutes": 6.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 21,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-07T11:25:49.251987",
+    "duration_minutes": 27.2,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 21,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-07T11:52:59.148322",
+    "duration_minutes": 5.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 21,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-07T11:58:20.742260",
+    "duration_minutes": 13.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 21,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-07T12:11:40.772521",
+    "duration_minutes": 22.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 18,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-08T20:56:16.647926",
+    "duration_minutes": 3.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 18,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-08T20:59:37.208831",
+    "duration_minutes": 28.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 18,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-08T21:27:58.949795",
+    "duration_minutes": 9.2,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 18,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-08T21:37:09.207199",
+    "duration_minutes": 14.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 18,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-08T21:51:38.118781",
+    "duration_minutes": 18.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 19,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-09T07:48:37.707104",
+    "duration_minutes": 4.1,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 19,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-09T07:52:40.939968",
+    "duration_minutes": 33.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 19,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-09T08:26:25.631791",
+    "duration_minutes": 4.6,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 19,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-09T08:30:59.396277",
+    "duration_minutes": 13.4,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 19,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-09T08:44:23.216931",
+    "duration_minutes": 18.2,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 20,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-09T13:47:31.796697",
+    "duration_minutes": 5.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 20,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-09T13:52:59.742426",
+    "duration_minutes": 29.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 20,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-09T14:22:54.821317",
+    "duration_minutes": 6.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 20,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-09T14:29:24.964997",
+    "duration_minutes": 14.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 20,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-09T14:43:35.753123",
+    "duration_minutes": 15.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-09-09T21:18:58.204432",
+    "duration_minutes": 2.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-09-09T21:21:05.349843",
+    "duration_minutes": 0.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-09-09T21:22:00.624572",
+    "duration_minutes": 16.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-09-09T21:38:23.639233",
+    "duration_minutes": 1.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-09-09T21:39:27.503258",
+    "duration_minutes": 3.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 16,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-09-09T21:42:25.478655",
+    "duration_minutes": 4.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 17,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-10T03:49:12.825276",
+    "duration_minutes": 5.7,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 17,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-10T03:54:52.811186",
+    "duration_minutes": 19.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 17,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-10T04:14:35.930040",
+    "duration_minutes": 8.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 17,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-10T04:22:49.910421",
+    "duration_minutes": 13.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 17,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-10T04:36:01.249202",
+    "duration_minutes": 18.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 28,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-12T19:12:51.523714",
+    "duration_minutes": 5.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 28,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-12T19:18:26.948128",
+    "duration_minutes": 25.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 28,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-12T19:44:12.211520",
+    "duration_minutes": 4.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 28,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-12T19:48:37.693329",
+    "duration_minutes": 11.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 28,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-12T20:00:32.724097",
+    "duration_minutes": 14.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-09-14T02:21:10.196911",
+    "duration_minutes": 1.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-09-14T02:23:01.615560",
+    "duration_minutes": 1.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-09-14T02:24:05.676081",
+    "duration_minutes": 15.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-09-14T02:39:25.809976",
+    "duration_minutes": 1.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-09-14T02:40:34.298722",
+    "duration_minutes": 2.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 22,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-09-14T02:43:30.401907",
+    "duration_minutes": 4.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 25,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-14T08:03:15.450930",
+    "duration_minutes": 4.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 25,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-14T08:07:26.332282",
+    "duration_minutes": 31.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 25,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-14T08:39:14.259499",
+    "duration_minutes": 7.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 25,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-14T08:46:55.323770",
+    "duration_minutes": 12.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 25,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-14T08:58:54.976561",
+    "duration_minutes": 14.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 26,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-14T11:08:35.359116",
+    "duration_minutes": 4.1,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 26,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-14T11:12:40.911577",
+    "duration_minutes": 20.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 26,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-14T11:33:15.233442",
+    "duration_minutes": 9.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 26,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-14T11:42:39.514067",
+    "duration_minutes": 11.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 26,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-14T11:54:06.797785",
+    "duration_minutes": 19.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 27,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-14T15:57:27.265985",
+    "duration_minutes": 2.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 27,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-14T16:00:21.931897",
+    "duration_minutes": 24.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 27,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-14T16:24:26.253275",
+    "duration_minutes": 7.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 27,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-14T16:31:32.438467",
+    "duration_minutes": 11.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 27,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-14T16:42:39.392016",
+    "duration_minutes": 25.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 23,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-09-15T06:24:24.257939",
+    "duration_minutes": 5.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 23,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-09-15T06:29:57.671774",
+    "duration_minutes": 21.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 23,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-09-15T06:51:02.880578",
+    "duration_minutes": 13.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 23,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-09-15T07:04:17.353464",
+    "duration_minutes": 48.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 24,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-09-15T07:04:21.315957",
+    "duration_minutes": 4.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 24,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-09-15T07:09:01.362040",
+    "duration_minutes": 18.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 24,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-09-15T07:27:36.720536",
+    "duration_minutes": 11.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 24,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-09-15T07:39:19.688936",
+    "duration_minutes": 42.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 23,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-09-15T07:52:43.895608",
+    "duration_minutes": 5.8,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 24,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-09-15T08:21:53.243986",
+    "duration_minutes": 6.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 29,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-16T01:37:31.709692",
+    "duration_minutes": 6.4,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 29,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-16T01:43:55.561229",
+    "duration_minutes": 25.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 29,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-16T02:09:16.140148",
+    "duration_minutes": 6.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 29,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-16T02:15:50.398797",
+    "duration_minutes": 14.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 29,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-16T02:29:49.239888",
+    "duration_minutes": 25.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 32,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-20T04:15:30.730790",
+    "duration_minutes": 4.3,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 32,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-20T04:19:47.635574",
+    "duration_minutes": 23.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 32,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-20T04:43:32.022347",
+    "duration_minutes": 8.0,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 32,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-20T04:51:31.284542",
+    "duration_minutes": 8.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 32,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-20T04:59:50.256001",
+    "duration_minutes": 16.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 33,
+    "workflow_name": "bug_triage",
+    "activity": "ticket_read",
+    "timestamp": "2026-09-21T05:01:57.837220",
+    "duration_minutes": 5.1,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 33,
+    "workflow_name": "bug_triage",
+    "activity": "reproduce_attempt",
+    "timestamp": "2026-09-21T05:07:02.436048",
+    "duration_minutes": 25.9,
+    "outcome": "rework"
+  },
+  {
+    "workflow_run_id": 33,
+    "workflow_name": "bug_triage",
+    "activity": "context_switch",
+    "timestamp": "2026-09-21T05:32:58.918691",
+    "duration_minutes": 8.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 33,
+    "workflow_name": "bug_triage",
+    "activity": "log_search",
+    "timestamp": "2026-09-21T05:41:28.368647",
+    "duration_minutes": 10.6,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 33,
+    "workflow_name": "bug_triage",
+    "activity": "fix_or_escalate",
+    "timestamp": "2026-09-21T05:52:05.908065",
+    "duration_minutes": 23.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 31,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "email_intake",
+    "timestamp": "2026-09-22T05:47:37.039727",
+    "duration_minutes": 5.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 31,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "manual_data_entry",
+    "timestamp": "2026-09-22T05:53:20.464739",
+    "duration_minutes": 19.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 31,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "cross_check",
+    "timestamp": "2026-09-22T06:12:48.255148",
+    "duration_minutes": 12.5,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 31,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "approval_wait",
+    "timestamp": "2026-09-22T06:25:19.347552",
+    "duration_minutes": 51.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 31,
+    "workflow_name": "onboarding_new_partner",
+    "activity": "account_create",
+    "timestamp": "2026-09-22T07:16:32.215760",
+    "duration_minutes": 6.2,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_download",
+    "timestamp": "2026-09-23T00:06:18.387514",
+    "duration_minutes": 1.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "file_open",
+    "timestamp": "2026-09-23T00:08:11.366963",
+    "duration_minutes": 0.9,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "column_cleanup",
+    "timestamp": "2026-09-23T00:09:07.455487",
+    "duration_minutes": 14.3,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "rename",
+    "timestamp": "2026-09-23T00:23:23.944910",
+    "duration_minutes": 1.0,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "export",
+    "timestamp": "2026-09-23T00:24:21.049051",
+    "duration_minutes": 2.7,
+    "outcome": "success"
+  },
+  {
+    "workflow_run_id": 30,
+    "workflow_name": "weekly_reporting",
+    "activity": "upload",
+    "timestamp": "2026-09-23T00:27:05.720154",
+    "duration_minutes": 4.0,
+    "outcome": "success"
+  }
+]

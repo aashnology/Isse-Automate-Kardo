@@ -1,0 +1,2542 @@
+[
+  {
+    "id": "item_0104",
+    "title": "Deep dive: how developer tools is changing data quality",
+    "topic": "developer tools",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T00:37:10.265833",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.31
+  },
+  {
+    "id": "item_0114",
+    "title": "Opinion: why database internals matters for cold-start ranking",
+    "topic": "database internals",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T06:57:12.585946",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.41
+  },
+  {
+    "id": "item_0168",
+    "title": "Benchmark results for product analytics methods on cold-start ranking",
+    "topic": "product analytics",
+    "source": "Newsletter",
+    "timestamp": "2026-09-15T10:15:02.533488",
+    "near_dup_of": null,
+    "credibility_prior": 0.7,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0139",
+    "title": "Deep dive: how recommendation systems is changing latency at scale",
+    "topic": "recommendation systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T12:48:10.572394",
+    "near_dup_of": null,
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.32
+  },
+  {
+    "id": "item_0167",
+    "title": "Netflix ships computer vision update for data quality",
+    "topic": "computer vision",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-15T12:51:16.626880",
+    "near_dup_of": null,
+    "credibility_prior": 0.83,
+    "potential_impact_prior": 0.35
+  },
+  {
+    "id": "item_0091",
+    "title": "Deep dive: how MLOps is changing personalization",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-15T13:01:56.724451",
+    "near_dup_of": null,
+    "credibility_prior": 0.46,
+    "potential_impact_prior": 0.51
+  },
+  {
+    "id": "item_0135",
+    "title": "Netflix ships MLOps update for personalization",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-15T13:07:52.933030",
+    "near_dup_of": null,
+    "credibility_prior": 0.94,
+    "potential_impact_prior": 0.36
+  },
+  {
+    "id": "item_0032",
+    "title": "Deep dive: how recommendation systems is changing personalization",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-15T13:12:47.132460",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.48
+  },
+  {
+    "id": "item_0155",
+    "title": "Pinterest ships MLOps update for latency at scale",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-15T14:30:19.631712",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.92
+  },
+  {
+    "id": "item_0095",
+    "title": "Meta ships product analytics update for model evaluation",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-15T14:35:20.287592",
+    "near_dup_of": null,
+    "credibility_prior": 0.85,
+    "potential_impact_prior": 0.47
+  },
+  {
+    "id": "item_0021",
+    "title": "Benchmark results for data engineering methods on search relevance",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-15T17:47:24.546075",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.92
+  },
+  {
+    "id": "item_0009",
+    "title": "New paper introduces MLOps approach to cold-start ranking",
+    "topic": "MLOps",
+    "source": "TechBlog",
+    "timestamp": "2026-09-15T17:48:31.595906",
+    "near_dup_of": null,
+    "credibility_prior": 0.78,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0034",
+    "title": "Deep dive: how reinforcement learning is changing data quality",
+    "topic": "reinforcement learning",
+    "source": "ArXiv",
+    "timestamp": "2026-09-15T17:50:14.889297",
+    "near_dup_of": null,
+    "credibility_prior": 0.63,
+    "potential_impact_prior": 0.23
+  },
+  {
+    "id": "item_0139_dup",
+    "title": "Benchmark results for recommendation systems methods on data quality (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-15T18:20:55.016592",
+    "near_dup_of": "item_0139",
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.2
+  },
+  {
+    "id": "item_0178",
+    "title": "Deep dive: how developer tools is changing pipeline reliability",
+    "topic": "developer tools",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T19:51:01.736423",
+    "near_dup_of": null,
+    "credibility_prior": 0.81,
+    "potential_impact_prior": 0.84
+  },
+  {
+    "id": "item_0095_dup",
+    "title": "an open-source project ships product analytics update for personalization (updated coverage)",
+    "topic": "product analytics",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T20:23:05.574791",
+    "near_dup_of": "item_0095",
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0025",
+    "title": "Opinion: why database internals matters for cold-start ranking",
+    "topic": "database internals",
+    "source": "ArXiv",
+    "timestamp": "2026-09-15T20:49:53.921485",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0038",
+    "title": "Spotify ships database internals update for model evaluation",
+    "topic": "database internals",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-15T21:29:41.361297",
+    "near_dup_of": null,
+    "credibility_prior": 0.66,
+    "potential_impact_prior": 0.62
+  },
+  {
+    "id": "item_0007",
+    "title": "Deep dive: how reinforcement learning is changing cold-start ranking",
+    "topic": "reinforcement learning",
+    "source": "ArXiv",
+    "timestamp": "2026-09-15T21:52:37.758446",
+    "near_dup_of": null,
+    "credibility_prior": 0.88,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0126",
+    "title": "Opinion: why database internals matters for user retention",
+    "topic": "database internals",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-15T23:45:04.900792",
+    "near_dup_of": null,
+    "credibility_prior": 0.73,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0093",
+    "title": "Pinterest ships product analytics update for pipeline reliability",
+    "topic": "product analytics",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T00:03:17.008717",
+    "near_dup_of": null,
+    "credibility_prior": 0.51,
+    "potential_impact_prior": 0.4
+  },
+  {
+    "id": "item_0085",
+    "title": "Deep dive: how product analytics is changing user retention",
+    "topic": "product analytics",
+    "source": "ArXiv",
+    "timestamp": "2026-09-16T01:54:05.100147",
+    "near_dup_of": null,
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.88
+  },
+  {
+    "id": "item_0107",
+    "title": "Benchmark results for product analytics methods on cold-start ranking",
+    "topic": "product analytics",
+    "source": "Newsletter",
+    "timestamp": "2026-09-16T02:34:22.246930",
+    "near_dup_of": null,
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.54
+  },
+  {
+    "id": "item_0033",
+    "title": "Pinterest ships data engineering update for data quality",
+    "topic": "data engineering",
+    "source": "Newsletter",
+    "timestamp": "2026-09-16T03:11:01.618952",
+    "near_dup_of": null,
+    "credibility_prior": 0.41,
+    "potential_impact_prior": 0.79
+  },
+  {
+    "id": "item_0007_dup",
+    "title": "Opinion: why reinforcement learning matters for pipeline reliability (updated coverage)",
+    "topic": "reinforcement learning",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T03:23:57.853705",
+    "near_dup_of": "item_0007",
+    "credibility_prior": 0.7,
+    "potential_impact_prior": 0.91
+  },
+  {
+    "id": "item_0028",
+    "title": "Deep dive: how distributed systems is changing data quality",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-16T03:58:37.335831",
+    "near_dup_of": null,
+    "credibility_prior": 0.82,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0071",
+    "title": "Deep dive: how reinforcement learning is changing latency at scale",
+    "topic": "reinforcement learning",
+    "source": "TechBlog",
+    "timestamp": "2026-09-16T04:04:42.122703",
+    "near_dup_of": null,
+    "credibility_prior": 0.5,
+    "potential_impact_prior": 0.26
+  },
+  {
+    "id": "item_0112",
+    "title": "New paper introduces computer vision approach to model evaluation",
+    "topic": "computer vision",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-16T04:14:02.540568",
+    "near_dup_of": null,
+    "credibility_prior": 0.61,
+    "potential_impact_prior": 0.66
+  },
+  {
+    "id": "item_0081",
+    "title": "Benchmark results for product analytics methods on pipeline reliability",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-16T04:42:43.119266",
+    "near_dup_of": null,
+    "credibility_prior": 0.89,
+    "potential_impact_prior": 0.43
+  },
+  {
+    "id": "item_0107_dup",
+    "title": "Benchmark results for product analytics methods on latency at scale (updated coverage)",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-16T06:59:27.792965",
+    "near_dup_of": "item_0107",
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.25
+  },
+  {
+    "id": "item_0071_dup",
+    "title": "Opinion: why reinforcement learning matters for search relevance (updated coverage)",
+    "topic": "reinforcement learning",
+    "source": "ArXiv",
+    "timestamp": "2026-09-16T07:03:22.096054",
+    "near_dup_of": "item_0071",
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.77
+  },
+  {
+    "id": "item_0026",
+    "title": "Meta ships distributed systems update for model evaluation",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-16T07:15:18.729333",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.44
+  },
+  {
+    "id": "item_0062",
+    "title": "Opinion: why product analytics matters for cold-start ranking",
+    "topic": "product analytics",
+    "source": "TechBlog",
+    "timestamp": "2026-09-16T08:22:54.192307",
+    "near_dup_of": null,
+    "credibility_prior": 0.45,
+    "potential_impact_prior": 0.78
+  },
+  {
+    "id": "item_0177",
+    "title": "a research lab ships recommendation systems update for personalization",
+    "topic": "recommendation systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-16T09:21:02.090109",
+    "near_dup_of": null,
+    "credibility_prior": 1.0,
+    "potential_impact_prior": 0.58
+  },
+  {
+    "id": "item_0058",
+    "title": "New paper introduces reinforcement learning approach to personalization",
+    "topic": "reinforcement learning",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T09:33:11.815048",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.88
+  },
+  {
+    "id": "item_0197",
+    "title": "New paper introduces MLOps approach to model evaluation",
+    "topic": "MLOps",
+    "source": "TechBlog",
+    "timestamp": "2026-09-16T10:31:50.138382",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.81
+  },
+  {
+    "id": "item_0128",
+    "title": "Opinion: why large language models matters for data quality",
+    "topic": "large language models",
+    "source": "TechBlog",
+    "timestamp": "2026-09-16T11:56:20.934635",
+    "near_dup_of": null,
+    "credibility_prior": 0.82,
+    "potential_impact_prior": 0.99
+  },
+  {
+    "id": "item_0053",
+    "title": "Opinion: why database internals matters for cold-start ranking",
+    "topic": "database internals",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-16T12:41:47.641935",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.22
+  },
+  {
+    "id": "item_0181",
+    "title": "Deep dive: how data engineering is changing cold-start ranking",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T17:09:56.599497",
+    "near_dup_of": null,
+    "credibility_prior": 0.45,
+    "potential_impact_prior": 0.94
+  },
+  {
+    "id": "item_0069",
+    "title": "a research lab ships large language models update for latency at scale",
+    "topic": "large language models",
+    "source": "Newsletter",
+    "timestamp": "2026-09-16T19:02:01.721446",
+    "near_dup_of": null,
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0188",
+    "title": "Benchmark results for developer tools methods on model evaluation",
+    "topic": "developer tools",
+    "source": "ArXiv",
+    "timestamp": "2026-09-16T19:50:37.446815",
+    "near_dup_of": null,
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.78
+  },
+  {
+    "id": "item_0194",
+    "title": "New paper introduces database internals approach to search relevance",
+    "topic": "database internals",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T20:03:26.827831",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.93
+  },
+  {
+    "id": "item_0096",
+    "title": "Benchmark results for large language models methods on cold-start ranking",
+    "topic": "large language models",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-16T20:07:57.888453",
+    "near_dup_of": null,
+    "credibility_prior": 0.47,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0148",
+    "title": "Deep dive: how large language models is changing user retention",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-16T20:43:44.926548",
+    "near_dup_of": null,
+    "credibility_prior": 0.66,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0202",
+    "title": "Benchmark results for recommendation systems methods on search relevance",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-16T21:16:56.371214",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0103",
+    "title": "Netflix ships database internals update for personalization",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T00:01:46.766568",
+    "near_dup_of": null,
+    "credibility_prior": 0.87,
+    "potential_impact_prior": 0.68
+  },
+  {
+    "id": "item_0202_dup",
+    "title": "Deep dive: how recommendation systems is changing personalization (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T00:33:13.509023",
+    "near_dup_of": "item_0202",
+    "credibility_prior": 0.59,
+    "potential_impact_prior": 0.68
+  },
+  {
+    "id": "item_0194_dup",
+    "title": "Opinion: why database internals matters for personalization (updated coverage)",
+    "topic": "database internals",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T01:06:56.554099",
+    "near_dup_of": "item_0194",
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.46
+  },
+  {
+    "id": "item_0187",
+    "title": "Opinion: why database internals matters for latency at scale",
+    "topic": "database internals",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-17T01:50:46.150409",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0211",
+    "title": "Netflix ships distributed systems update for pipeline reliability",
+    "topic": "distributed systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-17T02:28:22.836871",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0024",
+    "title": "New paper introduces developer tools approach to data quality",
+    "topic": "developer tools",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T04:03:20.756423",
+    "near_dup_of": null,
+    "credibility_prior": 0.44,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0048",
+    "title": "Benchmark results for developer tools methods on personalization",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-17T04:15:51.694841",
+    "near_dup_of": null,
+    "credibility_prior": 0.45,
+    "potential_impact_prior": 0.43
+  },
+  {
+    "id": "item_0084",
+    "title": "Benchmark results for data engineering methods on cold-start ranking",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T08:28:58.434816",
+    "near_dup_of": null,
+    "credibility_prior": 0.98,
+    "potential_impact_prior": 0.47
+  },
+  {
+    "id": "item_0200",
+    "title": "Pinterest ships distributed systems update for model evaluation",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-17T08:56:24.472828",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.23
+  },
+  {
+    "id": "item_0105",
+    "title": "Spotify ships recommendation systems update for model evaluation",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T09:07:51.192614",
+    "near_dup_of": null,
+    "credibility_prior": 0.85,
+    "potential_impact_prior": 0.62
+  },
+  {
+    "id": "item_0042",
+    "title": "Benchmark results for distributed systems methods on search relevance",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-17T09:20:41.744217",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.58
+  },
+  {
+    "id": "item_0218",
+    "title": "New paper introduces computer vision approach to pipeline reliability",
+    "topic": "computer vision",
+    "source": "Newsletter",
+    "timestamp": "2026-09-17T10:25:10.840022",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.99
+  },
+  {
+    "id": "item_0094",
+    "title": "New paper introduces data engineering approach to cold-start ranking",
+    "topic": "data engineering",
+    "source": "Newsletter",
+    "timestamp": "2026-09-17T11:57:12.301546",
+    "near_dup_of": null,
+    "credibility_prior": 0.42,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0073",
+    "title": "Deep dive: how data engineering is changing model evaluation",
+    "topic": "data engineering",
+    "source": "ArXiv",
+    "timestamp": "2026-09-17T12:22:53.799005",
+    "near_dup_of": null,
+    "credibility_prior": 0.68,
+    "potential_impact_prior": 0.44
+  },
+  {
+    "id": "item_0014",
+    "title": "Opinion: why reinforcement learning matters for latency at scale",
+    "topic": "reinforcement learning",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-17T13:06:50.819889",
+    "near_dup_of": null,
+    "credibility_prior": 0.69,
+    "potential_impact_prior": 0.26
+  },
+  {
+    "id": "item_0084_dup",
+    "title": "New paper introduces data engineering approach to search relevance (updated coverage)",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-17T13:37:50.215394",
+    "near_dup_of": "item_0084",
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.9
+  },
+  {
+    "id": "item_0011",
+    "title": "New paper introduces distributed systems approach to model evaluation",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T13:49:47.581498",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.96
+  },
+  {
+    "id": "item_0063",
+    "title": "Benchmark results for MLOps methods on cold-start ranking",
+    "topic": "MLOps",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-17T13:57:10.023310",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0123",
+    "title": "Benchmark results for data engineering methods on search relevance",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T14:18:10.936986",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.94
+  },
+  {
+    "id": "item_0043",
+    "title": "Deep dive: how large language models is changing pipeline reliability",
+    "topic": "large language models",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T17:22:06.201466",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.38
+  },
+  {
+    "id": "item_0094_dup",
+    "title": "Deep dive: how data engineering is changing user retention (updated coverage)",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T17:27:22.932230",
+    "near_dup_of": "item_0094",
+    "credibility_prior": 0.48,
+    "potential_impact_prior": 0.63
+  },
+  {
+    "id": "item_0109",
+    "title": "Meta ships developer tools update for user retention",
+    "topic": "developer tools",
+    "source": "TechBlog",
+    "timestamp": "2026-09-17T19:23:52.530549",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.86
+  },
+  {
+    "id": "item_0047",
+    "title": "Benchmark results for developer tools methods on search relevance",
+    "topic": "developer tools",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-17T20:36:18.575192",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.56
+  },
+  {
+    "id": "item_0206",
+    "title": "Opinion: why recommendation systems matters for user retention",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-17T23:19:47.517599",
+    "near_dup_of": null,
+    "credibility_prior": 0.72,
+    "potential_impact_prior": 0.51
+  },
+  {
+    "id": "item_0144",
+    "title": "Deep dive: how large language models is changing personalization",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T00:33:38.484806",
+    "near_dup_of": null,
+    "credibility_prior": 0.78,
+    "potential_impact_prior": 0.82
+  },
+  {
+    "id": "item_0039",
+    "title": "Deep dive: how reinforcement learning is changing user retention",
+    "topic": "reinforcement learning",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T01:04:29.622311",
+    "near_dup_of": null,
+    "credibility_prior": 0.95,
+    "potential_impact_prior": 0.7
+  },
+  {
+    "id": "item_0175",
+    "title": "Opinion: why data engineering matters for user retention",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T01:20:46.822686",
+    "near_dup_of": null,
+    "credibility_prior": 0.55,
+    "potential_impact_prior": 0.66
+  },
+  {
+    "id": "item_0157",
+    "title": "Deep dive: how data engineering is changing personalization",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T01:23:10.871526",
+    "near_dup_of": null,
+    "credibility_prior": 0.88,
+    "potential_impact_prior": 0.39
+  },
+  {
+    "id": "item_0015",
+    "title": "Opinion: why MLOps matters for data quality",
+    "topic": "MLOps",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T01:36:18.961393",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.54
+  },
+  {
+    "id": "item_0003",
+    "title": "New paper introduces computer vision approach to pipeline reliability",
+    "topic": "computer vision",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T02:47:43.035494",
+    "near_dup_of": null,
+    "credibility_prior": 0.56,
+    "potential_impact_prior": 0.23
+  },
+  {
+    "id": "item_0219",
+    "title": "New paper introduces recommendation systems approach to user retention",
+    "topic": "recommendation systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T03:58:05.248825",
+    "near_dup_of": null,
+    "credibility_prior": 0.73,
+    "potential_impact_prior": 0.24
+  },
+  {
+    "id": "item_0182",
+    "title": "Deep dive: how developer tools is changing model evaluation",
+    "topic": "developer tools",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T03:59:24.006873",
+    "near_dup_of": null,
+    "credibility_prior": 0.77,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0066",
+    "title": "Opinion: why database internals matters for model evaluation",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T04:35:08.942445",
+    "near_dup_of": null,
+    "credibility_prior": 0.58,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0119",
+    "title": "Opinion: why computer vision matters for personalization",
+    "topic": "computer vision",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T04:59:12.697322",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.84
+  },
+  {
+    "id": "item_0219_dup",
+    "title": "Benchmark results for recommendation systems methods on user retention (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-18T05:24:38.643614",
+    "near_dup_of": "item_0219",
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0110",
+    "title": "Deep dive: how distributed systems is changing pipeline reliability",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T05:52:43.546811",
+    "near_dup_of": null,
+    "credibility_prior": 0.95,
+    "potential_impact_prior": 0.25
+  },
+  {
+    "id": "item_0027",
+    "title": "Opinion: why MLOps matters for latency at scale",
+    "topic": "MLOps",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T06:17:54.284309",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.41
+  },
+  {
+    "id": "item_0090",
+    "title": "Deep dive: how MLOps is changing data quality",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T06:52:16.853990",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.99
+  },
+  {
+    "id": "item_0204",
+    "title": "Opinion: why computer vision matters for search relevance",
+    "topic": "computer vision",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-18T07:49:58.160925",
+    "near_dup_of": null,
+    "credibility_prior": 0.96,
+    "potential_impact_prior": 0.74
+  },
+  {
+    "id": "item_0060",
+    "title": "Deep dive: how developer tools is changing search relevance",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T08:16:52.173356",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0072",
+    "title": "Deep dive: how reinforcement learning is changing personalization",
+    "topic": "reinforcement learning",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T08:52:23.374052",
+    "near_dup_of": null,
+    "credibility_prior": 0.73,
+    "potential_impact_prior": 0.72
+  },
+  {
+    "id": "item_0119_dup",
+    "title": "New paper introduces computer vision approach to user retention (updated coverage)",
+    "topic": "computer vision",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T10:13:35.631690",
+    "near_dup_of": "item_0119",
+    "credibility_prior": 0.95,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0185",
+    "title": "Opinion: why large language models matters for personalization",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T11:40:51.376555",
+    "near_dup_of": null,
+    "credibility_prior": 0.83,
+    "potential_impact_prior": 0.95
+  },
+  {
+    "id": "item_0115",
+    "title": "Deep dive: how distributed systems is changing cold-start ranking",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T12:25:24.913976",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0163",
+    "title": "Deep dive: how database internals is changing cold-start ranking",
+    "topic": "database internals",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T13:05:45.057050",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0137",
+    "title": "New paper introduces developer tools approach to latency at scale",
+    "topic": "developer tools",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T13:37:30.539514",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.42
+  },
+  {
+    "id": "item_0164",
+    "title": "Opinion: why computer vision matters for cold-start ranking",
+    "topic": "computer vision",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T13:48:31.372620",
+    "near_dup_of": null,
+    "credibility_prior": 0.73,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0151",
+    "title": "Deep dive: how recommendation systems is changing user retention",
+    "topic": "recommendation systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T14:30:22.476952",
+    "near_dup_of": null,
+    "credibility_prior": 0.99,
+    "potential_impact_prior": 0.96
+  },
+  {
+    "id": "item_0183",
+    "title": "New paper introduces reinforcement learning approach to latency at scale",
+    "topic": "reinforcement learning",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-18T14:58:54.400466",
+    "near_dup_of": null,
+    "credibility_prior": 0.83,
+    "potential_impact_prior": 0.28
+  },
+  {
+    "id": "item_0076",
+    "title": "Opinion: why computer vision matters for cold-start ranking",
+    "topic": "computer vision",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T15:05:16.859006",
+    "near_dup_of": null,
+    "credibility_prior": 0.59,
+    "potential_impact_prior": 0.46
+  },
+  {
+    "id": "item_0067",
+    "title": "New paper introduces recommendation systems approach to model evaluation",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T15:31:28.191462",
+    "near_dup_of": null,
+    "credibility_prior": 0.78,
+    "potential_impact_prior": 0.8
+  },
+  {
+    "id": "item_0189",
+    "title": "Deep dive: how distributed systems is changing personalization",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T15:41:07.234480",
+    "near_dup_of": null,
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.92
+  },
+  {
+    "id": "item_0067_dup",
+    "title": "Deep dive: how recommendation systems is changing search relevance (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T16:05:31.046449",
+    "near_dup_of": "item_0067",
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0115_dup",
+    "title": "New paper introduces distributed systems approach to latency at scale (updated coverage)",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T16:24:21.719827",
+    "near_dup_of": "item_0115",
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.54
+  },
+  {
+    "id": "item_0201",
+    "title": "Spotify ships recommendation systems update for personalization",
+    "topic": "recommendation systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T18:26:08.322633",
+    "near_dup_of": null,
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.56
+  },
+  {
+    "id": "item_0151_dup",
+    "title": "Deep dive: how recommendation systems is changing data quality (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T18:30:45.225202",
+    "near_dup_of": "item_0151",
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.74
+  },
+  {
+    "id": "item_0203",
+    "title": "Meta ships product analytics update for personalization",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-18T19:22:59.902036",
+    "near_dup_of": null,
+    "credibility_prior": 0.57,
+    "potential_impact_prior": 0.65
+  },
+  {
+    "id": "item_0041",
+    "title": "Opinion: why data engineering matters for model evaluation",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T19:48:15.747744",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.44
+  },
+  {
+    "id": "item_0078",
+    "title": "Deep dive: how reinforcement learning is changing data quality",
+    "topic": "reinforcement learning",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T20:08:56.595318",
+    "near_dup_of": null,
+    "credibility_prior": 0.93,
+    "potential_impact_prior": 0.59
+  },
+  {
+    "id": "item_0141",
+    "title": "New paper introduces large language models approach to search relevance",
+    "topic": "large language models",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-18T20:11:27.801145",
+    "near_dup_of": null,
+    "credibility_prior": 0.41,
+    "potential_impact_prior": 0.61
+  },
+  {
+    "id": "item_0124",
+    "title": "Spotify ships distributed systems update for search relevance",
+    "topic": "distributed systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T21:01:36.501435",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.44
+  },
+  {
+    "id": "item_0162",
+    "title": "Deep dive: how data engineering is changing latency at scale",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T22:51:10.905590",
+    "near_dup_of": null,
+    "credibility_prior": 0.5,
+    "potential_impact_prior": 0.95
+  },
+  {
+    "id": "item_0199",
+    "title": "Opinion: why data engineering matters for user retention",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-18T23:17:32.151564",
+    "near_dup_of": null,
+    "credibility_prior": 0.84,
+    "potential_impact_prior": 0.38
+  },
+  {
+    "id": "item_0198",
+    "title": "Benchmark results for computer vision methods on user retention",
+    "topic": "computer vision",
+    "source": "ArXiv",
+    "timestamp": "2026-09-18T23:23:12.632492",
+    "near_dup_of": null,
+    "credibility_prior": 0.81,
+    "potential_impact_prior": 0.73
+  },
+  {
+    "id": "item_0082",
+    "title": "a research lab ships MLOps update for search relevance",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-18T23:38:53.577090",
+    "near_dup_of": null,
+    "credibility_prior": 0.61,
+    "potential_impact_prior": 0.64
+  },
+  {
+    "id": "item_0199_dup",
+    "title": "Deep dive: how data engineering is changing search relevance (updated coverage)",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-18T23:55:02.311045",
+    "near_dup_of": "item_0199",
+    "credibility_prior": 0.73,
+    "potential_impact_prior": 0.63
+  },
+  {
+    "id": "item_0078_dup",
+    "title": "Netflix ships reinforcement learning update for data quality (updated coverage)",
+    "topic": "reinforcement learning",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-19T00:06:51.036403",
+    "near_dup_of": "item_0078",
+    "credibility_prior": 0.41,
+    "potential_impact_prior": 0.53
+  },
+  {
+    "id": "item_0113",
+    "title": "Deep dive: how large language models is changing pipeline reliability",
+    "topic": "large language models",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-19T01:29:18.008374",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.85
+  },
+  {
+    "id": "item_0132",
+    "title": "Opinion: why data engineering matters for latency at scale",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-19T02:09:54.377015",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0098",
+    "title": "Deep dive: how MLOps is changing user retention",
+    "topic": "MLOps",
+    "source": "TechBlog",
+    "timestamp": "2026-09-19T02:31:24.747938",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.23
+  },
+  {
+    "id": "item_0008",
+    "title": "an open-source project ships data engineering update for model evaluation",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-19T06:46:24.809580",
+    "near_dup_of": null,
+    "credibility_prior": 0.66,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0029",
+    "title": "Deep dive: how developer tools is changing latency at scale",
+    "topic": "developer tools",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-19T07:20:41.475887",
+    "near_dup_of": null,
+    "credibility_prior": 0.47,
+    "potential_impact_prior": 0.29
+  },
+  {
+    "id": "item_0019",
+    "title": "New paper introduces distributed systems approach to personalization",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-19T07:56:56.690688",
+    "near_dup_of": null,
+    "credibility_prior": 0.72,
+    "potential_impact_prior": 0.31
+  },
+  {
+    "id": "item_0129",
+    "title": "Benchmark results for product analytics methods on user retention",
+    "topic": "product analytics",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-19T09:24:00.276067",
+    "near_dup_of": null,
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0101",
+    "title": "New paper introduces distributed systems approach to user retention",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-19T10:20:48.831982",
+    "near_dup_of": null,
+    "credibility_prior": 0.98,
+    "potential_impact_prior": 0.96
+  },
+  {
+    "id": "item_0000",
+    "title": "Pinterest ships product analytics update for personalization",
+    "topic": "product analytics",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-19T10:25:27.247728",
+    "near_dup_of": null,
+    "credibility_prior": 0.46,
+    "potential_impact_prior": 0.79
+  },
+  {
+    "id": "item_0120",
+    "title": "Deep dive: how computer vision is changing latency at scale",
+    "topic": "computer vision",
+    "source": "ArXiv",
+    "timestamp": "2026-09-19T12:32:35.283542",
+    "near_dup_of": null,
+    "credibility_prior": 0.98,
+    "potential_impact_prior": 0.34
+  },
+  {
+    "id": "item_0064",
+    "title": "Deep dive: how developer tools is changing user retention",
+    "topic": "developer tools",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-19T13:33:19.198891",
+    "near_dup_of": null,
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.76
+  },
+  {
+    "id": "item_0051",
+    "title": "Deep dive: how distributed systems is changing user retention",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-19T14:52:25.422310",
+    "near_dup_of": null,
+    "credibility_prior": 0.85,
+    "potential_impact_prior": 0.64
+  },
+  {
+    "id": "item_0136",
+    "title": "Benchmark results for product analytics methods on user retention",
+    "topic": "product analytics",
+    "source": "TechBlog",
+    "timestamp": "2026-09-19T17:00:42.959317",
+    "near_dup_of": null,
+    "credibility_prior": 0.88,
+    "potential_impact_prior": 0.31
+  },
+  {
+    "id": "item_0134",
+    "title": "Opinion: why data engineering matters for data quality",
+    "topic": "data engineering",
+    "source": "Newsletter",
+    "timestamp": "2026-09-19T17:26:44.567183",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0016",
+    "title": "Deep dive: how reinforcement learning is changing user retention",
+    "topic": "reinforcement learning",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-19T17:32:15.065772",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.92
+  },
+  {
+    "id": "item_0208",
+    "title": "Meta ships large language models update for personalization",
+    "topic": "large language models",
+    "source": "TechBlog",
+    "timestamp": "2026-09-19T18:20:42.420489",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.47
+  },
+  {
+    "id": "item_0001",
+    "title": "a research lab ships large language models update for personalization",
+    "topic": "large language models",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-19T22:00:21.376584",
+    "near_dup_of": null,
+    "credibility_prior": 0.42,
+    "potential_impact_prior": 0.36
+  },
+  {
+    "id": "item_0179",
+    "title": "Opinion: why product analytics matters for model evaluation",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-20T01:18:27.371952",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.76
+  },
+  {
+    "id": "item_0070",
+    "title": "Deep dive: how MLOps is changing user retention",
+    "topic": "MLOps",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T04:15:25.810728",
+    "near_dup_of": null,
+    "credibility_prior": 0.77,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0002",
+    "title": "Deep dive: how database internals is changing cold-start ranking",
+    "topic": "database internals",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-20T04:24:37.421862",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.42
+  },
+  {
+    "id": "item_0173",
+    "title": "Deep dive: how database internals is changing search relevance",
+    "topic": "database internals",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-20T06:23:57.197060",
+    "near_dup_of": null,
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.29
+  },
+  {
+    "id": "item_0106",
+    "title": "Opinion: why developer tools matters for latency at scale",
+    "topic": "developer tools",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T07:30:55.744525",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0020",
+    "title": "Benchmark results for large language models methods on latency at scale",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-20T08:28:06.693317",
+    "near_dup_of": null,
+    "credibility_prior": 1.0,
+    "potential_impact_prior": 0.87
+  },
+  {
+    "id": "item_0122",
+    "title": "Deep dive: how distributed systems is changing data quality",
+    "topic": "distributed systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-20T08:29:17.085478",
+    "near_dup_of": null,
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.36
+  },
+  {
+    "id": "item_0161",
+    "title": "Deep dive: how data engineering is changing personalization",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T08:50:36.327502",
+    "near_dup_of": null,
+    "credibility_prior": 0.94,
+    "potential_impact_prior": 0.88
+  },
+  {
+    "id": "item_0180",
+    "title": "Deep dive: how developer tools is changing model evaluation",
+    "topic": "developer tools",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T11:36:39.254384",
+    "near_dup_of": null,
+    "credibility_prior": 0.81,
+    "potential_impact_prior": 0.5
+  },
+  {
+    "id": "item_0216",
+    "title": "Opinion: why recommendation systems matters for user retention",
+    "topic": "recommendation systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-20T12:48:33.923340",
+    "near_dup_of": null,
+    "credibility_prior": 0.72,
+    "potential_impact_prior": 0.42
+  },
+  {
+    "id": "item_0195",
+    "title": "Opinion: why reinforcement learning matters for search relevance",
+    "topic": "reinforcement learning",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T12:48:54.701347",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.24
+  },
+  {
+    "id": "item_0127",
+    "title": "Deep dive: how reinforcement learning is changing search relevance",
+    "topic": "reinforcement learning",
+    "source": "TechBlog",
+    "timestamp": "2026-09-20T13:06:54.915604",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.56
+  },
+  {
+    "id": "item_0121",
+    "title": "New paper introduces distributed systems approach to user retention",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-20T13:30:46.900061",
+    "near_dup_of": null,
+    "credibility_prior": 0.66,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0190",
+    "title": "Meta ships large language models update for data quality",
+    "topic": "large language models",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-20T14:44:16.298191",
+    "near_dup_of": null,
+    "credibility_prior": 0.96,
+    "potential_impact_prior": 0.21
+  },
+  {
+    "id": "item_0193",
+    "title": "Deep dive: how database internals is changing user retention",
+    "topic": "database internals",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T14:48:13.612148",
+    "near_dup_of": null,
+    "credibility_prior": 0.95,
+    "potential_impact_prior": 0.81
+  },
+  {
+    "id": "item_0195_dup",
+    "title": "Opinion: why reinforcement learning matters for cold-start ranking (updated coverage)",
+    "topic": "reinforcement learning",
+    "source": "Newsletter",
+    "timestamp": "2026-09-20T15:36:00.107909",
+    "near_dup_of": "item_0195",
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.45
+  },
+  {
+    "id": "item_0159",
+    "title": "Opinion: why computer vision matters for latency at scale",
+    "topic": "computer vision",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-20T15:44:53.577455",
+    "near_dup_of": null,
+    "credibility_prior": 0.79,
+    "potential_impact_prior": 0.56
+  },
+  {
+    "id": "item_0121_dup",
+    "title": "Deep dive: how distributed systems is changing personalization (updated coverage)",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-20T18:48:03.283502",
+    "near_dup_of": "item_0121",
+    "credibility_prior": 0.45,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0100",
+    "title": "Benchmark results for data engineering methods on latency at scale",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-20T22:04:55.373021",
+    "near_dup_of": null,
+    "credibility_prior": 0.64,
+    "potential_impact_prior": 0.96
+  },
+  {
+    "id": "item_0083",
+    "title": "Pinterest ships reinforcement learning update for user retention",
+    "topic": "reinforcement learning",
+    "source": "Newsletter",
+    "timestamp": "2026-09-20T23:28:53.618815",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.8
+  },
+  {
+    "id": "item_0100_dup",
+    "title": "Benchmark results for data engineering methods on search relevance (updated coverage)",
+    "topic": "data engineering",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-21T00:37:11.866204",
+    "near_dup_of": "item_0100",
+    "credibility_prior": 0.46,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0192",
+    "title": "Deep dive: how developer tools is changing latency at scale",
+    "topic": "developer tools",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-21T00:57:32.124974",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.38
+  },
+  {
+    "id": "item_0191",
+    "title": "Deep dive: how distributed systems is changing cold-start ranking",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-21T02:51:45.130157",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.39
+  },
+  {
+    "id": "item_0143",
+    "title": "Opinion: why developer tools matters for cold-start ranking",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-21T07:03:37.206410",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.51
+  },
+  {
+    "id": "item_0077",
+    "title": "Opinion: why recommendation systems matters for search relevance",
+    "topic": "recommendation systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-21T07:08:04.565397",
+    "near_dup_of": null,
+    "credibility_prior": 0.51,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0152",
+    "title": "Deep dive: how reinforcement learning is changing pipeline reliability",
+    "topic": "reinforcement learning",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-21T08:17:45.335999",
+    "near_dup_of": null,
+    "credibility_prior": 0.42,
+    "potential_impact_prior": 0.32
+  },
+  {
+    "id": "item_0160",
+    "title": "Opinion: why developer tools matters for data quality",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-21T12:43:56.403217",
+    "near_dup_of": null,
+    "credibility_prior": 0.7,
+    "potential_impact_prior": 0.89
+  },
+  {
+    "id": "item_0045",
+    "title": "New paper introduces data engineering approach to latency at scale",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-21T14:44:25.527667",
+    "near_dup_of": null,
+    "credibility_prior": 0.51,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0158",
+    "title": "Opinion: why MLOps matters for data quality",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-21T16:08:13.565752",
+    "near_dup_of": null,
+    "credibility_prior": 0.44,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0153",
+    "title": "Opinion: why large language models matters for data quality",
+    "topic": "large language models",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-21T16:48:03.241739",
+    "near_dup_of": null,
+    "credibility_prior": 0.64,
+    "potential_impact_prior": 0.72
+  },
+  {
+    "id": "item_0086",
+    "title": "Opinion: why MLOps matters for cold-start ranking",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-21T17:41:05.287688",
+    "near_dup_of": null,
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0174",
+    "title": "Opinion: why recommendation systems matters for search relevance",
+    "topic": "recommendation systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-21T21:04:25.804718",
+    "near_dup_of": null,
+    "credibility_prior": 0.87,
+    "potential_impact_prior": 0.82
+  },
+  {
+    "id": "item_0006",
+    "title": "New paper introduces product analytics approach to data quality",
+    "topic": "product analytics",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-21T22:36:55.167799",
+    "near_dup_of": null,
+    "credibility_prior": 0.55,
+    "potential_impact_prior": 0.57
+  },
+  {
+    "id": "item_0013",
+    "title": "New paper introduces developer tools approach to pipeline reliability",
+    "topic": "developer tools",
+    "source": "ArXiv",
+    "timestamp": "2026-09-21T22:52:13.525519",
+    "near_dup_of": null,
+    "credibility_prior": 0.47,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0116",
+    "title": "Opinion: why distributed systems matters for latency at scale",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-22T01:47:26.215408",
+    "near_dup_of": null,
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0050",
+    "title": "Meta ships recommendation systems update for user retention",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T01:53:35.549181",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.22
+  },
+  {
+    "id": "item_0049",
+    "title": "Meta ships data engineering update for personalization",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T02:47:34.711708",
+    "near_dup_of": null,
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.37
+  },
+  {
+    "id": "item_0055",
+    "title": "Deep dive: how computer vision is changing latency at scale",
+    "topic": "computer vision",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T02:52:35.178979",
+    "near_dup_of": null,
+    "credibility_prior": 0.85,
+    "potential_impact_prior": 0.24
+  },
+  {
+    "id": "item_0214",
+    "title": "Benchmark results for developer tools methods on data quality",
+    "topic": "developer tools",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T04:36:20.304539",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.62
+  },
+  {
+    "id": "item_0092",
+    "title": "Benchmark results for recommendation systems methods on model evaluation",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T04:41:41.473227",
+    "near_dup_of": null,
+    "credibility_prior": 0.92,
+    "potential_impact_prior": 0.82
+  },
+  {
+    "id": "item_0205",
+    "title": "Deep dive: how data engineering is changing user retention",
+    "topic": "data engineering",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T05:59:55.911398",
+    "near_dup_of": null,
+    "credibility_prior": 0.68,
+    "potential_impact_prior": 0.88
+  },
+  {
+    "id": "item_0169",
+    "title": "Opinion: why MLOps matters for search relevance",
+    "topic": "MLOps",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T06:34:44.883115",
+    "near_dup_of": null,
+    "credibility_prior": 0.4,
+    "potential_impact_prior": 0.29
+  },
+  {
+    "id": "item_0080",
+    "title": "a research lab ships MLOps update for search relevance",
+    "topic": "MLOps",
+    "source": "TechBlog",
+    "timestamp": "2026-09-22T06:49:53.671189",
+    "near_dup_of": null,
+    "credibility_prior": 0.63,
+    "potential_impact_prior": 0.94
+  },
+  {
+    "id": "item_0210",
+    "title": "Opinion: why MLOps matters for pipeline reliability",
+    "topic": "MLOps",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T08:30:21.248554",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.91
+  },
+  {
+    "id": "item_0147",
+    "title": "Benchmark results for developer tools methods on model evaluation",
+    "topic": "developer tools",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T08:30:40.809578",
+    "near_dup_of": null,
+    "credibility_prior": 0.51,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0169_dup",
+    "title": "Deep dive: how MLOps is changing user retention (updated coverage)",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T08:32:01.446531",
+    "near_dup_of": "item_0169",
+    "credibility_prior": 0.64,
+    "potential_impact_prior": 0.66
+  },
+  {
+    "id": "item_0061",
+    "title": "Benchmark results for product analytics methods on personalization",
+    "topic": "product analytics",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T11:08:13.774438",
+    "near_dup_of": null,
+    "credibility_prior": 0.77,
+    "potential_impact_prior": 0.5
+  },
+  {
+    "id": "item_0068",
+    "title": "New paper introduces large language models approach to user retention",
+    "topic": "large language models",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T11:12:38.737317",
+    "near_dup_of": null,
+    "credibility_prior": 0.75,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0108",
+    "title": "Deep dive: how developer tools is changing user retention",
+    "topic": "developer tools",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-22T11:17:21.278249",
+    "near_dup_of": null,
+    "credibility_prior": 0.58,
+    "potential_impact_prior": 0.6
+  },
+  {
+    "id": "item_0117",
+    "title": "Opinion: why MLOps matters for search relevance",
+    "topic": "MLOps",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T11:17:44.570964",
+    "near_dup_of": null,
+    "credibility_prior": 0.53,
+    "potential_impact_prior": 0.61
+  },
+  {
+    "id": "item_0207",
+    "title": "Deep dive: how MLOps is changing latency at scale",
+    "topic": "MLOps",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T11:19:34.018910",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.24
+  },
+  {
+    "id": "item_0145",
+    "title": "Deep dive: how developer tools is changing data quality",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-22T11:37:06.249745",
+    "near_dup_of": null,
+    "credibility_prior": 0.99,
+    "potential_impact_prior": 0.58
+  },
+  {
+    "id": "item_0031",
+    "title": "Benchmark results for developer tools methods on cold-start ranking",
+    "topic": "developer tools",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T11:49:41.233622",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0031_dup",
+    "title": "Deep dive: how developer tools is changing data quality (updated coverage)",
+    "topic": "developer tools",
+    "source": "TechBlog",
+    "timestamp": "2026-09-22T12:31:34.590756",
+    "near_dup_of": "item_0031",
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0030",
+    "title": "a research lab ships distributed systems update for model evaluation",
+    "topic": "distributed systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-22T12:36:26.778352",
+    "near_dup_of": null,
+    "credibility_prior": 0.55,
+    "potential_impact_prior": 0.93
+  },
+  {
+    "id": "item_0074",
+    "title": "New paper introduces MLOps approach to cold-start ranking",
+    "topic": "MLOps",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T14:11:17.812962",
+    "near_dup_of": null,
+    "credibility_prior": 0.59,
+    "potential_impact_prior": 0.4
+  },
+  {
+    "id": "item_0165",
+    "title": "Deep dive: how computer vision is changing search relevance",
+    "topic": "computer vision",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T14:20:23.435280",
+    "near_dup_of": null,
+    "credibility_prior": 0.44,
+    "potential_impact_prior": 0.55
+  },
+  {
+    "id": "item_0037",
+    "title": "New paper introduces product analytics approach to latency at scale",
+    "topic": "product analytics",
+    "source": "Newsletter",
+    "timestamp": "2026-09-22T15:51:40.048171",
+    "near_dup_of": null,
+    "credibility_prior": 0.61,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0061_dup",
+    "title": "Pinterest ships product analytics update for search relevance (updated coverage)",
+    "topic": "product analytics",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T16:19:02.640597",
+    "near_dup_of": "item_0061",
+    "credibility_prior": 0.88,
+    "potential_impact_prior": 0.47
+  },
+  {
+    "id": "item_0030_dup",
+    "title": "Deep dive: how distributed systems is changing cold-start ranking (updated coverage)",
+    "topic": "distributed systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T16:35:45.610409",
+    "near_dup_of": "item_0030",
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0012",
+    "title": "Opinion: why data engineering matters for latency at scale",
+    "topic": "data engineering",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T17:15:34.150831",
+    "near_dup_of": null,
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.61
+  },
+  {
+    "id": "item_0079",
+    "title": "Benchmark results for large language models methods on latency at scale",
+    "topic": "large language models",
+    "source": "TechBlog",
+    "timestamp": "2026-09-22T18:21:54.110185",
+    "near_dup_of": null,
+    "credibility_prior": 0.7,
+    "potential_impact_prior": 0.77
+  },
+  {
+    "id": "item_0074_dup",
+    "title": "Opinion: why MLOps matters for cold-start ranking (updated coverage)",
+    "topic": "MLOps",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-22T19:58:43.652785",
+    "near_dup_of": "item_0074",
+    "credibility_prior": 0.75,
+    "potential_impact_prior": 0.81
+  },
+  {
+    "id": "item_0213",
+    "title": "Deep dive: how distributed systems is changing search relevance",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-22T20:17:46.681889",
+    "near_dup_of": null,
+    "credibility_prior": 0.84,
+    "potential_impact_prior": 0.57
+  },
+  {
+    "id": "item_0097",
+    "title": "New paper introduces distributed systems approach to personalization",
+    "topic": "distributed systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T20:25:24.870982",
+    "near_dup_of": null,
+    "credibility_prior": 0.77,
+    "potential_impact_prior": 0.95
+  },
+  {
+    "id": "item_0035",
+    "title": "Deep dive: how distributed systems is changing personalization",
+    "topic": "distributed systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-22T22:32:47.761439",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0166",
+    "title": "Deep dive: how distributed systems is changing pipeline reliability",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T04:57:41.600421",
+    "near_dup_of": null,
+    "credibility_prior": 0.86,
+    "potential_impact_prior": 0.61
+  },
+  {
+    "id": "item_0065",
+    "title": "Deep dive: how reinforcement learning is changing latency at scale",
+    "topic": "reinforcement learning",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-23T05:15:15.486167",
+    "near_dup_of": null,
+    "credibility_prior": 0.97,
+    "potential_impact_prior": 0.75
+  },
+  {
+    "id": "item_0186",
+    "title": "New paper introduces data engineering approach to user retention",
+    "topic": "data engineering",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T05:17:50.999150",
+    "near_dup_of": null,
+    "credibility_prior": 0.96,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0166_dup",
+    "title": "New paper introduces distributed systems approach to model evaluation (updated coverage)",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T06:47:28.010068",
+    "near_dup_of": "item_0166",
+    "credibility_prior": 0.48,
+    "potential_impact_prior": 0.24
+  },
+  {
+    "id": "item_0149",
+    "title": "Opinion: why distributed systems matters for model evaluation",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-23T07:02:28.137217",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.54
+  },
+  {
+    "id": "item_0017",
+    "title": "Opinion: why recommendation systems matters for personalization",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T07:27:10.643197",
+    "near_dup_of": null,
+    "credibility_prior": 0.4,
+    "potential_impact_prior": 0.77
+  },
+  {
+    "id": "item_0017_dup",
+    "title": "New paper introduces recommendation systems approach to pipeline reliability (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-23T08:19:25.169694",
+    "near_dup_of": "item_0017",
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.74
+  },
+  {
+    "id": "item_0170",
+    "title": "Benchmark results for large language models methods on search relevance",
+    "topic": "large language models",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-23T08:29:32.289156",
+    "near_dup_of": null,
+    "credibility_prior": 0.9,
+    "potential_impact_prior": 0.7
+  },
+  {
+    "id": "item_0052",
+    "title": "Benchmark results for computer vision methods on cold-start ranking",
+    "topic": "computer vision",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-23T10:17:29.469720",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.84
+  },
+  {
+    "id": "item_0087",
+    "title": "New paper introduces large language models approach to search relevance",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-23T11:43:16.010143",
+    "near_dup_of": null,
+    "credibility_prior": 0.58,
+    "potential_impact_prior": 0.22
+  },
+  {
+    "id": "item_0176",
+    "title": "an open-source project ships computer vision update for user retention",
+    "topic": "computer vision",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T12:06:49.539486",
+    "near_dup_of": null,
+    "credibility_prior": 0.65,
+    "potential_impact_prior": 0.82
+  },
+  {
+    "id": "item_0172",
+    "title": "a research lab ships distributed systems update for user retention",
+    "topic": "distributed systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-23T12:35:11.900390",
+    "near_dup_of": null,
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0056",
+    "title": "New paper introduces recommendation systems approach to personalization",
+    "topic": "recommendation systems",
+    "source": "ArXiv",
+    "timestamp": "2026-09-23T13:01:36.352458",
+    "near_dup_of": null,
+    "credibility_prior": 0.77,
+    "potential_impact_prior": 0.39
+  },
+  {
+    "id": "item_0018",
+    "title": "Opinion: why database internals matters for search relevance",
+    "topic": "database internals",
+    "source": "Newsletter",
+    "timestamp": "2026-09-23T13:53:40.585549",
+    "near_dup_of": null,
+    "credibility_prior": 0.88,
+    "potential_impact_prior": 0.35
+  },
+  {
+    "id": "item_0075",
+    "title": "Deep dive: how MLOps is changing data quality",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-23T13:59:09.666047",
+    "near_dup_of": null,
+    "credibility_prior": 0.78,
+    "potential_impact_prior": 0.59
+  },
+  {
+    "id": "item_0059",
+    "title": "Deep dive: how recommendation systems is changing user retention",
+    "topic": "recommendation systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-23T15:49:17.202658",
+    "near_dup_of": null,
+    "credibility_prior": 0.44,
+    "potential_impact_prior": 0.72
+  },
+  {
+    "id": "item_0004",
+    "title": "Opinion: why large language models matters for model evaluation",
+    "topic": "large language models",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-23T16:23:36.805999",
+    "near_dup_of": null,
+    "credibility_prior": 0.93,
+    "potential_impact_prior": 0.49
+  },
+  {
+    "id": "item_0075_dup",
+    "title": "Deep dive: how MLOps is changing pipeline reliability (updated coverage)",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-23T16:23:59.294962",
+    "near_dup_of": "item_0075",
+    "credibility_prior": 0.91,
+    "potential_impact_prior": 0.46
+  },
+  {
+    "id": "item_0018_dup",
+    "title": "Benchmark results for database internals methods on user retention (updated coverage)",
+    "topic": "database internals",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-23T16:45:55.398961",
+    "near_dup_of": "item_0018",
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.72
+  },
+  {
+    "id": "item_0040",
+    "title": "Deep dive: how developer tools is changing user retention",
+    "topic": "developer tools",
+    "source": "Newsletter",
+    "timestamp": "2026-09-23T16:58:32.611561",
+    "near_dup_of": null,
+    "credibility_prior": 0.82,
+    "potential_impact_prior": 0.64
+  },
+  {
+    "id": "item_0150",
+    "title": "New paper introduces large language models approach to pipeline reliability",
+    "topic": "large language models",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-23T18:07:37.108395",
+    "near_dup_of": null,
+    "credibility_prior": 0.58,
+    "potential_impact_prior": 0.68
+  },
+  {
+    "id": "item_0057",
+    "title": "Deep dive: how MLOps is changing pipeline reliability",
+    "topic": "MLOps",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-23T18:17:14.242689",
+    "near_dup_of": null,
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.8
+  },
+  {
+    "id": "item_0059_dup",
+    "title": "Benchmark results for recommendation systems methods on latency at scale (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-23T18:37:54.365727",
+    "near_dup_of": "item_0059",
+    "credibility_prior": 0.78,
+    "potential_impact_prior": 0.86
+  },
+  {
+    "id": "item_0146",
+    "title": "New paper introduces MLOps approach to model evaluation",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-23T18:56:14.007717",
+    "near_dup_of": null,
+    "credibility_prior": 0.87,
+    "potential_impact_prior": 0.91
+  },
+  {
+    "id": "item_0133",
+    "title": "Pinterest ships MLOps update for personalization",
+    "topic": "MLOps",
+    "source": "TechBlog",
+    "timestamp": "2026-09-23T20:04:59.519553",
+    "near_dup_of": null,
+    "credibility_prior": 0.45,
+    "potential_impact_prior": 0.88
+  },
+  {
+    "id": "item_0138",
+    "title": "Benchmark results for reinforcement learning methods on pipeline reliability",
+    "topic": "reinforcement learning",
+    "source": "Newsletter",
+    "timestamp": "2026-09-23T22:37:26.062869",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.6
+  },
+  {
+    "id": "item_0057_dup",
+    "title": "Deep dive: how MLOps is changing latency at scale (updated coverage)",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-23T23:17:36.405940",
+    "near_dup_of": "item_0057",
+    "credibility_prior": 0.96,
+    "potential_impact_prior": 0.66
+  },
+  {
+    "id": "item_0154",
+    "title": "Opinion: why MLOps matters for user retention",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-23T23:36:11.021715",
+    "near_dup_of": null,
+    "credibility_prior": 0.56,
+    "potential_impact_prior": 0.41
+  },
+  {
+    "id": "item_0142",
+    "title": "Deep dive: how database internals is changing personalization",
+    "topic": "database internals",
+    "source": "Newsletter",
+    "timestamp": "2026-09-23T23:43:36.300510",
+    "near_dup_of": null,
+    "credibility_prior": 0.51,
+    "potential_impact_prior": 0.73
+  },
+  {
+    "id": "item_0023",
+    "title": "Opinion: why recommendation systems matters for cold-start ranking",
+    "topic": "recommendation systems",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-24T00:12:52.917687",
+    "near_dup_of": null,
+    "credibility_prior": 0.43,
+    "potential_impact_prior": 0.67
+  },
+  {
+    "id": "item_0133_dup",
+    "title": "Opinion: why MLOps matters for cold-start ranking (updated coverage)",
+    "topic": "MLOps",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-24T00:49:22.839016",
+    "near_dup_of": "item_0133",
+    "credibility_prior": 0.93,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0054",
+    "title": "Deep dive: how recommendation systems is changing user retention",
+    "topic": "recommendation systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-24T00:50:17.828314",
+    "near_dup_of": null,
+    "credibility_prior": 0.67,
+    "potential_impact_prior": 0.47
+  },
+  {
+    "id": "item_0118",
+    "title": "Benchmark results for database internals methods on model evaluation",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-24T01:35:46.141716",
+    "near_dup_of": null,
+    "credibility_prior": 0.64,
+    "potential_impact_prior": 0.68
+  },
+  {
+    "id": "item_0118_dup",
+    "title": "Netflix ships database internals update for data quality (updated coverage)",
+    "topic": "database internals",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-24T03:45:14.245084",
+    "near_dup_of": "item_0118",
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.21
+  },
+  {
+    "id": "item_0089",
+    "title": "a research lab ships database internals update for search relevance",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-24T04:38:03.734554",
+    "near_dup_of": null,
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0215",
+    "title": "New paper introduces recommendation systems approach to user retention",
+    "topic": "recommendation systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-24T07:00:56.608662",
+    "near_dup_of": null,
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.77
+  },
+  {
+    "id": "item_0156",
+    "title": "Deep dive: how distributed systems is changing latency at scale",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T07:03:03.042447",
+    "near_dup_of": null,
+    "credibility_prior": 0.57,
+    "potential_impact_prior": 0.44
+  },
+  {
+    "id": "item_0131",
+    "title": "Deep dive: how distributed systems is changing user retention",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T08:59:59.127733",
+    "near_dup_of": null,
+    "credibility_prior": 0.83,
+    "potential_impact_prior": 0.27
+  },
+  {
+    "id": "item_0036",
+    "title": "Opinion: why distributed systems matters for user retention",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T09:15:57.977343",
+    "near_dup_of": null,
+    "credibility_prior": 0.6,
+    "potential_impact_prior": 0.22
+  },
+  {
+    "id": "item_0215_dup",
+    "title": "Deep dive: how recommendation systems is changing cold-start ranking (updated coverage)",
+    "topic": "recommendation systems",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-24T10:17:50.120472",
+    "near_dup_of": "item_0215",
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.69
+  },
+  {
+    "id": "item_0099",
+    "title": "Meta ships developer tools update for user retention",
+    "topic": "developer tools",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-24T10:58:58.112698",
+    "near_dup_of": null,
+    "credibility_prior": 0.8,
+    "potential_impact_prior": 0.79
+  },
+  {
+    "id": "item_0171",
+    "title": "Deep dive: how distributed systems is changing pipeline reliability",
+    "topic": "distributed systems",
+    "source": "TechBlog",
+    "timestamp": "2026-09-24T11:17:14.480899",
+    "near_dup_of": null,
+    "credibility_prior": 0.76,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0005",
+    "title": "New paper introduces product analytics approach to personalization",
+    "topic": "product analytics",
+    "source": "Newsletter",
+    "timestamp": "2026-09-24T11:55:24.131539",
+    "near_dup_of": null,
+    "credibility_prior": 0.57,
+    "potential_impact_prior": 0.71
+  },
+  {
+    "id": "item_0171_dup",
+    "title": "Deep dive: how distributed systems is changing search relevance (updated coverage)",
+    "topic": "distributed systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-24T12:00:04.977431",
+    "near_dup_of": "item_0171",
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.91
+  },
+  {
+    "id": "item_0102",
+    "title": "New paper introduces database internals approach to cold-start ranking",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-24T17:23:41.150216",
+    "near_dup_of": null,
+    "credibility_prior": 0.99,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0209",
+    "title": "Benchmark results for large language models methods on personalization",
+    "topic": "large language models",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T18:18:54.005125",
+    "near_dup_of": null,
+    "credibility_prior": 0.82,
+    "potential_impact_prior": 0.52
+  },
+  {
+    "id": "item_0125",
+    "title": "Benchmark results for product analytics methods on search relevance",
+    "topic": "product analytics",
+    "source": "ArXiv",
+    "timestamp": "2026-09-24T18:49:46.312094",
+    "near_dup_of": null,
+    "credibility_prior": 0.62,
+    "potential_impact_prior": 0.43
+  },
+  {
+    "id": "item_0140",
+    "title": "Opinion: why data engineering matters for user retention",
+    "topic": "data engineering",
+    "source": "CompanyEng",
+    "timestamp": "2026-09-24T19:19:50.037052",
+    "near_dup_of": null,
+    "credibility_prior": 0.54,
+    "potential_impact_prior": 0.3
+  },
+  {
+    "id": "item_0111",
+    "title": "a research lab ships distributed systems update for cold-start ranking",
+    "topic": "distributed systems",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T19:47:38.956001",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.74
+  },
+  {
+    "id": "item_0010",
+    "title": "Opinion: why MLOps matters for model evaluation",
+    "topic": "MLOps",
+    "source": "ArXiv",
+    "timestamp": "2026-09-24T20:04:53.086378",
+    "near_dup_of": null,
+    "credibility_prior": 0.81,
+    "potential_impact_prior": 0.29
+  },
+  {
+    "id": "item_0217",
+    "title": "Spotify ships computer vision update for latency at scale",
+    "topic": "computer vision",
+    "source": "ResearchDigest",
+    "timestamp": "2026-09-24T20:51:24.942632",
+    "near_dup_of": null,
+    "credibility_prior": 0.49,
+    "potential_impact_prior": 0.35
+  },
+  {
+    "id": "item_0088",
+    "title": "a research lab ships computer vision update for personalization",
+    "topic": "computer vision",
+    "source": "Newsletter",
+    "timestamp": "2026-09-24T22:24:54.684990",
+    "near_dup_of": null,
+    "credibility_prior": 0.74,
+    "potential_impact_prior": 0.83
+  },
+  {
+    "id": "item_0130",
+    "title": "Deep dive: how computer vision is changing model evaluation",
+    "topic": "computer vision",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-25T02:23:59.774884",
+    "near_dup_of": null,
+    "credibility_prior": 0.98,
+    "potential_impact_prior": 0.68
+  },
+  {
+    "id": "item_0046",
+    "title": "Benchmark results for large language models methods on data quality",
+    "topic": "large language models",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-25T02:27:13.514723",
+    "near_dup_of": null,
+    "credibility_prior": 0.72,
+    "potential_impact_prior": 0.65
+  },
+  {
+    "id": "item_0212",
+    "title": "Opinion: why database internals matters for user retention",
+    "topic": "database internals",
+    "source": "TechBlog",
+    "timestamp": "2026-09-25T03:18:52.817292",
+    "near_dup_of": null,
+    "credibility_prior": 0.52,
+    "potential_impact_prior": 0.38
+  },
+  {
+    "id": "item_0184",
+    "title": "Benchmark results for data engineering methods on search relevance",
+    "topic": "data engineering",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-25T06:02:05.699468",
+    "near_dup_of": null,
+    "credibility_prior": 0.52,
+    "potential_impact_prior": 0.97
+  },
+  {
+    "id": "item_0044",
+    "title": "Opinion: why MLOps matters for latency at scale",
+    "topic": "MLOps",
+    "source": "Newsletter",
+    "timestamp": "2026-09-25T08:44:55.000043",
+    "near_dup_of": null,
+    "credibility_prior": 0.93,
+    "potential_impact_prior": 0.66
+  },
+  {
+    "id": "item_0196",
+    "title": "Spotify ships recommendation systems update for latency at scale",
+    "topic": "recommendation systems",
+    "source": "Newsletter",
+    "timestamp": "2026-09-25T09:09:18.151500",
+    "near_dup_of": null,
+    "credibility_prior": 0.61,
+    "potential_impact_prior": 0.25
+  },
+  {
+    "id": "item_0022",
+    "title": "Deep dive: how MLOps is changing user retention",
+    "topic": "MLOps",
+    "source": "IndustryNews",
+    "timestamp": "2026-09-25T10:35:58.244096",
+    "near_dup_of": null,
+    "credibility_prior": 1.0,
+    "potential_impact_prior": 0.64
+  }
+]
