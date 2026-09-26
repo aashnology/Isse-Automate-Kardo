@@ -237,11 +237,40 @@ credentials before the demo video is recorded.
 
 ---
 
-## 9. Trade-offs and honest gaps (say these before being asked)
+## 9. Real data adapters — proving it isn't synthetic-only
+
+`data_adapters.py` maps ActivityWatch's event export and Toggl Track's CSV
+export onto the pipeline's minimal schema (timestamp, activity, duration —
+nothing else), and `discover_workflows_from_import` runs the exact same
+sequence-clustering path against it. This is the direct answer to "does
+this only work on your synthetic data."
+
+**Judge question:** *"Why not use ActivityWatch or Toggl's outcome/success
+field too?"* They don't have one — a time tracker records what you did and
+for how long, not whether it succeeded or needed rework. That's stated
+directly in the module's docstring: only the unsupervised half of the
+pipeline (segmentation, clustering, anomaly detection) runs meaningfully on
+imported data; V1's `FrictionRadar` rework-rate scoring needs a field real
+time-tracking data doesn't carry. Naming that boundary precisely is a
+stronger answer than implying the adapters make everything work identically
+to the synthetic path.
+
+**Judge question:** *"Have you run this against your own real
+ActivityWatch data?"* Answer honestly based on what was actually done: the
+adapters are unit-tested against realistic fixture data shaped exactly like
+ActivityWatch's and Toggl's real export formats (verified against their
+public API/export docs), including an end-to-end test that feeds adapted
+events through the full discovery pipeline and confirms it clusters
+correctly — but it has not yet been run against a live personal export. If
+you do run it against your own data before the demo, say so and use the
+real numbers; if not, describe it exactly as it stands: pipeline-verified
+on realistic fixtures, not yet on a live personal export.
+
+## 10. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |
 |---|---|---|
-| Synthetic data, not real activity logs | No integration exists yet to pull real workplace event data | Wire to a real source (browser extension, calendar, ticketing system) |
+| Synthetic data by default | No live workplace event source connected yet | `data_adapters.py` + `discover_workflows_from_import` now cover this for ActivityWatch/Toggl exports; a live connector (browser extension, calendar) is the next step |
 | Automation execution is a stub | Out of scope for a hackathon demo; needs a real target system to call | Hook `confirm_action` to a real script/Zapier-style integration |
 | Segmentation assumes no interleaved workflows | Time-gap-only segmentation can't distinguish "switched tasks" from "still working" | Sequence-aware segmentation using activity-type transitions, not just timing |
 | `avg_judgment_cost` is a hand-set constant | No historical rework/outcome data to learn it from yet | Derive per-step judgment cost from observed rework rate and duration variance |
@@ -249,7 +278,7 @@ credentials before the demo video is recorded.
 
 ---
 
-## 10. Deployability
+## 11. Deployability
 
 - `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
   `docker-compose.yml` for a one-command local run.
@@ -265,7 +294,7 @@ credentials before the demo video is recorded.
 
 ---
 
-## 11. If a judge asks you to improve one thing live
+## 12. If a judge asks you to improve one thing live
 
 Good, safe answer: **learn `STEP_JUDGMENT_COST` from data instead of a
 hand-set table** — track actual rework rate and duration variance per

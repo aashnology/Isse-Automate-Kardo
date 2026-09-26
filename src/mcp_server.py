@@ -31,6 +31,7 @@ from friction_radar import FrictionRadar
 from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
 from bedrock_narrator import BedrockNarrator
+from data_adapters import from_activitywatch_events, from_toggl_csv
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -71,6 +72,29 @@ def discover_workflows() -> dict:
     or when the user asks what patterns exist in their activity."""
     clusters = workflow_discovery.discover()
     return {"discovered_workflows": clusters}
+
+
+@mcp.tool()
+def discover_workflows_from_import(source: str, file_path: str) -> dict:
+    """Run the same label-free discovery pipeline against real, imported
+    activity data instead of this project's synthetic dataset -- proof the
+    pipeline isn't tied to synthetic data. `source` is "activitywatch" (a
+    JSON export of ActivityWatch events, github.com/ActivityWatch) or
+    "toggl" (a Toggl Track CSV export). `file_path` is a path to that file,
+    readable from wherever this server is running. Imported data has no
+    outcome/rework labels, so only the unsupervised half of this project
+    (segmentation, clustering, anomaly detection) runs on it -- see
+    data_adapters.py for exactly what that trade-off is and why."""
+    if source == "activitywatch":
+        with open(file_path) as f:
+            raw = from_activitywatch_events(json.load(f))
+    elif source == "toggl":
+        raw = from_toggl_csv(file_path)
+    else:
+        return {"error": f"Unknown source '{source}'. Use 'activitywatch' or 'toggl'."}
+
+    wd = WorkflowDiscovery.from_raw_events(raw)
+    return {"source": source, "events_imported": len(raw), "discovered_workflows": wd.discover()}
 
 
 # ---------------------------- Friction Radar tools --------------------------

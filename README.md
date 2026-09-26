@@ -46,7 +46,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Human-in-the-loop automation — nothing runs without a yes |
 | ✅ Shipped | Segmenting a continuous raw event stream into runs automatically |
 | ✅ Shipped | Bedrock-powered briefing narration, with a template fallback when it's off |
-| 🔜 Next | Real data source integrations instead of synthetic data |
+| ✅ Shipped | Real data-source import (ActivityWatch, Toggl Track) through the same discovery pipeline |
 | 🔜 Next | Real execution behind a confirmed automation (currently simulated) |
 
 ## Build status
@@ -62,7 +62,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | MCP server (Streamable HTTP) | `██████████` 100% |
 | Raw-stream segmentation | `████████░░` 80% |
 | Bedrock narration | `██████████` 100% |
-| Real data integrations | `░░░░░░░░░░` 0% |
+| Real data integrations | `████████░░` 80% |
 | Real automation execution | `░░░░░░░░░░` 0% |
 
 ## MCP tools
@@ -70,6 +70,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | Tool | Purpose |
 |---|---|
 | `discover_workflows` | Cluster raw event sequences into workflows, no label used |
+| `discover_workflows_from_import` | Same discovery, run against a real ActivityWatch or Toggl Track export |
 | `get_top_friction_points` | Workflows costing the most time, with automation tier |
 | `explain_friction` | Why a workflow is/isn't automatable |
 | `estimate_time_cost` | Total/average time cost for a named workflow |
@@ -117,6 +118,24 @@ the call fails for any reason — no credentials, network, throttling — it
 falls back to a deterministic template rather than surfacing an error, and
 the response always says which path (`bedrock:<model-id>` or `template`)
 produced the sentence, so this is honest about itself in the demo too.
+
+## Real data (not just synthetic)
+
+`data_adapters.py` maps two real, existing export formats onto the same
+minimal schema the discovery pipeline needs (timestamp, activity, duration
+— nothing else): [ActivityWatch](https://github.com/ActivityWatch/activitywatch)
+(an open-source, cross-platform time tracker's event export) and Toggl
+Track's CSV export. `discover_workflows_from_import` runs the exact same
+label-free clustering against either one — this is what proves the
+pipeline isn't secretly dependent on the synthetic dataset's structure.
+
+Honest trade-off, stated once here: neither format carries a success/rework
+outcome the way the synthetic data does, so V1's `FrictionRadar` (which
+needs that field for rework-rate scoring) can't run meaningfully on
+imported data. What does run end to end: segmentation → clustering
+(`discover_workflows_from_import`) → anomaly detection — the fully
+unsupervised half of this project, which is also the half real data
+actually has.
 
 ## Research & References
 
