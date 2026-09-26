@@ -1,23 +1,27 @@
 """
-Two upgrades over the V1 friction radar, both addressing the same gap:
-V1's `detect_workflows()` just group-by's the `workflow_name` field that the
-synthetic data generator happens to attach to each event. That's aggregation,
-not discovery -- a real event stream has no such label.
+Three upgrades over the V1 friction radar, addressing the same underlying
+gap: V1's `detect_workflows()` just group-by's the `workflow_name` field
+that the synthetic data generator happens to attach to each event. That's
+aggregation, not discovery -- a real event stream has no such label.
 
-This module does the actual process-mining step: given only run_id + ordered
+This module does the actual process-mining steps: given only run_id + ordered
 activity sequences (no workflow_name), cluster runs into workflows by
-sequence similarity, then separately flags individual runs that are
-statistically unusual for their own cluster.
+sequence similarity; separately flag individual runs that are statistically
+unusual for their own cluster; and -- via `from_raw_events` -- reconstruct
+run boundaries themselves from a truly raw, unsegmented event stream using
+session_segmentation.py, so the whole pipeline can run without being handed
+pre-cut runs at all.
 
-Honest boundary, stated here and in the README: runs are still pre-segmented
-by workflow_run_id (a session-boundary problem, not solved here). Real raw
-event streams would need a session-segmentation step first (e.g. a time-gap
-threshold) before this clustering could run. That's flagged as future work,
-not silently assumed away.
+Honest boundary, stated here and in the README: session segmentation (see
+session_segmentation.py) uses time gaps alone, which assumes workflows don't
+interleave. Genuinely concurrent/multitasked workflows would need
+sequence-aware segmentation, which isn't built here.
 """
 
 from collections import defaultdict
 import statistics
+
+from session_segmentation import segment_into_runs
 
 
 def _lcs_length(a, b):
@@ -45,19 +49,32 @@ def sequence_similarity(seq_a, seq_b):
 
 
 class WorkflowDiscovery:
-    def __init__(self, events, similarity_threshold=0.75):
+    def __init__(self, events, similarity_threshold=0.75, run_id_field="workflow_run_id"):
         self.events = events
         self.threshold = similarity_threshold
+        self.run_id_field = run_id_field
         self.runs = self._group_into_runs(events)  # run_id -> ordered events
         self.run_ids = list(self.runs.keys())
         self.sequences = {
             rid: tuple(e["activity"] for e in run) for rid, run in self.runs.items()
         }
 
+    @classmethod
+    def from_raw_events(cls, raw_events, similarity_threshold=0.75, segmentation_threshold_minutes=None):
+        """The genuinely-no-labels entry point: takes events with nothing
+        but timestamp/activity/duration (no run id, no workflow name),
+        reconstructs run boundaries via session_segmentation, then clusters
+        those discovered runs into workflows exactly as __init__ would with
+        pre-given runs. This is the honest end-to-end path; __init__ with a
+        pre-existing run_id_field is the shortcut used when that boundary is
+        already known (e.g. this project's own synthetic data)."""
+        segmented, _, _ = segment_into_runs(raw_events, segmentation_threshold_minutes)
+        return cls(segmented, similarity_threshold=similarity_threshold, run_id_field="discovered_run_id")
+
     def _group_into_runs(self, events):
         runs = defaultdict(list)
         for e in events:
-            runs[e["workflow_run_id"]].append(e)
+            runs[e[self.run_id_field]].append(e)
         for rid in runs:
             runs[rid].sort(key=lambda e: e["timestamp"])
         return runs
@@ -105,15 +122,21 @@ class WorkflowDiscovery:
                     best_avg, best_rid = avg, rid
 
             # ground-truth label is only attached for readability in the demo --
-            # majority vote over the cluster, never used by the clustering itself
-            true_labels = [self.runs[rid][0]["workflow_name"] for rid in cluster_run_ids]
-            majority_label = max(set(true_labels), key=true_labels.count)
-            label_purity = true_labels.count(majority_label) / len(true_labels)
+            # majority vote over the cluster, never used by the clustering itself.
+            # Not available at all on a genuinely raw stream (no workflow_name
+            # field exists) -- handled gracefully rather than assumed present.
+            if all("workflow_name" in self.runs[rid][0] for rid in cluster_run_ids):
+                true_labels = [self.runs[rid][0]["workflow_name"] for rid in cluster_run_ids]
+                majority_label = max(set(true_labels), key=true_labels.count)
+                label_purity = true_labels.count(majority_label) / len(true_labels)
+            else:
+                majority_label = f"discovered_workflow_{len(results)}"
+                label_purity = None
 
             results.append({
                 "discovered_id": f"cluster_{len(results)}",
                 "matched_label": majority_label,
-                "label_purity": round(label_purity, 2),
+                "label_purity": round(label_purity, 2) if label_purity is not None else None,
                 "run_count": len(cluster_run_ids),
                 "canonical_sequence": list(self.sequences[best_rid]),
                 "run_ids": cluster_run_ids,

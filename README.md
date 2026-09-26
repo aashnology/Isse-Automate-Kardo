@@ -40,8 +40,8 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Root-cause breakdown — which step is the actual bottleneck |
 | ✅ Shipped | Anomaly detection on individual runs |
 | ✅ Shipped | Human-in-the-loop automation — nothing runs without a yes |
+| ✅ Shipped | Segmenting a continuous raw event stream into runs automatically |
 | 🔜 Next | Bedrock-powered narration on the Alexa+ side |
-| 🔜 Next | Segmenting a continuous raw event stream into runs automatically |
 | 🔜 Next | Real data source integrations instead of synthetic data |
 | 🔜 Next | Real execution behind a confirmed automation (currently simulated) |
 
@@ -56,8 +56,8 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | Anomaly detection | `██████████` 100% |
 | Human-in-the-loop actions | `██████████` 100% |
 | MCP server (Streamable HTTP) | `██████████` 100% |
+| Raw-stream segmentation | `████████░░` 80% |
 | Bedrock narration | `░░░░░░░░░░` 0% |
-| Raw-stream segmentation | `░░░░░░░░░░` 0% |
 | Real data integrations | `░░░░░░░░░░` 0% |
 | Real automation execution | `░░░░░░░░░░` 0% |
 
@@ -97,10 +97,15 @@ involved. Alexa+ only turns the already-computed results into speech.
 
 ## A few things worth knowing
 
-Workflow discovery currently works on runs that are already split apart
-(each has its own run id) — automatically figuring out where one run ends
-and the next begins in a continuous stream of raw events is still an open
-problem, not something this handles yet.
+Workflow discovery no longer needs pre-split runs — it can reconstruct them
+from a raw stream using timing alone (see `src/session_segmentation.py`).
+It's not perfect: on this project's own data it recovers the true run
+boundaries with an Adjusted Rand Index of 0.876, and the mistakes it does
+make follow a clear pattern — workflows that only happen a handful of times
+a week (like onboarding) occasionally get merged with whatever ran right
+next to them, because there's less data to learn that workflow's normal
+timing rhythm. Frequent workflows segment cleanly. Worth saying out loud
+rather than glossing over.
 
 Confirming an automation doesn't actually trigger anything real right now —
 it's a clean stub so the propose → confirm interaction works end to end,
