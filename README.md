@@ -47,6 +47,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Segmenting a continuous raw event stream into runs automatically |
 | ✅ Shipped | Bedrock-powered briefing narration, with a template fallback when it's off |
 | ✅ Shipped | Real data-source import (ActivityWatch, Toggl Track) through the same discovery pipeline |
+| ✅ Shipped | Cross-session memory — dismissed workflows stay dismissed after a restart, not just within one conversation |
 | 🔜 Next | Real execution behind a confirmed automation (currently simulated) |
 
 ## Build status
@@ -63,6 +64,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | Raw-stream segmentation | `████████░░` 80% |
 | Bedrock narration | `██████████` 100% |
 | Real data integrations | `████████░░` 80% |
+| Cross-session memory (dismissed-workflow preferences) | `██████████` 100% |
 | Real automation execution | `░░░░░░░░░░` 0% |
 
 ## MCP tools
@@ -78,6 +80,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | `detect_anomalous_runs` | Specific instances that ran unusually long, and why |
 | `narrate_briefing` | One spoken-ready summary, phrased by Bedrock over already-computed results |
 | `propose_automation` / `confirm_automation` | Propose never executes; only a matching confirm does |
+| `dismiss_workflow_suggestions` / `restore_workflow_suggestions` / `list_dismissed_workflow_suggestions` | Standing preference, persisted to disk, remembered across restarts and future sessions -- not just this conversation |
 
 ## Architecture
 
@@ -136,6 +139,20 @@ imported data. What does run end to end: segmentation → clustering
 (`discover_workflows_from_import`) → anomaly detection — the fully
 unsupervised half of this project, which is also the half real data
 actually has.
+
+## Cross-session memory
+
+Everything else in this project is deliberately stateless between calls —
+a `proposal_id` from `propose_automation` only means anything for as long
+as that one proposal is pending. `user_memory.py` is the one exception:
+`dismiss_workflow_suggestions("weekly_reporting")` is written to
+`data/user_memory.json` (atomic write, same pattern as the export adapter)
+and is still true tomorrow, next week, or after the server restarts —
+`get_top_friction_points` stops surfacing that workflow and
+`propose_automation` refuses to re-propose it until
+`restore_workflow_suggestions` is called. This is a standing preference,
+not a session variable, which is the actual distinction between "remembers
+what you said a minute ago" and "remembers what you told it, period."
 
 ## Research & References
 

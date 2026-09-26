@@ -266,7 +266,41 @@ you do run it against your own data before the demo, say so and use the
 real numbers; if not, describe it exactly as it stands: pipeline-verified
 on realistic fixtures, not yet on a live personal export.
 
-## 10. Trade-offs and honest gaps (say these before being asked)
+## 10. Cross-session memory — real state, not a session variable
+
+`user_memory.py` backs exactly one thing with a file on disk:
+`dismiss_workflow_suggestions`. Everything else in this project
+(`propose_automation`'s `proposal_id`, for instance) is in-memory and
+deliberately short-lived, because it answers "did you confirm *this*
+proposal" — a question with no meaning after the process restarts. A
+dismissal is different in kind: it's a standing preference ("stop asking
+me about weekly_reporting"), and `get_top_friction_points` /
+`propose_automation` both check it on every call, not just within one
+conversation.
+
+**Why this is the answer to "does this orchestrate across services or
+maintain context across sessions"** (the Alexa+ judging doc's own bar for
+"creative" vs. "obvious"): it's the second one, concretely. Dismiss a
+workflow, restart the server (simulating a new day, a new Alexa+ session,
+whatever), and `propose_automation` still refuses to re-propose it — that's
+verified directly in `tests/test_user_memory.py`'s reload test, not just
+claimed.
+
+**Judge question:** *"Why a JSON file, not a real database?"* Answer
+directly: this project has exactly one user per deployment — there's no
+multi-tenant auth story here, no concurrent-writer problem to solve. A
+database would be infrastructure theater for what this actually needs.
+The write path is still done properly regardless (temp file + `os.replace`
+for atomicity, same pattern as `data_adapters.py`'s export and
+`export_for_workflow_mining.py`'s fix) — the honesty is about scale, not
+about cutting corners on the part that's actually there.
+
+**Judge question:** *"What happens if I dismiss something by mistake?"*
+`restore_workflow_suggestions` reverses it, and `list_dismissed_workflow_suggestions`
+shows what's currently dismissed and why — this was built with an undo
+path from the start, not bolted on after.
+
+## 11. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |
 |---|---|---|
@@ -278,7 +312,7 @@ on realistic fixtures, not yet on a live personal export.
 
 ---
 
-## 11. Deployability
+## 12. Deployability
 
 - `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
   `docker-compose.yml` for a one-command local run.
@@ -287,14 +321,17 @@ on realistic fixtures, not yet on a live personal export.
   vars / `~/.aws/credentials` / IAM role), never a hardcoded key.
 - `.github/workflows/ci.yml` runs the full pytest suite plus both
   evaluation scripts on every push to `main`.
-- `tests/test_core.py` — 17 unit tests covering scoring invariants,
-  clustering edge cases (empty sequences, tiny samples), segmentation
-  sanity checks, and the propose/confirm state machine (including
-  double-confirm rejection).
+- `tests/` — 34 tests across `test_core.py` (scoring invariants,
+  clustering edge cases, segmentation sanity checks, the propose/confirm
+  state machine), `test_data_adapters.py` (real-format ingestion, including
+  an end-to-end discovery check), `test_user_memory.py` (persistence
+  survives a module reload, atomic writes), and
+  `test_session_memory_integration.py` (dismissals actually change what
+  `get_top_friction_points` and `propose_automation` return).
 
 ---
 
-## 12. If a judge asks you to improve one thing live
+## 13. If a judge asks you to improve one thing live
 
 Good, safe answer: **learn `STEP_JUDGMENT_COST` from data instead of a
 hand-set table** — track actual rework rate and duration variance per

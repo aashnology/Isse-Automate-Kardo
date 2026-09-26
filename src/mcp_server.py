@@ -32,6 +32,7 @@ from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
 from bedrock_narrator import BedrockNarrator
 from data_adapters import from_activitywatch_events, from_toggl_csv
+import user_memory
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -100,11 +101,17 @@ def discover_workflows_from_import(source: str, file_path: str) -> dict:
 # ---------------------------- Friction Radar tools --------------------------
 
 @mcp.tool()
-def get_top_friction_points(top_k: int = 3) -> dict:
+def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> dict:
     """Return the workflows costing the user the most time, ranked by total
     time cost, with an automation-potential score for each. Use this when the
-    user asks where they're wasting time or what's inefficient."""
-    return {"friction_points": friction_radar.top_friction_points(top_k=top_k)}
+    user asks where they're wasting time or what's inefficient. Workflows the
+    user has previously dismissed (see dismiss_workflow_suggestions) are left
+    out by default -- pass include_dismissed=True only if the user explicitly
+    asks to see everything regardless of past dismissals."""
+    points = friction_radar.top_friction_points(top_k=top_k + len(user_memory.list_dismissed()))
+    if not include_dismissed:
+        points = [p for p in points if not user_memory.is_dismissed(p["workflow_name"])]
+    return {"friction_points": points[:top_k]}
 
 
 @mcp.tool()
@@ -186,7 +193,19 @@ def propose_automation(workflow_name: str) -> dict:
     """Propose automating the low-judgment steps of a workflow, based on its
     debug_workflow breakdown. This NEVER executes anything -- it only returns
     a proposal_id. Use confirm_automation with that id to actually execute,
-    and only after the user has explicitly agreed."""
+    and only after the user has explicitly agreed. If the user has previously
+    dismissed suggestions for this workflow, this respects that standing
+    preference instead of proposing anyway -- call restore_workflow_suggestions
+    first if the user has changed their mind."""
+    if user_memory.is_dismissed(workflow_name):
+        return {
+            "proposal_id": None,
+            "workflow_name": workflow_name,
+            "summary": (
+                f"You previously asked not to be offered automation for "
+                f"'{workflow_name}'. Say the word and I'll bring it back."
+            ),
+        }
     debug_result = friction_radar.debug_workflow(workflow_name)
     return propose_action(workflow_name, debug_result)
 
@@ -197,6 +216,38 @@ def confirm_automation(proposal_id: str) -> dict:
     user has explicitly said yes to a specific proposal_id returned by
     propose_automation -- never call it speculatively."""
     return confirm_action(proposal_id)
+
+
+# ---------------------------- Cross-session memory ---------------------------
+# The one piece of state here that outlives a single Alexa+ conversation --
+# see user_memory.py's docstring for why this, specifically, is the thing
+# backed by a file rather than kept in memory like everything else.
+
+@mcp.tool()
+def dismiss_workflow_suggestions(workflow_name: str, reason: str = "") -> dict:
+    """Stop suggesting automation for this workflow, from now on, across
+    future conversations -- not just for the rest of this one. Use this when
+    the user says something like "stop asking me about X" or "I always want
+    to do that one myself." This persists until restore_workflow_suggestions
+    is called for the same workflow."""
+    return user_memory.dismiss_workflow(workflow_name, reason=reason)
+
+
+@mcp.tool()
+def restore_workflow_suggestions(workflow_name: str) -> dict:
+    """Undo a previous dismissal -- resume offering automation suggestions
+    for this workflow. Use this when the user says they've changed their
+    mind about a workflow they'd previously dismissed."""
+    return user_memory.restore_workflow(workflow_name)
+
+
+@mcp.tool()
+def list_dismissed_workflow_suggestions() -> dict:
+    """List every workflow the user has asked not to be offered automation
+    for, with why (if given) and when. Use this if the user asks what
+    they've previously dismissed, or wants a reminder before deciding
+    whether to restore one."""
+    return {"dismissed_workflows": user_memory.list_dismissed()}
 
 
 if __name__ == "__main__":
