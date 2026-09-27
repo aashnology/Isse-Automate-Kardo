@@ -34,7 +34,10 @@
   .orbi-scan { animation: scanX 1.6s ease-in-out infinite; }
   .orbi-pop { animation: popIn 0.5s ease-out; }
   .orbi-wiggle { animation: wiggle 0.7s ease-in-out infinite; transform-origin: center; }
+  .orbi-think { animation: think 2.4s ease-in-out infinite; transform-origin: center; }
   .orbi-bob { animation: bob 3s ease-in-out infinite; }
+  .progress-track { width: 36px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; width: 0%; background: #854F0B; border-radius: 2px; transition: width 1.3s linear; }
   .orbi-dot { width:4px; height:4px; border-radius:50%; background:#854F0B; display:inline-block; animation: dotPulse 1s ease-in-out infinite; }
   .orbi-z { animation: floatZ 2.4s ease-in infinite; opacity: 0; }
   .z2 { animation-delay: 0.6s; }
@@ -43,6 +46,7 @@
   @keyframes scanX { 0%,100%{transform:translateX(-1.5px);} 50%{transform:translateX(1.5px);} }
   @keyframes popIn { 0%{transform:scale(0.8);} 60%{transform:scale(1.08);} 100%{transform:scale(1);} }
   @keyframes wiggle { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+  @keyframes think { 0%,100%{transform:rotate(-3deg);} 50%{transform:rotate(3deg);} }
   @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(2px);} }
   @keyframes dotPulse { 0%,100%{opacity:0.25;} 50%{opacity:1;} }
   @keyframes floatZ { 0%{opacity:0; transform:translateY(0);} 20%{opacity:0.9;} 100%{opacity:0; transform:translateY(-8px);} }
@@ -66,7 +70,12 @@
 
   <div class="orbi-dock">
     <div class="orbi-wrap" id="orbiWrap" style="left: 0px;">
-      <svg id="orbiSvg" width="40" height="40" viewBox="0 0 48 48"></svg>
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <svg id="orbiSvg" width="40" height="40" viewBox="0 0 48 48"></svg>
+        <div class="progress-track" id="progressTrack" style="display:none;">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
       <div class="bubble" id="bubble">
         <p id="bubbleText" style="margin:0 0 4px;"></p>
         <button id="confirmBtn">Automate it</button>
@@ -108,9 +117,10 @@ const FACES = {
   curious: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#F0997B" stroke="#993C1D" stroke-width="2" class="orbi-pop"/>
     <circle cx="17" cy="22" r="4.5" fill="#4A1B0C"/><circle cx="31" cy="22" r="4.5" fill="#4A1B0C"/>
     <circle cx="24" cy="33" r="3.5" fill="none" stroke="#4A1B0C" stroke-width="2.5"/>`,
-  suggesting: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#FAC775" stroke="#854F0B" stroke-width="2"/>
-    <rect x="13" y="23" width="7" height="2.5" rx="1" fill="#412402"/><rect x="27" y="23" width="7" height="2.5" rx="1" fill="#412402"/>
-    <path d="M18 32 Q24 29 30 32" stroke="#412402" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  suggesting: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#FAC775" stroke="#854F0B" stroke-width="2" class="orbi-think"/>
+    <path d="M12 17 Q16 13 20 16" stroke="#412402" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <circle cx="17" cy="21" r="3" fill="#412402"/><circle cx="31" cy="20" r="3" fill="#412402"/>
+    <path d="M20 33 Q24 31 28 32" stroke="#412402" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
   confirmed: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#97C459" stroke="#3B6D11" stroke-width="2" class="orbi-wiggle"/>
     <circle cx="16" cy="21" r="5" fill="#173404"/><path d="M27 23 L35 20" stroke="#173404" stroke-width="2.5" stroke-linecap="round"/>
     <path d="M13 31 Q24 40 35 29 Q28 34 24 30 Q20 34 13 31" fill="#173404"/>
@@ -181,13 +191,22 @@ async function selectTab(workflowName, btn) {
       currentTarget = fp.workflow_name;
       setMood("curious");
       setStatus("Orbi noticed a pattern across your tabs.");
+
+      const track = document.getElementById("progressTrack");
+      const fill = document.getElementById("progressFill");
+      track.style.display = "block";
+      fill.style.width = "0%";
+      requestAnimationFrame(() => { fill.style.width = "100%"; });
+
       setTimeout(() => {
         setMood("suggesting");
+        track.style.display = "none";
+        fill.style.width = "0%";
         document.getElementById("bubbleText").textContent =
           `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
         document.getElementById("bubble").style.display = "block";
         setStatus("Orbi thinks this can be automated.");
-      }, 700);
+      }, 1300);
     }
   }
 }
@@ -239,6 +258,8 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
   visited = new Set();
   currentTarget = null;
   document.getElementById("bubble").style.display = "none";
+  document.getElementById("progressTrack").style.display = "none";
+  document.getElementById("progressFill").style.width = "0%";
   document.getElementById("panel").innerHTML = '<p class="status">Click a tab to load its real step breakdown.</p>';
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   document.getElementById("orbiWrap").style.left = "0px";
