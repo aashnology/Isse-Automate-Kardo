@@ -351,6 +351,62 @@ success. That asymmetry — one workflow succeeds, another correctly
 doesn't — is the proof it's calling the real backend, not playing a
 recorded animation.
 
+**The chat box.** Below the workspace, a text input lets you ask Orbi
+things directly ("what's costing me the most time," "automate it," "stop
+suggesting bug triage"). This is a small keyword-matched intent router in
+plain JavaScript — not an LLM, not Bedrock — that calls the exact same
+`/api/*` endpoints the tabs call. Say this plainly if asked: it's pattern
+matching, not natural-language understanding, and it was built that way on
+purpose so the conversational surface doesn't depend on an API call (or a
+card) to demo at all. It reads as a real exchange because it's driving
+real analysis underneath simple matching, not because the matching itself
+is sophisticated.
+
+**Bring-your-own-data, and the one genuinely novel piece: GitHub PR
+mining.** The "My data" tab's three import paths (ActivityWatch/Toggl
+file, pasted steps, or a GitHub repo) all end at the same `discover()` /
+`detect_anomalous_runs()` calls as the synthetic demo data — no special
+casing downstream of import.
+
+The GitHub path deserves its own defense, because it's the most
+interesting and the easiest to over-claim. `from_github_pull_requests`
+makes exactly one call to GitHub's public PR-list API (read-only,
+unauthenticated by default) and turns each closed PR into a two-step run:
+`pr_opened` (created_at → updated_at) and `pr_merged`/`pr_closed`
+(updated_at → merged_at/closed_at). Two decisions worth explaining if
+asked:
+
+- **Why each PR gets its own run boundary (`run_id_field="workflow_run_id"`
+  set to the PR number) instead of going through `from_raw_events`'s
+  automatic segmentation:** PRs are routinely open concurrently in any
+  active repo. A single global time-gap segmentation would interleave
+  events from different PRs incorrectly. Knowing the true boundary (the PR
+  itself) sidesteps the problem entirely rather than papering over it —
+  this was caught and fixed *before* shipping, by reasoning through what
+  real repo activity looks like, not discovered by a bug report.
+- **Why it never clones or runs the repo's code:** stated as a hard line,
+  not a caveat — reading PR metadata over an API is safe; executing code
+  from a pasted link is a real security risk regardless of framing. This
+  project does the first and refuses the second categorically.
+
+**Judge question, and the honest answer to have ready:** *"Is the anomaly
+detection's root-cause always right?"* No, and it's worth knowing exactly
+where it can mislead rather than being surprised by it live: `_step_averages`
+in `workflow_discovery.py` uses the mean per step across a cluster. Tested
+against a real repo (`pallets/flask`), one PR sat open for roughly 67 days
+before closing — a genuine, dramatic outlier. That single value pulls the
+cluster's mean `pr_opened` duration up so much that *other* runs' actual
+`pr_opened` times end up looking below-average, so `likely_cause_step` can
+point at whichever step happens to have the least-negative excess, which
+isn't a meaningful answer for those other runs. This is a pre-existing
+property of the mean-based root-cause logic, surfaced by testing on real,
+noisy external data rather than only ever-tidy synthetic data — exactly
+the kind of thing that's easy to miss without testing against something
+messier than your own generator. It wasn't patched silently; it's named
+here as a known limitation and a legitimate next step (a median-based or
+outlier-excluded average would be more robust) rather than corrected
+without saying so.
+
 ## 12. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |

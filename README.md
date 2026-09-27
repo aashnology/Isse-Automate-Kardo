@@ -251,6 +251,30 @@ implementation. Click through the tabs, watch Orbi notice a repeatable
 pattern and propose automating it, confirm or dismiss it, then restart the
 server and check that a dismissal is still remembered.
 
+**Talk to it directly.** Below the workspace is a text box — ask things
+like *"what's costing me the most time"*, *"why is reporting slow"*,
+*"automate it"*, or *"stop suggesting bug triage"*. This is a small
+keyword-matched intent router, not an LLM, and it calls the exact same
+endpoints the tabs do — the point is a conversational surface that reads
+like an assistant, not a dashboard with a mascot attached.
+
+**Bring your own data**, via the "My data" tab, three ways:
+- An ActivityWatch (.json) or Toggl (.csv) export, through the same
+  adapters `discover_workflows_from_import` uses.
+- A pasted list of steps (blank line = a new run) — the lowest-effort
+  option, with no real timestamps of its own; see `from_pasted_steps`'s
+  docstring for exactly what that trades away.
+- A public GitHub repo (`owner/repo` or a full URL) — mines that repo's
+  own closed pull-request history (open time, merge time) as workflow
+  data. **This only ever reads PR metadata over GitHub's public API — it
+  never clones, downloads, or executes anything from the repository.**
+  That line is deliberate: mining a repo's own process data is safe;
+  running its code because someone pasted a link is a different, much
+  riskier thing this project does not do. Every PR shares the same two
+  step names by construction (opened → merged/closed), so the interesting
+  output is anomaly detection surfacing which specific PRs took unusually
+  long, not the clustering itself.
+
 **What this is not, said plainly:** a website cannot see your other browser
 tabs or other sites — that's a hard security boundary, not a limitation of
 this build. Orbi "watches" a sandboxed workspace built into this one page,

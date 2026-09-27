@@ -23,6 +23,9 @@
   .status { font-size: 12px; color: var(--muted); }
   .btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
   .btn:hover { background: var(--bg); }
+  .chat-msg { font-size: 13px; padding: 7px 11px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
+  .chat-msg.you { align-self: flex-end; background: #FAC775; color: #412402; }
+  .chat-msg.orbi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
 
   .orbi-dock { position: relative; height: 60px; margin: 0 16px; }
   .orbi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
@@ -64,6 +67,7 @@
     <button class="tab" data-workflow="bug_triage">Ticket queue</button>
     <button class="tab" data-workflow="weekly_reporting">Spreadsheet</button>
     <button class="tab" data-workflow="onboarding_new_partner">Inbox</button>
+    <button class="tab" data-workflow="import">My data</button>
   </div>
 
   <div class="panel" id="panel"><p class="status">Click a tab to load its real step breakdown.</p></div>
@@ -88,11 +92,21 @@
     <span class="status" id="statusText">Connecting to Orbi...</span>
     <button class="btn" id="resetBtn">Reset demo</button>
   </div>
+
+  <div style="border-top: 1px solid var(--border); padding: 14px 16px;">
+    <div id="chatLog" style="max-height:170px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+    <div style="display:flex; gap:6px;">
+      <input id="chatInput" type="text"
+        placeholder="Ask: what's costing me time? why is reporting slow? automate it. stop suggesting bug triage."
+        style="flex:1; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit;">
+      <button class="btn" id="chatSend">Send</button>
+    </div>
+  </div>
 </div>
 
 <script>
 const API = "";
-const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260 };
+const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
 let visited = new Set();
 let currentTarget = null;
 let currentProposalId = null;
@@ -153,6 +167,11 @@ async function selectTab(workflowName, btn) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
   document.getElementById("orbiWrap").style.left = tabPositions[workflowName] + "px";
+
+  if (workflowName === "import") {
+    renderImportPanel();
+    return;
+  }
   visited.add(workflowName);
 
   if (!backendUp) return;
@@ -211,23 +230,96 @@ async function selectTab(workflowName, btn) {
   }
 }
 
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => selectTab(btn.dataset.workflow, btn));
-});
+function renderImportPanel() {
+  const panel = document.getElementById("panel");
+  panel.innerHTML = `
+    <p class="status" style="margin-bottom:8px;">Bring your own data — nothing here is executed, only read and parsed.</p>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div>
+        <label class="status" style="display:block; margin-bottom:3px;">ActivityWatch (.json) or Toggl (.csv) export</label>
+        <input type="file" id="importFile" accept=".json,.csv" style="font-size:12px;">
+      </div>
+      <div>
+        <label class="status" style="display:block; margin-bottom:3px;">Or paste a step list (blank line = new run)</label>
+        <textarea id="importText" rows="3" placeholder="download file, 2&#10;clean data, 10&#10;export, 3"
+          style="width:100%; font-size:12px; padding:6px; border:1px solid var(--border); border-radius:6px; font-family:inherit;"></textarea>
+      </div>
+      <div>
+        <label class="status" style="display:block; margin-bottom:3px;">Or a public GitHub repo (mines its real PR history — read-only)</label>
+        <input type="text" id="importRepo" placeholder="owner/repo or a github.com URL"
+          style="width:100%; font-size:12px; padding:6px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
+      </div>
+      <button class="btn" id="importBtn" style="align-self:flex-start;">Analyze this</button>
+      <div id="importResults"></div>
+    </div>`;
 
-document.getElementById("confirmBtn").addEventListener("click", async () => {
+  document.getElementById("importBtn").addEventListener("click", runImport);
+}
+
+async function runImport() {
+  const results = document.getElementById("importResults");
+  results.innerHTML = '<p class="status">Analyzing...</p>';
+  setMood("watching");
+
+  const fileInput = document.getElementById("importFile");
+  const text = document.getElementById("importText").value.trim();
+  const repo = document.getElementById("importRepo").value.trim();
+
+  try {
+    let data;
+    if (fileInput.files.length) {
+      const form = new FormData();
+      form.append("file", fileInput.files[0]);
+      data = await api("/api/import", { method: "POST", body: form });
+    } else if (repo) {
+      data = await api("/api/import", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({github_repo: repo}),
+      });
+    } else if (text) {
+      data = await api("/api/import", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({pasted_text: text}),
+      });
+    } else {
+      results.innerHTML = '<p class="status">Provide a file, some pasted steps, or a repo first.</p>';
+      setMood("idle");
+      return;
+    }
+
+    if (data.error) {
+      results.innerHTML = `<p class="status">${data.error}</p>`;
+      setMood("idle");
+      return;
+    }
+
+    setMood("curious");
+    let html = `<p class="status" style="margin-bottom:6px;">${data.events_imported} events → ${data.discovered_workflows.length} discovered pattern(s)</p>`;
+    for (const c of data.discovered_workflows) {
+      html += `<div class="row" style="flex-direction:column; align-items:flex-start; gap:2px;">
+        <span>${c.canonical_sequence.join(" → ")}</span>
+        <span style="color:var(--muted); font-size:11px;">${c.run_count} run(s)</span>
+      </div>`;
+      const anomalies = (data.anomalies_by_cluster && data.anomalies_by_cluster[c.matched_label]) || [];
+      if (anomalies.length) {
+        html += `<p class="status" style="margin:4px 0 8px 4px;">⚠ ${anomalies.length} unusual run(s) — worst took ${Math.round(anomalies[0].total_minutes)} min, mainly '${anomalies[0].likely_cause_step}'.</p>`;
+      }
+    }
+    results.innerHTML = html;
+  } catch (e) {
+    results.innerHTML = '<p class="status">Something went wrong reaching the backend.</p>';
+    setMood("idle");
+  }
+}
+
+async function automateWorkflow(name) {
   const proposal = await api("/api/propose", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({workflow_name: currentTarget}),
+    body: JSON.stringify({workflow_name: name}),
   });
   if (!proposal.proposal_id) {
-    // Honest path: some workflows (bug_triage, for instance) genuinely have
-    // no steps safe to automate without human judgment -- don't show a
-    // happy "confirmed" face for something that didn't happen.
     setMood("watching");
-    document.getElementById("bubbleText").textContent = proposal.summary;
-    setStatus("Nothing here was safe to automate — that's the real answer, not a bug.");
-    return;
+    return {ok: false, message: proposal.summary};
   }
   await api("/api/confirm", {
     method: "POST", headers: {"Content-Type": "application/json"},
@@ -235,17 +327,34 @@ document.getElementById("confirmBtn").addEventListener("click", async () => {
   });
   setMood("confirmed");
   document.getElementById("bubble").style.display = "none";
-  setStatus("Automation confirmed — real propose/confirm calls, not a script.");
-});
+  return {ok: true, message: `Done — automated: ${proposal.proposed_automation.join(", ")}.`};
+}
 
-document.getElementById("dismissBtn").addEventListener("click", async () => {
+async function dismissWorkflow(name) {
   await api("/api/dismiss", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({workflow_name: currentTarget, reason: "dismissed via Orbi demo"}),
+    body: JSON.stringify({workflow_name: name, reason: "dismissed via Orbi demo"}),
   });
   setMood("idle");
   document.getElementById("bubble").style.display = "none";
-  setStatus("Got it — saved to disk, won't suggest this again even after a restart.");
+  return {message: `Got it — won't suggest '${name}' again, even after a restart.`};
+}
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => selectTab(btn.dataset.workflow, btn));
+});
+
+document.getElementById("confirmBtn").addEventListener("click", async () => {
+  const result = await automateWorkflow(currentTarget);
+  if (!result.ok) document.getElementById("bubbleText").textContent = result.message;
+  setStatus(result.ok
+    ? "Automation confirmed — real propose/confirm calls, not a script."
+    : "Nothing here was safe to automate — that's the real answer, not a bug.");
+});
+
+document.getElementById("dismissBtn").addEventListener("click", async () => {
+  const result = await dismissWorkflow(currentTarget);
+  setStatus(result.message);
 });
 
 document.getElementById("resetBtn").addEventListener("click", async () => {
@@ -268,6 +377,108 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
 
 setMood("asleep");
 checkBackend();
+
+// ---------------------------- Chat / command interface ----------------------
+const WORKFLOW_SYNONYMS = {
+  bug_triage: ["bug", "ticket", "triage"],
+  weekly_reporting: ["report", "reporting", "spreadsheet", "weekly"],
+  onboarding_new_partner: ["onboarding", "partner", "inbox"],
+};
+
+function matchWorkflow(text) {
+  for (const [name, words] of Object.entries(WORKFLOW_SYNONYMS)) {
+    if (words.some(w => text.includes(w))) return name;
+  }
+  return null;
+}
+
+function appendChat(who, text) {
+  const log = document.getElementById("chatLog");
+  const div = document.createElement("div");
+  div.className = "chat-msg " + who;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function handleChatMessage(raw) {
+  appendChat("you", raw);
+  if (!backendUp) { appendChat("orbi", "I'm asleep right now — start web/server.py, then reset."); return; }
+
+  const text = raw.toLowerCase();
+  const mentioned = matchWorkflow(text);
+
+  if (/(waste|costing|most time|top|biggest|friction)/.test(text)) {
+    const top = await api("/api/friction-points?top_k=1");
+    if (!top.friction_points.length) { appendChat("orbi", "Nothing to report yet — every workflow's dismissed or empty."); return; }
+    const fp = top.friction_points[0];
+    currentTarget = fp.workflow_name;
+    setMood("curious");
+    appendChat("orbi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
+    return;
+  }
+
+  if (/(why|slow|debug|breakdown|bottleneck)/.test(text)) {
+    const name = mentioned || currentTarget;
+    if (!name) { appendChat("orbi", "Which workflow? Try mentioning 'reporting', 'bug triage', or 'onboarding'."); return; }
+    currentTarget = name;
+    const debug = await api("/api/debug/" + name);
+    if (debug.error) { appendChat("orbi", debug.error); return; }
+    const top = debug.step_breakdown[0];
+    appendChat("orbi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
+    return;
+  }
+
+  if (/(anomal|unusual|weird|outlier|spike)/.test(text)) {
+    const name = mentioned || currentTarget;
+    if (!name) { appendChat("orbi", "Which workflow should I check for anomalies?"); return; }
+    const a = await api("/api/anomalies/" + name);
+    if (a.anomalies && a.anomalies.length) {
+      appendChat("orbi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
+    } else {
+      appendChat("orbi", a.note || `No anomalous runs in '${name}''s history.`);
+    }
+    return;
+  }
+
+  if (/(automate|do it|handle it|go ahead|yes please|^yes$)/.test(text)) {
+    const name = mentioned || currentTarget;
+    if (!name) { appendChat("orbi", "Automate what? Ask what's costing you time first."); return; }
+    const result = await automateWorkflow(name);
+    appendChat("orbi", result.message);
+    return;
+  }
+
+  if (/(stop|dismiss|don.t suggest|never ?mind|no thanks)/.test(text)) {
+    const name = mentioned || currentTarget;
+    if (!name) { appendChat("orbi", "Stop suggesting what?"); return; }
+    const result = await dismissWorkflow(name);
+    appendChat("orbi", result.message);
+    return;
+  }
+
+  if (/(restore|bring back|undo)/.test(text) && mentioned) {
+    await api("/api/restore", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({workflow_name: mentioned}),
+    });
+    appendChat("orbi", `Restored — I'll suggest '${mentioned}' again if it comes up.`);
+    return;
+  }
+
+  appendChat("orbi", "Try: \"what's costing me the most time\", \"why is reporting slow\", \"automate it\", or \"stop suggesting bug triage\".");
+}
+
+document.getElementById("chatSend").addEventListener("click", () => {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = "";
+  handleChatMessage(msg);
+});
+document.getElementById("chatInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("chatSend").click();
+});
 </script>
 </body>
 </html>

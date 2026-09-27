@@ -28,12 +28,17 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from flask import Flask, jsonify, request, send_from_directory
 
 from synthetic_data import generate_activity_events
 from friction_radar import FrictionRadar
 from workflow_discovery import WorkflowDiscovery
 from actions import propose_action, confirm_action
+from data_adapters import from_activitywatch_events, from_toggl_csv, from_pasted_steps, from_github_pull_requests
 import user_memory
 
 app = Flask(__name__, static_folder="static", static_url_path="")
@@ -102,6 +107,70 @@ def restore():
 @app.route("/api/dismissed")
 def dismissed():
     return jsonify({"dismissed_workflows": user_memory.list_dismissed()})
+
+
+@app.route("/api/import", methods=["POST"])
+def import_data():
+    """Bring-your-own-data: an ActivityWatch/Toggl export file, a pasted
+    step list, or a public GitHub repo's own PR history -- run through the
+    exact same discovery pipeline as the synthetic demo data. Never
+    executes anything from a file or repo; every path here only reads and
+    parses (see data_adapters.py's docstrings for why that line matters)."""
+    if "file" in request.files:
+        f = request.files["file"]
+        name = (f.filename or "").lower()
+        content = f.read().decode("utf-8")
+        if name.endswith(".json"):
+            import json as _json
+            raw = from_activitywatch_events(_json.loads(content))
+        elif name.endswith(".csv"):
+            import tempfile
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as tmp:
+                tmp.write(content)
+                tmp_path = tmp.name
+            raw = from_toggl_csv(tmp_path)
+        else:
+            return jsonify({"error": "Use a .json (ActivityWatch) or .csv (Toggl) file."}), 400
+        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6)
+
+    elif request.is_json and request.json.get("pasted_text"):
+        raw = from_pasted_steps(request.json["pasted_text"])
+        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6)
+
+    elif request.is_json and request.json.get("github_repo"):
+        repo_spec = request.json["github_repo"].strip().strip("/")
+        if repo_spec.startswith("http"):
+            repo_spec = repo_spec.split("github.com/")[-1]
+        parts = repo_spec.split("/")
+        if len(parts) != 2:
+            return jsonify({"error": "Expected 'owner/repo' or a github.com URL."}), 400
+        owner, repo = parts
+        try:
+            raw = from_github_pull_requests(owner, repo, max_prs=30, token=os.environ.get("GITHUB_TOKEN"))
+        except Exception as exc:  # noqa: BLE001 -- surface as a normal error response, not a 500
+            return jsonify({"error": f"Couldn't fetch that repo's PRs: {exc}"}), 400
+        if not raw:
+            return jsonify({"error": "No closed pull requests found to analyze."}), 400
+        # PRs can be open concurrently, so run boundaries are the PR itself,
+        # not a time-gap guess -- see from_github_pull_requests' docstring.
+        wd = WorkflowDiscovery(raw, similarity_threshold=0.6, run_id_field="workflow_run_id")
+
+    else:
+        return jsonify({"error": "Provide a file, pasted_text, or github_repo."}), 400
+
+    if not raw:
+        return jsonify({"error": "No events could be parsed from that input."}), 400
+
+    clusters = wd.discover()
+    anomalies_by_cluster = {
+        c["matched_label"]: wd.detect_anomalous_runs(c["matched_label"]).get("anomalies", [])
+        for c in clusters
+    }
+    return jsonify({
+        "events_imported": len(raw),
+        "discovered_workflows": clusters,
+        "anomalies_by_cluster": anomalies_by_cluster,
+    })
 
 
 if __name__ == "__main__":
