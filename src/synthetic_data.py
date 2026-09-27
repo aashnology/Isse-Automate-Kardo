@@ -120,10 +120,18 @@ def generate_activity_events(n_weeks=6, out_path=None):
             workflow_run_id += 1
             _emit_workflow(events, "onboarding_new_partner", week_start, workflow_run_id)
 
-        # bug triage runs often, 2-5x/week, with more variable duration/failure
-        for _ in range(random.randint(2, 5)):
+        # bug triage runs often, 2-5x/week, with more variable duration/failure.
+        # One run in the most recent week gets a deliberate spike on
+        # reproduce_attempt -- a guaranteed, named example for
+        # detect_anomalous_runs to surface, rather than leaving the demo
+        # dependent on the per-step noise happening to cross the IQR fence
+        # on its own (across 19 runs with this seed, on this dataset, it
+        # doesn't -- worth knowing, not worth hiding).
+        for i in range(random.randint(2, 5)):
             workflow_run_id += 1
-            _emit_workflow(events, "bug_triage", week_start, workflow_run_id, variable=True)
+            spike = (week == n_weeks - 1 and i == 0)
+            _emit_workflow(events, "bug_triage", week_start, workflow_run_id,
+                            variable=True, spike_step="reproduce_attempt" if spike else None)
 
     events.sort(key=lambda x: x["timestamp"])
     if out_path:
@@ -132,7 +140,7 @@ def generate_activity_events(n_weeks=6, out_path=None):
     return events
 
 
-def _emit_workflow(events, workflow_name, week_start, run_id, variable=False):
+def _emit_workflow(events, workflow_name, week_start, run_id, variable=False, spike_step=None):
     steps = WORKFLOWS[workflow_name]
     t = week_start + timedelta(
         days=random.uniform(0, 5), hours=random.uniform(8, 18)
@@ -145,7 +153,10 @@ def _emit_workflow(events, workflow_name, week_start, run_id, variable=False):
             "ticket_read": 4, "reproduce_attempt": 25, "context_switch": 6,
             "log_search": 10, "fix_or_escalate": 18,
         }[step]
-        duration = base_minutes * (random.uniform(0.7, 1.6) if variable else random.uniform(0.9, 1.15))
+        if step == spike_step:
+            duration = base_minutes * random.uniform(3.5, 4.5)
+        else:
+            duration = base_minutes * (random.uniform(0.7, 1.6) if variable else random.uniform(0.9, 1.15))
         outcome = "success"
         if variable and random.random() < 0.15:
             outcome = "rework"

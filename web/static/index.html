@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Isse Automate Kardo — Orbi</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --border: #e2e0da; --text: #2c2c2a; --muted: #6b6a63;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
+  .frame { max-width: 620px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #d8d6cf; }
+  .url { flex: 1; margin-left: 8px; font-size: 12px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 4px 10px; }
+  .tabs { display: flex; gap: 6px; padding: 12px 16px 0; }
+  .tab { padding: 6px 12px; font-size: 13px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
+  .tab.active { background: var(--bg); border-color: #b8b6ad; }
+  .panel { padding: 16px; min-height: 150px; }
+  .row { font-size: 12px; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+  .status-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--border); }
+  .status { font-size: 12px; color: var(--muted); }
+  .btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
+  .btn:hover { background: var(--bg); }
+
+  .orbi-dock { position: relative; height: 60px; margin: 0 16px; }
+  .orbi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
+  .bubble { display:none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; max-width: 230px; font-size: 13px; }
+  .bubble button { font-size: 12px; padding: 4px 10px; margin-top: 6px; margin-right: 6px; }
+
+  .orbi-pulse { animation: pulseSlow 2.2s ease-in-out infinite; transform-origin: center; }
+  .orbi-blink { animation: blinkEyes 3s steps(1) infinite; transform-origin: center; }
+  .orbi-scan { animation: scanX 1.6s ease-in-out infinite; }
+  .orbi-pop { animation: popIn 0.5s ease-out; }
+  .orbi-wiggle { animation: wiggle 0.7s ease-in-out infinite; transform-origin: center; }
+  .orbi-bob { animation: bob 3s ease-in-out infinite; }
+  .orbi-dot { width:4px; height:4px; border-radius:50%; background:#854F0B; display:inline-block; animation: dotPulse 1s ease-in-out infinite; }
+  .orbi-z { animation: floatZ 2.4s ease-in infinite; opacity: 0; }
+  .z2 { animation-delay: 0.6s; }
+  @keyframes pulseSlow { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+  @keyframes blinkEyes { 0%,90%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.15);} }
+  @keyframes scanX { 0%,100%{transform:translateX(-1.5px);} 50%{transform:translateX(1.5px);} }
+  @keyframes popIn { 0%{transform:scale(0.8);} 60%{transform:scale(1.08);} 100%{transform:scale(1);} }
+  @keyframes wiggle { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
+  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(2px);} }
+  @keyframes dotPulse { 0%,100%{opacity:0.25;} 50%{opacity:1;} }
+  @keyframes floatZ { 0%{opacity:0; transform:translateY(0);} 20%{opacity:0.9;} 100%{opacity:0; transform:translateY(-8px);} }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="titlebar">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    <div class="url">isse-automate-kardo.app</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" data-workflow="bug_triage">Ticket queue</button>
+    <button class="tab" data-workflow="weekly_reporting">Spreadsheet</button>
+    <button class="tab" data-workflow="onboarding_new_partner">Inbox</button>
+  </div>
+
+  <div class="panel" id="panel"><p class="status">Click a tab to load its real step breakdown.</p></div>
+
+  <div class="orbi-dock">
+    <div class="orbi-wrap" id="orbiWrap" style="left: 0px;">
+      <svg id="orbiSvg" width="40" height="40" viewBox="0 0 48 48"></svg>
+      <div class="bubble" id="bubble">
+        <p id="bubbleText" style="margin:0 0 4px;"></p>
+        <button id="confirmBtn">Automate it</button>
+        <button id="dismissBtn">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="status" id="statusText">Connecting to Orbi...</span>
+    <button class="btn" id="resetBtn">Reset demo</button>
+  </div>
+</div>
+
+<script>
+const API = "";
+const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260 };
+let visited = new Set();
+let currentTarget = null;
+let currentProposalId = null;
+let backendUp = false;
+
+const FACES = {
+  asleep: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="2" class="orbi-bob"/>
+    <path d="M13 22 Q17 25 21 22" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M27 22 Q31 25 35 22" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="24" cy="32" rx="3" ry="2" fill="#2C2C2A"/>
+    <text class="orbi-z" x="34" y="10" font-size="7" fill="#5F5E5A">z</text>
+    <text class="orbi-z z2" x="39" y="5" font-size="9" fill="#5F5E5A">z</text>`,
+  idle: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="orbi-pulse"/>
+    <rect class="orbi-blink" x="14" y="19" width="6" height="7" rx="1" fill="#042C53"/>
+    <rect class="orbi-blink" x="28" y="19" width="6" height="7" rx="1" fill="#042C53"/>
+    <path d="M17 31 Q24 34 31 31" stroke="#042C53" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  watching: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="orbi-scan"/>
+    <rect x="12" y="15" width="8" height="2.5" fill="#042C53" transform="rotate(-14 16 16)"/>
+    <rect x="14" y="20" width="6" height="6" fill="#042C53"/>
+    <rect x="28" y="21" width="6" height="4" fill="#042C53"/>
+    <path d="M17 31 Q24 30 31 31" stroke="#042C53" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  curious: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#F0997B" stroke="#993C1D" stroke-width="2" class="orbi-pop"/>
+    <circle cx="17" cy="22" r="4.5" fill="#4A1B0C"/><circle cx="31" cy="22" r="4.5" fill="#4A1B0C"/>
+    <circle cx="24" cy="33" r="3.5" fill="none" stroke="#4A1B0C" stroke-width="2.5"/>`,
+  suggesting: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#FAC775" stroke="#854F0B" stroke-width="2"/>
+    <rect x="13" y="23" width="7" height="2.5" rx="1" fill="#412402"/><rect x="27" y="23" width="7" height="2.5" rx="1" fill="#412402"/>
+    <path d="M18 32 Q24 29 30 32" stroke="#412402" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  confirmed: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#97C459" stroke="#3B6D11" stroke-width="2" class="orbi-wiggle"/>
+    <circle cx="16" cy="21" r="5" fill="#173404"/><path d="M27 23 L35 20" stroke="#173404" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M13 31 Q24 40 35 29 Q28 34 24 30 Q20 34 13 31" fill="#173404"/>
+    <polygon points="6,10 9,4 11,10" fill="#639922"/><polygon points="38,8 41,3 42,9" fill="#639922"/>`,
+};
+
+function setMood(mood) { document.getElementById("orbiSvg").innerHTML = FACES[mood]; }
+function setStatus(text) { document.getElementById("statusText").textContent = text; }
+
+async function api(path, opts) {
+  const res = await fetch(API + path, opts);
+  if (!res.ok) throw new Error("request failed");
+  return res.json();
+}
+
+async function checkBackend() {
+  try {
+    await api("/api/friction-points?top_k=1");
+    backendUp = true;
+    setMood("idle");
+    setStatus("Orbi is watching this workspace.");
+  } catch (e) {
+    backendUp = false;
+    setMood("asleep");
+    setStatus("Backend not running — start web/server.py, then reset.");
+  }
+}
+
+async function selectTab(workflowName, btn) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("orbiWrap").style.left = tabPositions[workflowName] + "px";
+  visited.add(workflowName);
+
+  if (!backendUp) return;
+
+  const debug = await api("/api/debug/" + workflowName);
+  const panel = document.getElementById("panel");
+  if (debug.error) {
+    panel.innerHTML = `<p class="status">${debug.error}</p>`;
+    return;
+  }
+  panel.innerHTML = debug.step_breakdown.map(s =>
+    `<div class="row"><span>${s.step}</span><span>${Math.round(s.share_of_total * 100)}% of time</span></div>`
+  ).join("");
+
+  const anomalyData = await api("/api/anomalies/" + workflowName);
+  const anomalyNote = document.createElement("p");
+  anomalyNote.className = "status";
+  anomalyNote.style.marginTop = "10px";
+  if (anomalyData.error) {
+    anomalyNote.textContent = "";
+  } else if (anomalyData.anomalies && anomalyData.anomalies.length) {
+    const a = anomalyData.anomalies[0];
+    anomalyNote.textContent = `One run ran unusually long — mainly '${a.likely_cause_step}'.`;
+  } else {
+    anomalyNote.textContent = anomalyData.note || "No anomalous runs in this workflow's history.";
+  }
+  panel.appendChild(anomalyNote);
+
+  const dismissedResp = await api("/api/dismissed");
+  const dismissedNames = dismissedResp.dismissed_workflows.map(w => w.workflow_name);
+
+  if (visited.size >= 3 && !currentTarget) {
+    const top = await api("/api/friction-points?top_k=1");
+    if (top.friction_points.length && !dismissedNames.includes(top.friction_points[0].workflow_name)) {
+      const fp = top.friction_points[0];
+      currentTarget = fp.workflow_name;
+      setMood("curious");
+      setStatus("Orbi noticed a pattern across your tabs.");
+      setTimeout(() => {
+        setMood("suggesting");
+        document.getElementById("bubbleText").textContent =
+          `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
+        document.getElementById("bubble").style.display = "block";
+        setStatus("Orbi thinks this can be automated.");
+      }, 700);
+    }
+  }
+}
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => selectTab(btn.dataset.workflow, btn));
+});
+
+document.getElementById("confirmBtn").addEventListener("click", async () => {
+  const proposal = await api("/api/propose", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({workflow_name: currentTarget}),
+  });
+  if (!proposal.proposal_id) {
+    // Honest path: some workflows (bug_triage, for instance) genuinely have
+    // no steps safe to automate without human judgment -- don't show a
+    // happy "confirmed" face for something that didn't happen.
+    setMood("watching");
+    document.getElementById("bubbleText").textContent = proposal.summary;
+    setStatus("Nothing here was safe to automate — that's the real answer, not a bug.");
+    return;
+  }
+  await api("/api/confirm", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({proposal_id: proposal.proposal_id}),
+  });
+  setMood("confirmed");
+  document.getElementById("bubble").style.display = "none";
+  setStatus("Automation confirmed — real propose/confirm calls, not a script.");
+});
+
+document.getElementById("dismissBtn").addEventListener("click", async () => {
+  await api("/api/dismiss", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({workflow_name: currentTarget, reason: "dismissed via Orbi demo"}),
+  });
+  setMood("idle");
+  document.getElementById("bubble").style.display = "none";
+  setStatus("Got it — saved to disk, won't suggest this again even after a restart.");
+});
+
+document.getElementById("resetBtn").addEventListener("click", async () => {
+  if (currentTarget) {
+    await api("/api/restore", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({workflow_name: currentTarget}),
+    }).catch(() => {});
+  }
+  visited = new Set();
+  currentTarget = null;
+  document.getElementById("bubble").style.display = "none";
+  document.getElementById("panel").innerHTML = '<p class="status">Click a tab to load its real step breakdown.</p>';
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("orbiWrap").style.left = "0px";
+  checkBackend();
+});
+
+setMood("asleep");
+checkBackend();
+</script>
+</body>
+</html>

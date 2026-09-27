@@ -179,6 +179,19 @@ Root-causing *which* step drove the anomaly: compare the run's per-step
 durations against the cluster's per-step averages, and report whichever
 step has the largest positive excess.
 
+**Judge question:** *"Is that anomaly in the demo real, or cherry-picked?"*
+Answer directly rather than dodge it: `synthetic_data.py` deliberately
+spikes one specific run's `reproduce_attempt` step to 3.5-4.5x normal, in
+the most recent week, so the demo has a guaranteed, named example instead
+of depending on per-step noise happening to cross the IQR fence on its own
+across 19 runs. It's stated in a code comment right where it happens, not
+hidden. Worth knowing why this was needed at all: with this seed, ordinary
+per-step multiplicative noise averaged out across a 5-step run enough that
+*zero* runs crossed the fence naturally — a real, checked finding, not an
+assumption. The detection logic itself is unchanged and still genuinely
+computes the fence from the data; only one input run was engineered to
+guarantee the demo has something to point at.
+
 ---
 
 ## 7. Human-in-the-loop actions — the autonomy model
@@ -300,7 +313,45 @@ about cutting corners on the part that's actually there.
 shows what's currently dismissed and why — this was built with an undo
 path from the start, not bolted on after.
 
-## 11. Trade-offs and honest gaps (say these before being asked)
+## 11. Orbi — the interactive demo UI, and its honest boundary
+
+`web/server.py` is a thin REST bridge in front of the exact same modules
+`mcp_server.py`'s tools call (`FrictionRadar`, `WorkflowDiscovery`,
+`actions.py`, `user_memory.py`) — not a second implementation. Orbi
+(`web/static/index.html`) is a small animated character whose expression
+changes are driven entirely by what those real calls return: it goes
+curious → suggesting only when a real `get_top_friction_points` call
+returns a workflow that isn't dismissed, and the number in its speech
+bubble is the real `total_time_cost_minutes`, not a placeholder.
+
+**Judge question — the one to get right, because it's the obvious
+follow-up:** *"Does Orbi actually watch my browser tabs?"* The honest
+answer, said directly and without hedging: no, and it structurally can't
+from a website — browser tabs are sandboxed from each other and from the
+page itself, by design, for everyone's security. Orbi "watches" a
+simulated workspace (a ticket queue, spreadsheet, and inbox) built into
+this one page, using this project's own synthetic dataset. Real cross-tab
+visibility would require a browser extension with broad host permissions
+and a genuine consent/privacy design — a different, larger product than
+this hackathon build attempts. Getting caught implying otherwise would cost
+far more credibility than saying this upfront ever could.
+
+**Judge question:** *"Why build a second interface when you already have
+an MCP server?"* MCP Inspector proves the MCP server works; Orbi
+demonstrates the *product experience* an Alexa+-style surface is aiming
+for, in a form a judge can watch without needing to read JSON. They're
+answering different judging criteria: Tech Implementation is Inspector's
+job, Design is Orbi's.
+
+**Judge question:** *"Is the propose/confirm flow through Orbi actually
+real, or scripted for the demo?"* Show, don't just say: click "Automate
+it" on `bug_triage` (whose steps are all outside `AUTOMATABLE_STEPS`) and
+Orbi honestly reports nothing was safe to automate, rather than a scripted
+success. That asymmetry — one workflow succeeds, another correctly
+doesn't — is the proof it's calling the real backend, not playing a
+recorded animation.
+
+## 12. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |
 |---|---|---|
@@ -312,7 +363,7 @@ path from the start, not bolted on after.
 
 ---
 
-## 12. Deployability
+## 13. Deployability
 
 - `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
   `docker-compose.yml` for a one-command local run.
@@ -331,7 +382,7 @@ path from the start, not bolted on after.
 
 ---
 
-## 13. If a judge asks you to improve one thing live
+## 14. If a judge asks you to improve one thing live
 
 Good, safe answer: **learn `STEP_JUDGMENT_COST` from data instead of a
 hand-set table** — track actual rework rate and duration variance per

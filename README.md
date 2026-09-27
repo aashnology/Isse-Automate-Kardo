@@ -48,6 +48,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Bedrock-powered briefing narration, with a template fallback when it's off |
 | ✅ Shipped | Real data-source import (ActivityWatch, Toggl Track) through the same discovery pipeline |
 | ✅ Shipped | Cross-session memory — dismissed workflows stay dismissed after a restart, not just within one conversation |
+| ✅ Shipped | Orbi — an interactive browser demo UI, driven by real calls into the same pipeline |
 | 🔜 Next | Real execution behind a confirmed automation (currently simulated) |
 
 ## Build status
@@ -234,6 +235,29 @@ python src/mcp_server.py         # serves MCP over Streamable HTTP at :8000/mcp/
 cp .env.example .env             # edit if you want Bedrock narration on
 docker compose up --build
 ```
+
+### Orbi (interactive demo UI)
+
+```bash
+python web/server.py             # REST bridge + frontend at :5000
+```
+
+Open `http://localhost:5000`. Orbi is a small on-screen character that
+reacts to a simulated workspace (a ticket queue, a spreadsheet, an inbox)
+built for this demo, and every expression change is driven by a real call
+to the same pipeline the MCP tools use — `web/server.py` imports and calls
+the exact functions `mcp_server.py`'s tools call, not a second
+implementation. Click through the tabs, watch Orbi notice a repeatable
+pattern and propose automating it, confirm or dismiss it, then restart the
+server and check that a dismissal is still remembered.
+
+**What this is not, said plainly:** a website cannot see your other browser
+tabs or other sites — that's a hard security boundary, not a limitation of
+this build. Orbi "watches" a sandboxed workspace built into this one page,
+not your real tabs. Real cross-tab visibility would need a browser
+extension with broad permissions and a real consent design, which is a
+different, bigger product than this hackathon build attempts. Saying so
+directly beats a demo that quietly implies otherwise.
 
 ### Tests
 

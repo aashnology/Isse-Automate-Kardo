@@ -6,19 +6,15 @@ memory) is front-loaded before 2:30; Bedrock/AWS is placed last on purpose —
 it's a strong bonus, not the core Alexa+ story, and it's fine if a rushed
 judge never gets there.
 
-**Recording setup:** MCP Inspector (`npx @modelcontextprotocol/inspector`)
-pointed at `python src/mcp_server.py` is the fastest path to a real,
-unstaged recording — it's a genuine MCP client calling your actual server
-over Streamable HTTP, which satisfies "show your MCP server in action"
-directly. Screen-record the Inspector's tool-call panel + response JSON;
-your voiceover carries the narrative so the JSON doesn't have to be
-read live.
-
-If you'd rather have an actual chat-style interface (closer to what a
-judge imagines "Alexa+" looking like) instead of Inspector's raw panel, say
-so and I'll build a minimal one — a text-input box that calls the server
-and renders responses as a conversation. Not required, but it would look
-more like a finished product on camera.
+**Recording setup:** `python web/server.py`, then screen-record the browser
+at `localhost:5000`. Orbi's every expression change is a real call into the
+same pipeline `mcp_server.py`'s tools use (`web/server.py` imports the exact
+same functions) — this is not a scripted animation. Keep MCP Inspector
+(`npx @modelcontextprotocol/inspector` against `python src/mcp_server.py`)
+open in a second tab for the one beat that needs it (the double-confirm
+rejection, §1:35 below) — that's a backend-only safety property with no
+natural home in Orbi's UI, and Inspector proves it's the real MCP server,
+which the submission needs shown regardless.
 
 ---
 
@@ -30,95 +26,96 @@ more like a finished product on camera.
 > real workflows with zero labels, tells you which one is wasting the most
 > time and why, and only automates something after you say yes."
 
-**On screen:** Title card / repo README open briefly, then straight to
-Inspector.
+**On screen:** Title card, then straight to Orbi's page loading (idle →
+breathing/blinking, establishing it's alive before anything happens).
 
 ---
 
 ## 0:15–0:35 — Discovery with no labels
 
-**Action:** Call `discover_workflows`.
+**Action:** Click through the three tabs (ticket queue, spreadsheet, inbox).
+Orbi tracks across the dock as you go.
 
 **Voiceover:**
-> "No hardcoded workflow names here — this is pure sequence-similarity
-> clustering over raw events. It's finding the structure itself."
-
-**Show:** The returned clusters, pointing at `run_count` and
-`matched_label` (note out loud that the label is only attached *after*
-clustering, for readability — it's not what the clustering used).
+> "No hardcoded workflow names here — clicking through pulls each tab's
+> real step breakdown from sequence-similarity clustering over raw events.
+> It's finding the structure itself, not matching a label."
 
 ---
 
-## 0:35–0:55 — Where the time actually goes
+## 0:35–0:55 — Where the time actually goes, and the anomaly
 
-**Action:** Call `get_top_friction_points`.
+**Action:** On the ticket queue tab, point out the anomaly note under the
+step breakdown.
 
 **Voiceover:**
-> "Ranked by real time cost, with an automation-potential score — not just
-> 'this happens a lot,' but 'this happens a lot, doesn't need much
-> judgment, and costs real hours.'"
+> "And it's not just averages — this specific run ran way past normal, on
+> this exact step. That's IQR outlier detection on real run durations, not
+> a canned example."
 
 ---
 
-## 0:55–1:15 — Root cause, not just a total
+## 0:55–1:15 — Orbi notices the pattern
 
-**Action:** Call `debug_workflow` on the top result.
+**Action:** After the third tab, Orbi goes curious, then suggesting, with
+the real speech bubble (workflow name, real hours, real automation tier).
 
 **Voiceover:**
-> "It's not enough to know a workflow is slow — here's exactly which step
-> is the bottleneck, broken down by share of total time."
+> "Once it's seen enough of the workspace, it surfaces the one thing
+> actually worth automating — ranked by real time cost, not just
+> 'this happens a lot.'"
 
 ---
 
-## 1:15–1:35 — The anomaly, not just the average
+## 1:15–1:35 — Human-in-the-loop, on camera
 
-**Action:** Call `detect_anomalous_runs`.
+**Action:** Click "Automate it." Orbi goes confirmed.
 
 **Voiceover:**
-> "And this isn't just averages — it catches the *specific* run that blew
-> past normal, and names the step that caused it."
+> "It proposes — it never just does it. Only clicking confirm executes
+> anything, and only after a real propose call returned a real proposal id."
 
 ---
 
-## 1:35–2:00 — Human-in-the-loop, on camera
+## 1:35–2:00 — Prove it isn't scripted, and prove the safety property
 
-**Action:** Call `propose_automation`, show the `proposal_id` and the
-step list. Then call `confirm_automation` with that id. Then call
-`confirm_automation` again with the *same* id.
+**Action (Orbi):** Switch to a workflow with no automatable steps (bug
+triage) and click "Automate it" — Orbi honestly reports nothing was safe to
+automate, not a fake success.
+
+**Action (Inspector, quick cutaway):** Call `confirm_automation` with an
+already-used proposal id.
 
 **Voiceover:**
-> "It proposes — it never just does it. Only a matching confirm executes
-> anything. And it can't be replayed: confirming twice fails on purpose."
-
-**Show:** The second confirm returning an error. This is a small moment
-but it's a real safety property, worth 5 seconds on screen.
+> "One workflow succeeds, another correctly refuses — that's proof this is
+> calling the real backend, not playing a recording. And under the hood,
+> a used proposal can't be replayed — confirming twice fails on purpose."
 
 ---
 
 ## 2:00–2:30 — The standout: it remembers, across sessions
 
-**Action:** Call `dismiss_workflow_suggestions` on a workflow ("stop
-suggesting automation for this one"). **Kill and restart the server
-process on camera.** Call `propose_automation` on that same workflow
-again.
+**Action:** Click "Not now" on a suggestion (Orbi → idle, status confirms
+it's saved to disk). **Kill and restart `web/server.py` on camera.** Reload
+the page, revisit the same tabs — Orbi doesn't re-suggest it.
 
 **Voiceover:**
-> "Here's the part that isn't just a single-turn Q&A bot: I just told it
-> to stop suggesting this — and restarted the server entirely. It still
+> "Here's the part that isn't just a single-turn Q&A bot: I just told it to
+> stop suggesting this — and restarted the server entirely. It still
 > remembers. This is a standing preference, on disk, not something held in
 > one conversation's memory."
 
-**Show:** The response explicitly saying it was previously dismissed. This
-is the single strongest 15 seconds of the video for the "orchestrates
-across services / maintains context across sessions" judging bar — make
-sure the restart is visibly on screen, not cut around, or the claim isn't
-provable to a skeptical judge.
+**Show:** The restart itself, visibly, not cut around — this is the single
+strongest 15 seconds of the video for the "orchestrates across services /
+maintains context across sessions" judging bar, and it isn't provable to a
+skeptical judge unless the restart is on screen.
 
 ---
 
 ## 2:30–2:50 — Bedrock, briefly (AWS Builder)
 
-**Action:** Call `narrate_briefing`.
+**Action:** Show `narrate_briefing` (Inspector, or wire a "brief me" button
+into Orbi if there's time before recording).
 
 **Voiceover:**
 > "And for the AWS Builder track: this same analysis gets composed into
@@ -147,10 +144,16 @@ ran if it didn't.
 
 Priority order to trim, worst-to-keep-first (cut from the top of this
 list first):
-1. The second (failing) `confirm_automation` call — nice but not essential.
+1. The Inspector double-confirm cutaway — nice but not essential.
 2. Bedrock section — genuinely optional; the fallback line covers you if cut.
-3. Anomaly detection — strong but the second-most-ownable point.
+3. The anomaly note — strong but the second-most-ownable point.
 
-**Never cut:** the discovery-with-no-labels open, the root-cause debug,
-and the restart-and-still-remembers sequence. Those three are what
+**Never cut:** the discovery-with-no-labels open, Orbi noticing the
+pattern, and the restart-and-still-remembers sequence. Those three are what
 separate this from "obvious" on the judging rubric.
+
+**One honesty note for the room, not the video:** the bug-triage run this
+demo shows as anomalous, and the whole "watches a workspace" framing, run
+on this project's own synthetic dataset inside one page — not your real
+browser tabs. See README's "Orbi (interactive demo UI)" section for why
+that's a hard boundary, not a shortcut, if a judge asks.
