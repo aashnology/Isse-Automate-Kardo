@@ -45,7 +45,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Anomaly detection on individual runs |
 | ✅ Shipped | Human-in-the-loop automation — nothing runs without a yes |
 | ✅ Shipped | Segmenting a continuous raw event stream into runs automatically |
-| ✅ Shipped | Bedrock-powered briefing narration, with a template fallback when it's off |
+| ✅ Shipped | Briefing narration with a tested template fallback; the Bedrock path is implemented but not yet run against live AWS |
 | ✅ Shipped | Real data-source import (ActivityWatch, Toggl Track) through the same discovery pipeline |
 | ✅ Shipped | Cross-session memory — dismissed workflows stay dismissed after a restart, not just within one conversation |
 | ✅ Shipped | Orbi — an interactive browser demo UI, driven by real calls into the same pipeline |
@@ -63,7 +63,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | Human-in-the-loop actions | `██████████` 100% |
 | MCP server (Streamable HTTP) | `██████████` 100% |
 | Raw-stream segmentation | `████████░░` 80% |
-| Bedrock narration | `██████████` 100% |
+| Bedrock narration (template path tested; live AWS untested) | `███████░░░` 70% |
 | Real data integrations | `████████░░` 80% |
 | Cross-session memory (dismissed-workflow preferences) | `██████████` 100% |
 | Real automation execution | `░░░░░░░░░░` 0% |
@@ -89,7 +89,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
                      Alexa+
                        |
                        v
-        MCP server (Streamable HTTP, spec 2025-06-18/2025-11-25+)
+        MCP server (Streamable HTTP, negotiates spec 2025-11-25)
                        |
     +-------------------+-------------------+-------------------+
     |                   |                   |                   |
