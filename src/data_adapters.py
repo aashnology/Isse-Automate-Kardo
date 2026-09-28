@@ -323,9 +323,21 @@ def fetch_google_file(link, opener=None):
         urllib.request.Request(u, headers={"User-Agent": "isse-automate-kardo-hackathon-demo"}),
         timeout=15,
     ))
-    with open_url(url) as resp:
-        body = resp.read(MAX_REMOTE_BYTES + 1)
-        content_type = (resp.headers.get("Content-Type", "") if hasattr(resp, "headers") else "")
+    import urllib.error
+
+    try:
+        with open_url(url) as resp:
+            body = resp.read(MAX_REMOTE_BYTES + 1)
+            content_type = (resp.headers.get("Content-Type", "") if hasattr(resp, "headers") else "")
+    except urllib.error.HTTPError as exc:
+        if exc.code in (401, 403, 404):
+            # Google answers a private or mistyped file with one of these;
+            # "HTTP 403" alone tells the user nothing they can act on.
+            raise ValueError(
+                "Google wouldn't give me that file. Check the link, and that it's "
+                "shared as 'anyone with the link can view'."
+            )
+        raise
     if len(body) > MAX_REMOTE_BYTES:
         raise ValueError("That file is larger than 2 MB, which is more than this demo will read.")
     text = body.decode("utf-8-sig", errors="replace")

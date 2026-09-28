@@ -23,6 +23,8 @@
   .status { font-size: 12px; color: var(--muted); }
   .btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
   .btn:hover { background: var(--bg); }
+  .chip { font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); background: var(--card); border-radius: 999px; cursor: pointer; }
+  .chip:hover { background: var(--bg); }
   .chat-msg { font-size: 13px; padding: 7px 11px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
   .chat-msg.you { align-self: flex-end; background: #FAC775; color: #412402; }
   .chat-msg.orbi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
@@ -98,16 +100,24 @@
 
   <div style="border-top: 1px solid var(--border); padding: 14px 16px;">
     <div id="chatLog" style="max-height:170px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+    <div id="chips" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+      <button class="chip">What's costing me time?</button>
+      <button class="chip">Brief me</button>
+      <button class="chip">Why is reporting slow?</button>
+      <button class="chip">Stop suggesting bug triage</button>
+    </div>
     <div style="display:flex; gap:6px;">
       <input id="chatInput" type="text"
         placeholder="Ask: what's costing me time? why is reporting slow? automate it. stop suggesting bug triage."
         style="flex:1; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit;">
+      <button class="btn" id="micBtn" title="Speak to Orbi. In Chrome and Edge the audio is sent to the browser vendor's speech service to be transcribed.">Speak</button>
       <button class="btn" id="chatSend">Send</button>
     </div>
   </div>
 </div>
 
 <script src="/speech.js"></script>
+<script src="/intents.js"></script>
 <script>
 const API = "";
 const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
@@ -150,8 +160,13 @@ function setStatus(text) { document.getElementById("statusText").textContent = t
 
 async function api(path, opts) {
   const res = await fetch(API + path, opts);
-  if (!res.ok) throw new Error("request failed");
-  return res.json();
+  if (res.ok) return res.json();
+  // The server writes its 400 messages for the user ("that sheet looks
+  // private"), so pass them through rather than a generic failure.
+  let body = null;
+  try { body = await res.json(); } catch (e) {}
+  if (body && body.error) return body;
+  throw new Error("request failed");
 }
 
 async function checkBackend() {
@@ -250,8 +265,8 @@ function renderImportPanel() {
           style="width:100%; font-size:12px; padding:6px; border:1px solid var(--border); border-radius:6px; font-family:inherit;"></textarea>
       </div>
       <div>
-        <label class="status" style="display:block; margin-bottom:3px;">Or a public GitHub repo (mines its real PR history — read-only)</label>
-        <input type="text" id="importRepo" placeholder="owner/repo or a github.com URL"
+        <label class="status" style="display:block; margin-bottom:3px;">Or a public GitHub repo, Google Sheet, or Drive file link (read-only)</label>
+        <input type="text" id="importRepo" placeholder="owner/repo, a github.com URL, or a Google Sheet / Drive link shared as anyone-with-the-link"
           style="width:100%; font-size:12px; padding:6px; border:1px solid var(--border); border-radius:6px; font-family:inherit;">
       </div>
       <button class="btn" id="importBtn" style="align-self:flex-start;">Analyze this</button>
@@ -277,9 +292,10 @@ async function runImport() {
       form.append("file", fileInput.files[0]);
       data = await api("/api/import", { method: "POST", body: form });
     } else if (repo) {
+      const isGoogle = /(docs|drive)\.google\.com/.test(repo);
       data = await api("/api/import", {
         method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({github_repo: repo}),
+        body: JSON.stringify(isGoogle ? {google_link: repo} : {github_repo: repo}),
       });
     } else if (text) {
       data = await api("/api/import", {
@@ -417,19 +433,6 @@ document.getElementById("voiceBtn").addEventListener("click", () => {
 refreshVoiceButton();
 
 // ---------------------------- Chat / command interface ----------------------
-const WORKFLOW_SYNONYMS = {
-  bug_triage: ["bug", "ticket", "triage"],
-  weekly_reporting: ["report", "reporting", "spreadsheet", "weekly"],
-  onboarding_new_partner: ["onboarding", "partner", "inbox"],
-};
-
-function matchWorkflow(text) {
-  for (const [name, words] of Object.entries(WORKFLOW_SYNONYMS)) {
-    if (words.some(w => text.includes(w))) return name;
-  }
-  return null;
-}
-
 function appendChat(who, text) {
   const log = document.getElementById("chatLog");
   const div = document.createElement("div");
@@ -440,73 +443,144 @@ function appendChat(who, text) {
   if (who === "orbi") speak(text);
 }
 
+const HELP_TEXT = "Try: what's costing me time, why is reporting slow, any unusual runs, automate it, stop suggesting bug triage, brief me, or what have I dismissed.";
+
 async function handleChatMessage(raw) {
   appendChat("you", raw);
   if (!backendUp) { appendChat("orbi", "I'm asleep right now — start web/server.py, then reset."); return; }
 
-  const text = raw.toLowerCase();
-  const mentioned = matchWorkflow(text);
+  const { intent, workflow } = OrbiIntents.classifyIntent(raw);
+  const name = workflow || currentTarget;
+  const needName = (question) => { appendChat("orbi", question); };
 
-  if (/(waste|costing|most time|top|biggest|friction)/.test(text)) {
-    const top = await api("/api/friction-points?top_k=1");
-    if (!top.friction_points.length) { appendChat("orbi", "Nothing to report yet — every workflow's dismissed or empty."); return; }
-    const fp = top.friction_points[0];
-    currentTarget = fp.workflow_name;
-    setMood("curious");
-    appendChat("orbi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
-    return;
-  }
-
-  if (/(why|slow|debug|breakdown|bottleneck)/.test(text)) {
-    const name = mentioned || currentTarget;
-    if (!name) { appendChat("orbi", "Which workflow? Try mentioning 'reporting', 'bug triage', or 'onboarding'."); return; }
-    currentTarget = name;
-    const debug = await api("/api/debug/" + name);
-    if (debug.error) { appendChat("orbi", debug.error); return; }
-    const top = debug.step_breakdown[0];
-    appendChat("orbi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
-    return;
-  }
-
-  if (/(anomal|unusual|weird|outlier|spike)/.test(text)) {
-    const name = mentioned || currentTarget;
-    if (!name) { appendChat("orbi", "Which workflow should I check for anomalies?"); return; }
-    const a = await api("/api/anomalies/" + name);
-    if (a.anomalies && a.anomalies.length) {
-      appendChat("orbi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
-    } else {
-      appendChat("orbi", a.note || `No anomalous runs in '${name}''s history.`);
+  switch (intent) {
+    case "brief": {
+      const b = await api("/api/brief");
+      const points = b.based_on.top_friction_points;
+      if (points.length) currentTarget = points[0].workflow_name;
+      setMood(points.length ? "curious" : "idle");
+      appendChat("orbi", b.narration);
+      return;
     }
-    return;
+    case "friction": {
+      const top = await api("/api/friction-points?top_k=1");
+      if (!top.friction_points.length) { appendChat("orbi", "Nothing to report yet — every workflow is dismissed or empty."); return; }
+      const fp = top.friction_points[0];
+      currentTarget = fp.workflow_name;
+      setMood("curious");
+      appendChat("orbi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
+      return;
+    }
+    case "why": {
+      if (!name) { needName("Which workflow? Try 'reporting', 'bug triage', or 'onboarding'."); return; }
+      currentTarget = name;
+      const debug = await api("/api/debug/" + name);
+      if (debug.error) { appendChat("orbi", debug.error); return; }
+      const top = debug.step_breakdown[0];
+      appendChat("orbi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
+      return;
+    }
+    case "anomalies": {
+      if (!name) { needName("Which workflow should I check for anomalies?"); return; }
+      const a = await api("/api/anomalies/" + name);
+      if (a.anomalies && a.anomalies.length) {
+        appendChat("orbi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
+      } else {
+        appendChat("orbi", a.note || `No anomalous runs in '${name}'.`);
+      }
+      return;
+    }
+    case "automate": {
+      if (!name) { needName("Automate what? Ask what's costing you time first."); return; }
+      const result = await automateWorkflow(name);
+      appendChat("orbi", result.message);
+      return;
+    }
+    case "dismiss": {
+      if (!name) { needName("Stop suggesting what?"); return; }
+      const result = await dismissWorkflow(name);
+      appendChat("orbi", result.message);
+      return;
+    }
+    case "restore": {
+      if (!workflow) { needName("Which one should I bring back?"); return; }
+      await api("/api/restore", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({workflow_name: workflow}),
+      });
+      appendChat("orbi", `Restored — I'll suggest '${workflow}' again if it comes up.`);
+      return;
+    }
+    case "dismissed_list": {
+      const d = await api("/api/dismissed");
+      const names = d.dismissed_workflows.map(w => w.workflow_name);
+      appendChat("orbi", names.length ? `You've asked me to stop suggesting: ${names.join(", ")}.` : "You haven't dismissed anything.");
+      return;
+    }
+    default:
+      appendChat("orbi", HELP_TEXT);
   }
-
-  if (/(automate|do it|handle it|go ahead|yes please|^yes$)/.test(text)) {
-    const name = mentioned || currentTarget;
-    if (!name) { appendChat("orbi", "Automate what? Ask what's costing you time first."); return; }
-    const result = await automateWorkflow(name);
-    appendChat("orbi", result.message);
-    return;
-  }
-
-  if (/(stop|dismiss|don.t suggest|never ?mind|no thanks)/.test(text)) {
-    const name = mentioned || currentTarget;
-    if (!name) { appendChat("orbi", "Stop suggesting what?"); return; }
-    const result = await dismissWorkflow(name);
-    appendChat("orbi", result.message);
-    return;
-  }
-
-  if (/(restore|bring back|undo)/.test(text) && mentioned) {
-    await api("/api/restore", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({workflow_name: mentioned}),
-    });
-    appendChat("orbi", `Restored — I'll suggest '${mentioned}' again if it comes up.`);
-    return;
-  }
-
-  appendChat("orbi", "Try: \"what's costing me the most time\", \"why is reporting slow\", \"automate it\", or \"stop suggesting bug triage\".");
 }
+
+// ---------------------------- Voice input -----------------------------------
+// Uses the browser's SpeechRecognition (Chrome, Edge, Safari). Worth knowing:
+// in Chrome and Edge the audio is sent to the browser vendor's cloud service
+// to be transcribed -- unlike the spoken replies above, which stay on the
+// device -- so the button's tooltip says so. Not available in Firefox, where
+// the button is hidden rather than left to fail.
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+
+function setListening(on, resetFace = true) {
+  const btn = document.getElementById("micBtn");
+  btn.textContent = on ? "Listening..." : "Speak";
+  if (on) { setMood("watching"); setStatus("Listening — say something."); }
+  else if (backendUp && resetFace) { setMood("idle"); }
+}
+
+function startListening() {
+  if (recognizer) { recognizer.stop(); return; }   // second click cancels
+  if (speechSupported) window.speechSynthesis.cancel();  // don't transcribe Orbi's own voice
+  recognizer = new Recognition();
+  recognizer.lang = "en-US";
+  recognizer.interimResults = false;
+  recognizer.maxAlternatives = 1;
+  let heard = false;
+  recognizer.onresult = (e) => {
+    heard = true;
+    const said = e.results[0][0].transcript;
+    document.getElementById("chatInput").value = "";
+    handleChatMessage(said);
+  };
+  recognizer.onerror = (e) => {
+    const reasons = {
+      "not-allowed": "Microphone access was blocked — allow it in the address bar and try again.",
+      "service-not-allowed": "Microphone access was blocked — allow it in the address bar and try again.",
+      "no-speech": "I didn't catch anything — try again.",
+      "audio-capture": "I can't find a microphone.",
+      "network": "Speech recognition needs an internet connection in this browser.",
+    };
+    setStatus(reasons[e.error] || "Speech recognition failed — you can still type.");
+  };
+  recognizer.onend = () => {
+    recognizer = null;
+    // If something was heard, the reply sets Orbi's face; only reset it
+    // when nothing was, so the two can't fight over the expression.
+    setListening(false, !heard);
+  };
+  setListening(true);
+  try { recognizer.start(); } catch (err) { recognizer = null; setListening(false); }
+}
+
+if (!Recognition) {
+  document.getElementById("micBtn").style.display = "none";
+} else {
+  document.getElementById("micBtn").addEventListener("click", startListening);
+}
+
+document.querySelectorAll("#chips .chip").forEach(chip => {
+  chip.addEventListener("click", () => handleChatMessage(chip.textContent));
+});
 
 document.getElementById("chatSend").addEventListener("click", () => {
   const input = document.getElementById("chatInput");

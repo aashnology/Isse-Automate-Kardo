@@ -251,12 +251,22 @@ implementation. Click through the tabs, watch Orbi notice a repeatable
 pattern and propose automating it, confirm or dismiss it, then restart the
 server and check that a dismissal is still remembered.
 
-**Talk to it directly.** Below the workspace is a text box — ask things
-like *"what's costing me the most time"*, *"why is reporting slow"*,
-*"automate it"*, or *"stop suggesting bug triage"*. This is a small
-keyword-matched intent router, not an LLM, and it calls the exact same
-endpoints the tabs do — the point is a conversational surface that reads
-like an assistant, not a dashboard with a mascot attached.
+**Talk to it directly.** Below the workspace is a text box, with a few
+starter chips underneath. Ask *"what's costing me the most time"*, *"why is
+reporting slow"*, *"any unusual runs"*, *"automate it"*, *"stop suggesting
+bug triage"*, *"what have I dismissed"*, or *"brief me"* (a one-paragraph
+spoken summary — the same `build_briefing` function the MCP tool
+`narrate_briefing` uses, so the two can't drift apart). This is a small
+keyword router (`web/static/intents.js`), not an LLM: whole-word matching
+over the same endpoints the tabs call, with unit tests for the phrases
+above. It carries context between turns, so "automate it" acts on whatever
+you were just discussing.
+
+**Speak to it.** The **Speak** button uses the browser's speech recognition
+(Chrome, Edge, Safari; hidden in Firefox). One thing to know: in Chrome and
+Edge the audio is sent to the browser vendor's cloud service to be
+transcribed. That is unlike Orbi's spoken *replies*, which are generated on
+your device. The button's tooltip says so, and typing always works.
 
 **Orbi talks back.** Its chat replies and its automation suggestion are
 read aloud using the browser's built-in speech synthesis — no API, no key,
@@ -274,6 +284,15 @@ Edge have the most natural-sounding voices.
 - A pasted list of steps (blank line = a new run) — the lowest-effort
   option, with no real timestamps of its own; see `from_pasted_steps`'s
   docstring for exactly what that trades away.
+- A public **Google Sheet** or **Drive file** link, shared as "anyone with
+  the link". Sheets are read as CSV (headers like `activity` and
+  `timestamp`, dates written `2026-03-04 09:15:00`, optional `duration`);
+  a Drive file may be CSV or an ActivityWatch JSON export. Dates in
+  locale-dependent formats like `03/04/2026` are rejected with a message
+  rather than guessed, because that is March 4th or April 3rd depending on
+  the sheet. The pasted link is only ever used to extract a file ID: the
+  server fetches a fixed `docs.google.com` / `drive.google.com` address
+  built from it, never the link itself, and reads at most 2 MB.
 - A public GitHub repo (`owner/repo` or a full URL) — mines that repo's
   own closed pull-request history (open time, merge time) as workflow
   data. **This only ever reads PR metadata over GitHub's public API — it

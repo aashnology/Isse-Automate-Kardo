@@ -128,6 +128,29 @@ def test_private_file_gets_a_clear_message_not_a_parse_error():
     assert "anyone with the link" in str(e.value)
 
 
+@pytest.mark.parametrize("code", [401, 403, 404])
+def test_access_errors_become_an_actionable_message(code):
+    import urllib.error
+
+    def refuse(url):
+        raise urllib.error.HTTPError(url, code, "denied", {}, None)
+
+    with pytest.raises(ValueError) as e:
+        fetch_google_file(LINK, opener=refuse)
+    assert "anyone with the link" in str(e.value)
+    assert str(code) not in str(e.value)
+
+
+def test_other_http_errors_are_not_disguised():
+    import urllib.error
+
+    def broken(url):
+        raise urllib.error.HTTPError(url, 500, "boom", {}, None)
+
+    with pytest.raises(urllib.error.HTTPError):
+        fetch_google_file(LINK, opener=broken)
+
+
 def test_oversized_files_are_refused():
     big = b"x" * (MAX_REMOTE_BYTES + 10)
     with pytest.raises(ValueError):

@@ -374,6 +374,44 @@ different machines, and the pure text-cleanup step (`speakable()`) is
 unit-tested, but the audio itself can't be asserted in CI — check it by ear
 on the machine you'll record the demo on.
 
+**Voice in, and its privacy cost.** The Speak button uses the browser's
+`SpeechRecognition`. In Chrome and Edge that streams the audio to the browser
+vendor's cloud for transcription — so unlike spoken replies (generated on the
+device) it is not "nothing leaves your machine", and the tooltip and README
+say so. Firefox has no such API, so the button is hidden there instead of
+failing. Say plainly if asked: speech recognition is the browser's, not ours;
+what's ours is the router that acts on the transcript.
+
+**Judge question:** *"Did you test the chat router?"* Yes, and the reason is a
+real bug. It originally lived inline in the page, matched substrings, and read
+"stop suggesting bug triage" as a question about time cost — `stop` contains
+`top`. That phrase is one of the demo's own examples, and nothing caught it
+until the router was pulled out into `intents.js` and tested with the phrases
+people actually say. It now matches whole words and has 20+ phrase tests plus
+a test that the page uses the tested module rather than an inline copy.
+
+**Judge question:** *"Are Orbi and the MCP server looking at the same data?"*
+They are now, and weren't before. The generators used the global random
+generator, so output depended on call order: the MCP server read a file while
+Orbi regenerated its own events, and they disagreed (23.5h vs 32.5h for the
+same workflow), while the README called the data deterministic. Found by a
+test asserting the two interfaces return the same briefing. Fixed with a
+private seeded generator per function and one shared loader; regression tests
+cover order-independence and that both interfaces load identical events. The
+fix changed the dataset, so the numbers were re-measured rather than
+carried over (segmentation ARI 0.876 → 0.905), and the claim that natural
+noise never crosses the outlier fence was re-checked on the new data (it
+holds: 18 other runs, no anomalies).
+
+**Google links.** Public Sheet/Drive links only. The server never fetches what
+the user pastes: it extracts an ID (strict pattern) and builds a fixed
+`docs.google.com`/`drive.google.com` URL, so a hostile link cannot aim it at an
+internal address (tested with hostile inputs). **Not verified against real
+Google:** this was built in a sandbox that can't reach Google, so the fetch is
+tested with a fake, and Google's actual responses (in particular how it answers
+private files) are handled from documented behaviour, not observed. Run it
+once with a real public sheet before the demo.
+
 **Bring-your-own-data, and the one genuinely novel piece: GitHub PR
 mining.** The "My data" tab's three import paths (ActivityWatch/Toggl
 file, pasted steps, or a GitHub repo) all end at the same `discover()` /

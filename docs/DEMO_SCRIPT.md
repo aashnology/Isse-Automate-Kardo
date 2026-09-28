@@ -114,13 +114,20 @@ skeptical judge unless the restart is on screen.
 
 ## 2:30–2:50 — Bedrock, briefly (AWS Builder)
 
-**Action:** Show `narrate_briefing` (Inspector, or wire a "brief me" button
-into Orbi if there's time before recording).
+**Action:** Click the **Brief me** chip in Orbi. It calls the same
+`build_briefing` function the MCP tool `narrate_briefing` uses, and Orbi
+reads the result aloud. (Turn the browser's sound on and check the voice on
+the recording machine beforehand — voices vary by browser and OS.)
 
 **Voiceover:**
 > "And for the AWS Builder track: this same analysis gets composed into
 > one spoken-ready sentence by Amazon Bedrock — it only phrases numbers
 > already computed here, it never scores or ranks anything itself."
+
+**Optional 5 seconds, if you have room:** click **Speak**, say "what's costing
+me time", and let Orbi answer. It's the most Alexa+-like moment in the whole
+demo. Chrome or Edge only, and the transcription is done by the browser
+vendor's cloud service, so don't describe it as running locally.
 
 **If Bedrock isn't enabled/tested by recording time:** say so plainly on
 camera instead of hiding it — *"this falls back to a template when Bedrock
