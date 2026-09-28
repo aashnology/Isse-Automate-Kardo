@@ -90,7 +90,10 @@
 
   <div class="status-bar">
     <span class="status" id="statusText">Connecting to Orbi...</span>
-    <button class="btn" id="resetBtn">Reset demo</button>
+    <span style="display:flex; gap:6px;">
+      <button class="btn" id="voiceBtn" title="Orbi reads its replies aloud">Voice: on</button>
+      <button class="btn" id="resetBtn">Reset demo</button>
+    </span>
   </div>
 
   <div style="border-top: 1px solid var(--border); padding: 14px 16px;">
@@ -104,6 +107,7 @@
   </div>
 </div>
 
+<script src="/speech.js"></script>
 <script>
 const API = "";
 const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
@@ -224,6 +228,7 @@ async function selectTab(workflowName, btn) {
         document.getElementById("bubbleText").textContent =
           `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
         document.getElementById("bubble").style.display = "block";
+        speak(document.getElementById("bubbleText").textContent);
         setStatus("Orbi thinks this can be automated.");
       }, 1300);
     }
@@ -358,6 +363,7 @@ document.getElementById("dismissBtn").addEventListener("click", async () => {
 });
 
 document.getElementById("resetBtn").addEventListener("click", async () => {
+  if (speechSupported) window.speechSynthesis.cancel();
   if (currentTarget) {
     await api("/api/restore", {
       method: "POST", headers: {"Content-Type": "application/json"},
@@ -377,6 +383,38 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
 
 setMood("asleep");
 checkBackend();
+
+// ---------------------------- Spoken replies --------------------------------
+// Browser-native speech synthesis: no API, no key, no cost. Speech only ever
+// starts after a user gesture (sending a message, clicking a tab), which is
+// also what browsers require before they'll allow audio at all.
+const speechSupported = "speechSynthesis" in window;
+let voiceOn = true;
+try { voiceOn = localStorage.getItem("orbiVoice") !== "off"; } catch (e) {}
+
+function refreshVoiceButton() {
+  const btn = document.getElementById("voiceBtn");
+  if (!speechSupported) { btn.style.display = "none"; return; }
+  btn.textContent = voiceOn ? "Voice: on" : "Voice: off";
+}
+
+function speak(text) {
+  if (!speechSupported || !voiceOn) return;
+  window.speechSynthesis.cancel();  // never queue up stale replies
+  const utterance = new SpeechSynthesisUtterance(OrbiSpeech.speakable(text));
+  const english = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
+  if (english) utterance.voice = english;
+  utterance.rate = 1.02;
+  window.speechSynthesis.speak(utterance);
+}
+
+document.getElementById("voiceBtn").addEventListener("click", () => {
+  voiceOn = !voiceOn;
+  try { localStorage.setItem("orbiVoice", voiceOn ? "on" : "off"); } catch (e) {}
+  if (!voiceOn && speechSupported) window.speechSynthesis.cancel();
+  refreshVoiceButton();
+});
+refreshVoiceButton();
 
 // ---------------------------- Chat / command interface ----------------------
 const WORKFLOW_SYNONYMS = {
@@ -399,6 +437,7 @@ function appendChat(who, text) {
   div.textContent = text;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
+  if (who === "orbi") speak(text);
 }
 
 async function handleChatMessage(raw) {

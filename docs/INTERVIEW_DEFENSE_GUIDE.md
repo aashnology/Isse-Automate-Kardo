@@ -362,6 +362,18 @@ card) to demo at all. It reads as a real exchange because it's driving
 real analysis underneath simple matching, not because the matching itself
 is sophisticated.
 
+**Spoken replies.** Orbi reads its chat replies and suggestions aloud with
+the browser's native `speechSynthesis` — deliberately not Bedrock, Polly or
+any API, so it costs nothing, needs no credentials, and works offline. The
+honest framing if asked: this is text-to-speech on the way *out*, not voice
+understanding on the way *in* — you still type, and the intent router is
+still keyword matching. Voice input is a planned next step, not something
+claimed here. Two things worth knowing before a judge asks: the voices are
+whatever the viewer's browser and OS provide, so it will sound different on
+different machines, and the pure text-cleanup step (`speakable()`) is
+unit-tested, but the audio itself can't be asserted in CI — check it by ear
+on the machine you'll record the demo on.
+
 **Bring-your-own-data, and the one genuinely novel piece: GitHub PR
 mining.** The "My data" tab's three import paths (ActivityWatch/Toggl
 file, pasted steps, or a GitHub repo) all end at the same `discover()` /

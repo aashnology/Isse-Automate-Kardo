@@ -258,6 +258,16 @@ keyword-matched intent router, not an LLM, and it calls the exact same
 endpoints the tabs do — the point is a conversational surface that reads
 like an assistant, not a dashboard with a mascot attached.
 
+**Orbi talks back.** Its chat replies and its automation suggestion are
+read aloud using the browser's built-in speech synthesis — no API, no key,
+no cost, nothing sent anywhere. The "Voice" button in the status bar mutes
+it (the choice is remembered), and speech only starts after you interact
+with the page, which browsers require anyway. On-screen text is cleaned up
+before it's spoken (`bug_triage` becomes "bug triage", `1.2h` becomes
+"1.2 hours") — that step lives in `web/static/speech.js` and is tested in
+node. Voice quality depends on your browser and operating system; Chrome and
+Edge have the most natural-sounding voices.
+
 **Bring your own data**, via the "My data" tab, three ways:
 - An ActivityWatch (.json) or Toggl (.csv) export, through the same
   adapters `discover_workflows_from_import` uses.
