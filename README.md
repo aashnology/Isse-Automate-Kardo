@@ -199,7 +199,7 @@ being an LLM's best guess dressed up as analysis.
 Workflow discovery no longer needs pre-split runs — it can reconstruct them
 from a raw stream using timing alone (see `src/session_segmentation.py`).
 It's not perfect: on this project's own data it recovers the true run
-boundaries with an Adjusted Rand Index of 0.876, and the mistakes it does
+boundaries with an Adjusted Rand Index of 0.905, and the mistakes it does
 make follow a clear pattern — workflows that only happen a handful of times
 a week (like onboarding) occasionally get merged with whatever ran right
 next to them, because there's less data to learn that workflow's normal

@@ -134,7 +134,7 @@ def test_segmentation_recovers_ground_truth_reasonably_well(events):
 
     segmented, runs, threshold = segment_into_runs(events)
     ari = evaluate_against_ground_truth(segmented)
-    # 0.876 measured on the committed dataset (see README); a fresh seeded
+    # 0.905 measured on the committed dataset (see README); a fresh seeded
     # regeneration should land in the same neighborhood, not collapse.
     assert ari > 0.6
 
@@ -178,3 +178,49 @@ def test_propose_with_no_automatable_steps_returns_no_proposal_id():
     debug_result = {"step_breakdown": [{"step": "approval_wait"}, {"step": "cross_check"}]}
     proposal = propose_action("onboarding_new_partner", debug_result)
     assert proposal["proposal_id"] is None
+
+
+# ---------------------------- data generator determinism ---------------------
+
+def test_activity_events_are_identical_regardless_of_what_ran_before():
+    # Regression test for a real bug: the generators used to share the global
+    # random generator, so the same call returned different data depending on
+    # how many numbers anything else had already drawn. That made the MCP
+    # server (reads a file) and Orbi (regenerated its own) analyse different
+    # datasets while the README called the data "deterministic".
+    from datetime import datetime, timezone
+    from synthetic_data import generate_activity_events, generate_information_stream
+    pin = datetime(2026, 9, 1, tzinfo=timezone.utc)
+    first = generate_activity_events(now=pin)
+    generate_information_stream(now=pin)  # consume other randomness in between
+    generate_information_stream(now=pin)
+    second = generate_activity_events(now=pin)
+    assert first == second
+
+
+def test_information_stream_is_also_order_independent():
+    from datetime import datetime, timezone
+    from synthetic_data import generate_activity_events, generate_information_stream
+    pin = datetime(2026, 9, 1, tzinfo=timezone.utc)
+    a = generate_information_stream(now=pin)
+    generate_activity_events(now=pin)
+    assert a == generate_information_stream(now=pin)
+
+
+def test_committed_data_file_matches_what_the_generator_produces():
+    # If someone changes the generator and forgets to regenerate data/, the
+    # MCP server and the docs' numbers would quietly disagree with the code.
+    # Timestamps are relative to "now", so compare structure, not timestamps.
+    from synthetic_data import load_activity_events
+    committed = load_activity_events()
+    fresh = generate_activity_events()
+    strip = lambda evs: [(e["workflow_run_id"], e["workflow_name"], e["activity"],
+                          e["duration_minutes"], e["outcome"]) for e in evs]
+    assert strip(committed) == strip(fresh)
+
+
+def test_the_two_interfaces_analyse_the_same_dataset():
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "web"))
+    import mcp_server
+    import server as web_server
+    assert mcp_server.ACTIVITY_EVENTS == web_server.ACTIVITY_EVENTS

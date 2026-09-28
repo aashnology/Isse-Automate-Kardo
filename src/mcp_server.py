@@ -31,6 +31,7 @@ from friction_radar import FrictionRadar
 from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
 from bedrock_narrator import BedrockNarrator
+from briefing import build_briefing
 from data_adapters import from_activitywatch_events, from_toggl_csv
 import user_memory
 
@@ -160,30 +161,10 @@ def narrate_briefing(top_k: int = 3) -> dict:
     to a plain templated summary if Bedrock isn't configured. Use this when
     the user wants one pulled-together update rather than calling several
     tools themselves."""
-    points = friction_radar.top_friction_points(top_k=top_k)
-    anomaly_notes = []
-    for p in points:
-        result = workflow_discovery.detect_anomalous_runs(p["workflow_name"], top_k=1)
-        if result.get("anomalies"):
-            anomaly_notes.append({"workflow_name": p["workflow_name"], **result["anomalies"][0]})
-
-    payload = {"top_friction_points": points, "anomalies": anomaly_notes}
-
-    fallback_lines = [
-        f"Your biggest time sink is '{points[0]['workflow_name']}' at "
-        f"{round(points[0]['total_time_cost_minutes'] / 60, 1)} hours, "
-        f"rated {points[0]['automation_tier']}."
-    ] if points else ["No workflow data available yet."]
-    if anomaly_notes:
-        a = anomaly_notes[0]
-        fallback_lines.append(
-            f"One run of '{a['workflow_name']}' ran long, mainly because of "
-            f"'{a['likely_cause_step']}'."
-        )
-    fallback = " ".join(fallback_lines)
-
-    narration = narrator.narrate(payload, fallback=fallback)
-    return {**narration, "based_on": payload}
+    return build_briefing(
+        friction_radar, workflow_discovery, narrator, top_k=top_k,
+        exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
+    )
 
 
 # ---------------------------- Action tools ----------------------------------

@@ -118,14 +118,14 @@ stronger answer than pretending k-means was the first idea.
 
 **Validated how?** Against this project's own ground truth (only possible
 because the synthetic data happens to carry `workflow_run_id`) using
-Adjusted Rand Index: **0.876** on the committed dataset. The failure mode
+Adjusted Rand Index: **0.905** on the committed dataset. The failure mode
 is also named directly: infrequent workflows (onboarding, ~0-2×/week)
 occasionally get merged with whatever ran next to them, because there's
 less data for the model to learn that workflow's normal timing rhythm.
 Frequent workflows (bug triage, 2-5×/week) segment cleanly.
 
-**Judge question:** *"An ARI of 0.876 — is that good?"* Frame it
-honestly: 1.0 is perfect, 0.0 is random. 0.876 with zero labels and a
+**Judge question:** *"An ARI of 0.905 — is that good?"* Frame it
+honestly: 1.0 is perfect, 0.0 is random. 0.905 with zero labels and a
 purely unsupervised time-gap heuristic, on data with genuinely irregular
 workflow frequencies, is a solid result for the method's actual
 complexity — but it's not "solved," and the failure mode is understood
@@ -184,7 +184,7 @@ Answer directly rather than dodge it: `synthetic_data.py` deliberately
 spikes one specific run's `reproduce_attempt` step to 3.5-4.5x normal, in
 the most recent week, so the demo has a guaranteed, named example instead
 of depending on per-step noise happening to cross the IQR fence on its own
-across 19 runs. It's stated in a code comment right where it happens, not
+across the 18 other runs. It's stated in a code comment right where it happens, not
 hidden. Worth knowing why this was needed at all: with this seed, ordinary
 per-step multiplicative noise averaged out across a 5-step run enough that
 *zero* runs crossed the fence naturally — a real, checked finding, not an

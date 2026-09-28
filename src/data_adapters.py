@@ -24,6 +24,8 @@ this and did it need rework."
 """
 
 import csv
+import io
+import re
 from datetime import datetime, timedelta, timezone
 
 
@@ -188,3 +190,149 @@ def from_github_pull_requests(owner, repo, max_prs=30, token=None):
         })
     out.sort(key=lambda e: e["timestamp"])
     return out
+
+
+_ACTIVITY_HEADERS = ("activity", "description", "task", "step", "name", "event", "project")
+_TIMESTAMP_HEADERS = ("timestamp", "start", "start time", "datetime", "date time", "time", "date")
+_DURATION_HEADERS = ("duration_minutes", "duration", "minutes", "time spent")
+
+
+def _find_header(headers, candidates):
+    lowered = {h.strip().lower(): h for h in headers if h}
+    for c in candidates:
+        if c in lowered:
+            return lowered[c]
+    return None
+
+
+def _parse_duration_minutes(value, default):
+    value = (value or "").strip()
+    if not value:
+        return default
+    if ":" in value:  # HH:MM:SS or MM:SS
+        parts = [float(x) for x in value.split(":")]
+        while len(parts) < 3:
+            parts.insert(0, 0.0)
+        h, m, sec = parts[-3:]
+        return h * 60 + m + sec / 60
+    return float(value)
+
+
+def _parse_timestamp(value):
+    """ISO-style only, on purpose. Sheets export dates in the sheet's own
+    locale, so "03/04/2026" is March 4th for one person and April 3rd for
+    another -- and this project shouldn't silently guess which. Anything
+    unambiguous (2026-03-04 09:15:00, or with a T or a timezone) works;
+    anything else is rejected with a message saying how to fix the sheet.
+    Timezone-aware values are converted to UTC and made naive so a sheet
+    mixing the two can't crash the segmentation step."""
+    dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    if dt.tzinfo is not None:
+        dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def from_csv_text(text, default_duration=5.0):
+    """A generic CSV/Sheet importer for data that isn't a Toggl export.
+    Needs an activity column and a timestamp column (found by common header
+    names, case-insensitive); duration is optional and defaults to 5
+    minutes. Also understands Toggl-style split "Start date" + "Start time"
+    columns, so a Toggl export pasted into a Sheet still works.
+
+    Raises ValueError with a message meant to be shown to the user, because
+    "your sheet has no recognizable timestamp column" is something they can
+    actually fix, unlike a stack trace."""
+    reader = csv.DictReader(io.StringIO(text))
+    headers = reader.fieldnames or []
+    activity_col = _find_header(headers, _ACTIVITY_HEADERS)
+    duration_col = _find_header(headers, _DURATION_HEADERS)
+    date_col = _find_header(headers, ("start date",))
+    time_col = _find_header(headers, ("start time",)) if date_col else None
+    ts_col = None if (date_col and time_col) else _find_header(headers, _TIMESTAMP_HEADERS)
+
+    if not activity_col or not (ts_col or (date_col and time_col)):
+        raise ValueError(
+            "Couldn't find the columns I need. Give the sheet a header row with "
+            "an activity column (activity / description / task / step) and a "
+            "timestamp column (timestamp / start / datetime), written like "
+            "2026-03-04 09:15:00. A duration column (minutes, or HH:MM:SS) is optional."
+        )
+
+    out = []
+    for row_num, row in enumerate(reader, start=2):
+        activity = (row.get(activity_col) or "").strip()
+        if not activity:
+            continue
+        raw_ts = f"{row[date_col]} {row[time_col]}" if (date_col and time_col) else (row.get(ts_col) or "")
+        try:
+            ts = _parse_timestamp(raw_ts)
+            duration = _parse_duration_minutes(row.get(duration_col) if duration_col else None, default_duration)
+        except ValueError:
+            raise ValueError(
+                f"Row {row_num}: couldn't read the timestamp or duration "
+                f"({raw_ts!r}). Use dates like 2026-03-04 09:15:00, and a number of "
+                "minutes (or HH:MM:SS) for duration."
+            )
+        out.append({"timestamp": ts.isoformat(), "activity": activity, "duration_minutes": duration})
+    out.sort(key=lambda e: e["timestamp"])
+    return out
+
+
+_GOOGLE_ID = re.compile(r"^[A-Za-z0-9_-]{10,}$")
+MAX_REMOTE_BYTES = 2 * 1024 * 1024
+
+
+def google_export_url(link):
+    """Turn a pasted Google Sheets or Drive link into the one fixed-origin
+    URL this project is willing to fetch. The user's link is only ever
+    mined for an ID (validated against a strict pattern); it is never
+    fetched itself. That matters: a server that fetches whatever URL it's
+    handed can be aimed at internal addresses. Here the host is always
+    docs.google.com or drive.google.com, no matter what was pasted.
+
+    Returns (url, kind) or raises ValueError. Private files are handled at
+    fetch time, since Google answers those with a login page, not an error."""
+    link = (link or "").strip()
+    m = re.search(r"docs\.google\.com/spreadsheets/d/([^/?#]+)", link)
+    if m:
+        sheet_id = m.group(1)
+        if not _GOOGLE_ID.match(sheet_id):
+            raise ValueError("That doesn't look like a valid Google Sheets link.")
+        gid = re.search(r"[#&?]gid=(\d+)", link)
+        url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+        if gid:
+            url += f"&gid={gid.group(1)}"
+        return url, "sheet"
+    m = re.search(r"drive\.google\.com/(?:file/d/|open\?id=|uc\?[^ ]*?id=)([A-Za-z0-9_-]+)", link)
+    if m:
+        file_id = m.group(1)
+        if not _GOOGLE_ID.match(file_id):
+            raise ValueError("That doesn't look like a valid Google Drive link.")
+        return f"https://drive.google.com/uc?export=download&id={file_id}", "drive"
+    raise ValueError("Paste a link to a Google Sheet or a Drive file that's shared as 'anyone with the link'.")
+
+
+def fetch_google_file(link, opener=None):
+    """Read-only fetch of a publicly shared Sheet/Drive file, capped at
+    MAX_REMOTE_BYTES. Returns the file's text. `opener` exists so tests can
+    substitute a fake without touching the network."""
+    import urllib.request
+
+    url, _ = google_export_url(link)
+    open_url = opener or (lambda u: urllib.request.urlopen(
+        urllib.request.Request(u, headers={"User-Agent": "isse-automate-kardo-hackathon-demo"}),
+        timeout=15,
+    ))
+    with open_url(url) as resp:
+        body = resp.read(MAX_REMOTE_BYTES + 1)
+        content_type = (resp.headers.get("Content-Type", "") if hasattr(resp, "headers") else "")
+    if len(body) > MAX_REMOTE_BYTES:
+        raise ValueError("That file is larger than 2 MB, which is more than this demo will read.")
+    text = body.decode("utf-8-sig", errors="replace")
+    # Private files don't error -- Google serves a sign-in HTML page with a 200.
+    if "text/html" in content_type.lower() or text.lstrip().lower().startswith(("<!doctype html", "<html")):
+        raise ValueError(
+            "I can only read files shared as 'anyone with the link can view'. "
+            "This one looks private, so Google sent a sign-in page instead."
+        )
+    return text

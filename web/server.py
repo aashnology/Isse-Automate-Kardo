@@ -34,18 +34,25 @@ load_dotenv()
 
 from flask import Flask, jsonify, request, send_from_directory
 
-from synthetic_data import generate_activity_events
+from synthetic_data import load_activity_events
 from friction_radar import FrictionRadar
 from workflow_discovery import WorkflowDiscovery
 from actions import propose_action, confirm_action
-from data_adapters import from_activitywatch_events, from_toggl_csv, from_pasted_steps, from_github_pull_requests
+from data_adapters import (
+    from_activitywatch_events, from_toggl_csv, from_pasted_steps,
+    from_github_pull_requests, from_csv_text, fetch_google_file,
+)
+from bedrock_narrator import BedrockNarrator
+from briefing import build_briefing
 import user_memory
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
-ACTIVITY_EVENTS = generate_activity_events()
+# Same file the MCP server reads: one dataset, two interfaces.
+ACTIVITY_EVENTS = load_activity_events()
 friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
+narrator = BedrockNarrator()
 
 
 @app.route("/")
@@ -109,6 +116,18 @@ def dismissed():
     return jsonify({"dismissed_workflows": user_memory.list_dismissed()})
 
 
+@app.route("/api/brief")
+def brief():
+    """The same briefing the MCP tool narrate_briefing returns -- both call
+    briefing.build_briefing, so Orbi's "brief me" and the MCP tool can't
+    drift apart."""
+    top_k = int(request.args.get("top_k", 3))
+    return jsonify(build_briefing(
+        friction_radar, workflow_discovery, narrator, top_k=top_k,
+        exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
+    ))
+
+
 @app.route("/api/import", methods=["POST"])
 def import_data():
     """Bring-your-own-data: an ActivityWatch/Toggl export file, a pasted
@@ -137,6 +156,20 @@ def import_data():
         raw = from_pasted_steps(request.json["pasted_text"])
         wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6)
 
+    elif request.is_json and request.json.get("google_link"):
+        try:
+            text = fetch_google_file(request.json["google_link"])
+            if text.lstrip().startswith(("[", "{")):
+                import json as _json
+                raw = from_activitywatch_events(_json.loads(text))
+            else:
+                raw = from_csv_text(text)
+        except ValueError as exc:  # messages are written to be shown to the user
+            return jsonify({"error": str(exc)}), 400
+        except Exception as exc:  # noqa: BLE001 -- network/parse failure, not a 500
+            return jsonify({"error": f"Couldn't read that file: {exc}"}), 400
+        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6) if raw else None
+
     elif request.is_json and request.json.get("github_repo"):
         repo_spec = request.json["github_repo"].strip().strip("/")
         if repo_spec.startswith("http"):
@@ -156,7 +189,7 @@ def import_data():
         wd = WorkflowDiscovery(raw, similarity_threshold=0.6, run_id_field="workflow_run_id")
 
     else:
-        return jsonify({"error": "Provide a file, pasted_text, or github_repo."}), 400
+        return jsonify({"error": "Provide a file, pasted_text, github_repo, or google_link."}), 400
 
     if not raw:
         return jsonify({"error": "No events could be parsed from that input."}), 400

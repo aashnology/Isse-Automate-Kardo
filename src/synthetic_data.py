@@ -9,14 +9,18 @@ Friction Radar needs a stream of workflow "events" with enough repeated
 structure that a sequence miner can actually find something.
 
 Everything here is seeded, so re-running produces the same demo data --
-important for a reliable live demo.
+important for a reliable live demo. Each generator owns a private
+random.Random(SEED) rather than sharing the global generator: with a shared
+one, a generator's output silently depends on how many numbers anything
+else drew first, so the same call returned different data depending on
+call order.
 """
 
 import random
 import json
 from datetime import datetime, timedelta, timezone
 
-random.seed(42)
+SEED = 42
 
 TOPICS = [
     "recommendation systems", "large language models", "data engineering",
@@ -40,41 +44,42 @@ PROBLEMS = ["cold-start ranking", "latency at scale", "data quality", "personali
 COMPANIES = ["Spotify", "Pinterest", "Netflix", "Meta", "a research lab", "an open-source project"]
 
 
-def _make_item(item_id, ts, topic, near_dup_of=None):
-    template = random.choice(TEMPLATES)
-    title = template.format(topic=topic, problem=random.choice(PROBLEMS),
-                             company=random.choice(COMPANIES))
+def _make_item(rng, item_id, ts, topic, near_dup_of=None):
+    template = rng.choice(TEMPLATES)
+    title = template.format(topic=topic, problem=rng.choice(PROBLEMS),
+                             company=rng.choice(COMPANIES))
     return {
         "id": item_id,
         "title": title if not near_dup_of else title + " (updated coverage)",
         "topic": topic,
-        "source": random.choice(SOURCES),
+        "source": rng.choice(SOURCES),
         "timestamp": ts.isoformat(),
         "near_dup_of": near_dup_of,
         # crude synthetic "impact" and "credibility" priors -- in a real system
         # these would come from source reputation, citation counts, etc.
-        "credibility_prior": round(random.uniform(0.4, 1.0), 2),
-        "potential_impact_prior": round(random.uniform(0.2, 1.0), 2),
+        "credibility_prior": round(rng.uniform(0.4, 1.0), 2),
+        "potential_impact_prior": round(rng.uniform(0.2, 1.0), 2),
     }
 
 
-def generate_information_stream(n_items=220, days_back=10, out_path=None):
-    now = datetime.now(timezone.utc)
+def generate_information_stream(n_items=220, days_back=10, out_path=None, now=None):
+    rng = random.Random(SEED)
+    now = now or datetime.now(timezone.utc)
     items = []
     for i in range(n_items):
         ts = now - timedelta(
-            days=random.uniform(0, days_back),
-            hours=random.uniform(0, 24),
+            days=rng.uniform(0, days_back),
+            hours=rng.uniform(0, 24),
         )
-        topic = random.choice(TOPICS)
-        item = _make_item(f"item_{i:04d}", ts, topic)
+        topic = rng.choice(TOPICS)
+        item = _make_item(rng, f"item_{i:04d}", ts, topic)
         items.append(item)
 
         # ~15% chance of generating a near-duplicate of what we just made,
         # so the dedup step has real work to do
-        if random.random() < 0.15:
-            dup_ts = ts + timedelta(hours=random.uniform(0.5, 6))
-            items.append(_make_item(f"item_{i:04d}_dup", dup_ts, topic, near_dup_of=item["id"]))
+        if rng.random() < 0.15:
+            dup_ts = ts + timedelta(hours=rng.uniform(0.5, 6))
+            items.append(_make_item(rng, f"item_{i:04d}_dup", dup_ts, topic, near_dup_of=item["id"]))
 
     items.sort(key=lambda x: x["timestamp"])
     if out_path:
@@ -101,8 +106,9 @@ STEP_JUDGMENT_COST = {
 }
 
 
-def generate_activity_events(n_weeks=6, out_path=None):
-    now = datetime.now(timezone.utc)
+def generate_activity_events(n_weeks=6, out_path=None, now=None):
+    rng = random.Random(SEED)
+    now = now or datetime.now(timezone.utc)
     events = []
     workflow_run_id = 0
 
@@ -110,27 +116,27 @@ def generate_activity_events(n_weeks=6, out_path=None):
         week_start = now - timedelta(weeks=(n_weeks - week))
 
         # weekly_reporting runs ~1x/week, reliably -- the "obvious" pattern
-        occurrences = 1 if random.random() > 0.1 else 2
+        occurrences = 1 if rng.random() > 0.1 else 2
         for _ in range(occurrences):
             workflow_run_id += 1
-            _emit_workflow(events, "weekly_reporting", week_start, workflow_run_id)
+            _emit_workflow(rng, events, "weekly_reporting", week_start, workflow_run_id)
 
         # onboarding runs sporadically, 0-2x/week
-        for _ in range(random.choice([0, 0, 1, 2])):
+        for _ in range(rng.choice([0, 0, 1, 2])):
             workflow_run_id += 1
-            _emit_workflow(events, "onboarding_new_partner", week_start, workflow_run_id)
+            _emit_workflow(rng, events, "onboarding_new_partner", week_start, workflow_run_id)
 
         # bug triage runs often, 2-5x/week, with more variable duration/failure.
         # One run in the most recent week gets a deliberate spike on
         # reproduce_attempt -- a guaranteed, named example for
         # detect_anomalous_runs to surface, rather than leaving the demo
         # dependent on the per-step noise happening to cross the IQR fence
-        # on its own (across 19 runs with this seed, on this dataset, it
+        # on its own (across the 18 other bug_triage runs with this seed, it
         # doesn't -- worth knowing, not worth hiding).
-        for i in range(random.randint(2, 5)):
+        for i in range(rng.randint(2, 5)):
             workflow_run_id += 1
             spike = (week == n_weeks - 1 and i == 0)
-            _emit_workflow(events, "bug_triage", week_start, workflow_run_id,
+            _emit_workflow(rng, events, "bug_triage", week_start, workflow_run_id,
                             variable=True, spike_step="reproduce_attempt" if spike else None)
 
     events.sort(key=lambda x: x["timestamp"])
@@ -140,10 +146,10 @@ def generate_activity_events(n_weeks=6, out_path=None):
     return events
 
 
-def _emit_workflow(events, workflow_name, week_start, run_id, variable=False, spike_step=None):
+def _emit_workflow(rng, events, workflow_name, week_start, run_id, variable=False, spike_step=None):
     steps = WORKFLOWS[workflow_name]
     t = week_start + timedelta(
-        days=random.uniform(0, 5), hours=random.uniform(8, 18)
+        days=rng.uniform(0, 5), hours=rng.uniform(8, 18)
     )
     for step in steps:
         base_minutes = {
@@ -154,11 +160,11 @@ def _emit_workflow(events, workflow_name, week_start, run_id, variable=False, sp
             "log_search": 10, "fix_or_escalate": 18,
         }[step]
         if step == spike_step:
-            duration = base_minutes * random.uniform(3.5, 4.5)
+            duration = base_minutes * rng.uniform(3.5, 4.5)
         else:
-            duration = base_minutes * (random.uniform(0.7, 1.6) if variable else random.uniform(0.9, 1.15))
+            duration = base_minutes * (rng.uniform(0.7, 1.6) if variable else rng.uniform(0.9, 1.15))
         outcome = "success"
-        if variable and random.random() < 0.15:
+        if variable and rng.random() < 0.15:
             outcome = "rework"
         events.append({
             "workflow_run_id": run_id,
@@ -169,6 +175,20 @@ def _emit_workflow(events, workflow_name, week_start, run_id, variable=False, sp
             "outcome": outcome,
         })
         t += timedelta(minutes=duration)
+
+
+def load_activity_events(data_dir=None):
+    """The single source of truth for the demo activity data. Both the MCP
+    server and the Orbi web bridge call this, so they analyse the same
+    events instead of each regenerating their own."""
+    import os
+    data_dir = data_dir or os.path.join(os.path.dirname(__file__), "..", "data")
+    path = os.path.join(data_dir, "activity_events.json")
+    if not os.path.exists(path):
+        os.makedirs(data_dir, exist_ok=True)
+        generate_activity_events(out_path=path)
+    with open(path) as f:
+        return json.load(f)
 
 
 if __name__ == "__main__":
