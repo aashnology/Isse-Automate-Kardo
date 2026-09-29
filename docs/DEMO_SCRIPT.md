@@ -162,5 +162,5 @@ separate this from "obvious" on the judging rubric.
 **One honesty note for the room, not the video:** the bug-triage run this
 demo shows as anomalous, and the whole "watches a workspace" framing, run
 on this project's own synthetic dataset inside one page — not your real
-browser tabs. See README's "Hexi (interactive demo UI)" section for why
+browser tabs. See README's "Running it / Hexi" section for why
 that's a hard boundary, not a shortcut, if a judge asks.

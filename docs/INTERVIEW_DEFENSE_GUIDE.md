@@ -44,7 +44,7 @@ than to route every tool call through an LLM.
 **Judge question:** *"Isn't this just data engineering with an MCP wrapper
 — where's the AI?"* Answer: the AI is in `narrate_briefing` (Bedrock) and
 in the *methodology* — sequence clustering and trace clustering are
-process-mining techniques (see README's Research & References), not
+process-mining techniques (see docs/RESEARCH_AND_NOTES.md), not
 hand-rolled if/else rules. The deliberate choice to keep scoring
 deterministic and push language generation to the edge is itself the
 design decision to defend, not a gap.
