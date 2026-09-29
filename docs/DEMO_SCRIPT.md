@@ -6,11 +6,13 @@ memory) is front-loaded before 2:30; Bedrock/AWS is placed last on purpose —
 it's a strong bonus, not the core Alexa+ story, and it's fine if a rushed
 judge never gets there.
 
-**Recording setup:** `python web/server.py`, then screen-record the browser
-at `localhost:5000`. Hexi's every expression change is a real call into the
-same pipeline `mcp_server.py`'s tools use (`web/server.py` imports the exact
-same functions) — this is not a scripted animation. Keep MCP Inspector
-(`npx @modelcontextprotocol/inspector` against `python src/mcp_server.py`)
+**Recording setup:** two terminals: `python src/mcp_server.py` (MCP, :8000,
+protocol 2025-11-25) and `python web/server.py` (Hexi + `/api/agent`, :5000).
+Screen-record the browser at `localhost:5000`. Hexi's tabs and typed chat call
+the same functions the MCP tools use; her **voice** requests go further and
+run through the MCP server itself via `/api/agent`, and the status bar names
+the tool and protocol version. None of this is a scripted animation. Keep MCP
+Inspector (`npx @modelcontextprotocol/inspector`, URL `http://localhost:8000/mcp`)
 open in a second tab for the one beat that needs it (the double-confirm
 rejection, §1:35 below) — that's a backend-only safety property with no
 natural home in Hexi's UI, and Inspector proves it's the real MCP server,
@@ -124,10 +126,15 @@ the recording machine beforehand — voices vary by browser and OS.)
 > one spoken-ready sentence by Amazon Bedrock — it only phrases numbers
 > already computed here, it never scores or ranks anything itself."
 
-**Optional 5 seconds, if you have room:** click **Speak**, say "what's costing
-me time", and let Hexi answer. It's the most Alexa+-like moment in the whole
-demo. Chrome or Edge only, and the transcription is done by the browser
-vendor's cloud service, so don't describe it as running locally.
+**Optional 10 seconds, if you have room:** click **Speak** and say "what's
+costing me time". Hexi answers aloud, and the status bar reads "Answered
+through MCP (get_top_friction_points, protocol 2025-11-25)". Then say
+"automate weekly reporting": she proposes and asks for a yes; say "yes" to
+confirm. This is the most Alexa+-like moment in the demo. Chrome or Edge
+only, and the transcription is done by the browser vendor's cloud service, so
+don't describe it as running locally. If you'd rather show the Chrome
+extension (`extension/`, side panel), the same requests work from any tab;
+say which one you're showing.
 
 **If Bedrock isn't enabled/tested by recording time:** say so plainly on
 camera instead of hiding it — *"this falls back to a template when Bedrock

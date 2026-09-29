@@ -24,6 +24,7 @@ distinction.
 """
 
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -129,19 +130,46 @@ def brief():
     ))
 
 
+_INTENT_RE = re.compile(r"^[a-z_]{1,32}$")
+_WORKFLOW_RE = re.compile(r"^[A-Za-z0-9_]{1,64}$")
+_PROPOSAL_RE = re.compile(r"^[0-9a-fA-F-]{1,36}$")
+MAX_AGENT_BODY = 4096
+
+
+def _clean(value, pattern):
+    """Return value only if it's a string matching the pattern; anything else
+    (wrong type, odd characters, too long) becomes None instead of an error."""
+    return value if isinstance(value, str) and pattern.match(value) else None
+
+
+def _agent_error(reply, status):
+    return jsonify({"reply": reply, "mood": "idle", "tools": [], "protocol": None,
+                    "pending_proposal_id": None, "error": reply}), status
+
+
 @app.route("/api/agent", methods=["POST"])
 def agent():
     """Voice path: executes a classified intent through the running MCP
     server (real MCP client, Streamable HTTP, protocol >= 2025-11-25).
-    503 if the MCP server isn't up, so the page can say so and fall back."""
-    body = request.get_json(silent=True) or {}
+    Body: {intent, workflow?, proposal_id?}. Always answers with JSON that has
+    a `reply`: malformed input gets a structured "here's what you can ask"
+    response, an unreachable MCP server gets 503, and nothing raises."""
+    if (request.content_length or 0) > MAX_AGENT_BODY:
+        return _agent_error("That request is too large.", 413)
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        body = {}
     try:
         return jsonify(mcp_bridge.run_intent(
-            body.get("intent"), body.get("workflow"), body.get("proposal_id")))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+            _clean(body.get("intent"), _INTENT_RE),
+            _clean(body.get("workflow"), _WORKFLOW_RE),
+            _clean(body.get("proposal_id"), _PROPOSAL_RE)))
     except mcp_bridge.McpUnavailable as exc:
-        return jsonify({"error": str(exc)}), 503
+        return _agent_error(f"The MCP server isn't reachable ({exc}). Start src/mcp_server.py.", 503)
+    except Exception:  # noqa: BLE001 -- a judge's odd input must not become a stack trace
+        app.logger.exception("agent request failed")
+        return _agent_error("Something went wrong handling that. Try rephrasing.", 500)
+
 
 @app.route("/api/import", methods=["POST"])
 def import_data():

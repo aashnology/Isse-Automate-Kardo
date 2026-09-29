@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hexi</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header>
+    <svg id="face" width="36" height="36" viewBox="0 0 48 48" aria-hidden="true"></svg>
+    <div><strong>Hexi</strong><div id="status" class="muted">Ready</div></div>
+  </header>
+  <div id="log" aria-live="polite"></div>
+  <details id="steps"><summary>Execution steps</summary><ol id="stepList"></ol></details>
+  <div id="chips">
+    <button class="chip">What's costing me time?</button>
+    <button class="chip">Brief me</button>
+    <button class="chip">Automate it</button>
+    <button class="chip">Yes</button>
+  </div>
+  <div class="row">
+    <input id="input" type="text" maxlength="300" placeholder="Ask Hexi…" autocomplete="off">
+    <button id="mic" title="Speak. In Chrome the audio is sent to Google's speech service to be transcribed.">Speak</button>
+    <button id="send">Send</button>
+  </div>
+  <div class="row muted small">
+    <span id="micNote"></span>
+    <button id="grantMic" class="link" hidden>Grant microphone</button>
+    <button id="settings" class="link">Server</button>
+  </div>
+  <script src="intents.js"></script>
+  <script src="agent_client.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

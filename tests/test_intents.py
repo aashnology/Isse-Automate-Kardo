@@ -85,3 +85,33 @@ def test_intents_helper_is_served():
     import server as web_server
     with web_server.app.test_client() as c:
         assert c.get("/intents.js").status_code == 200
+
+
+@needs_node
+@pytest.mark.parametrize("text,intent", [
+    ("automte it", "automate"),
+    ("brieff me", "brief"),
+    ("anomolies in the tickets", "anomalies"),
+    ("Could you please explian the bottlenek", "why"),
+    ("grief", "unknown"),           # first-letter rule: not "brief"
+    ("unbox", "unknown"),           # not "inbox"
+    ("", "empty"),
+    ("   \t\n", "empty"),
+])
+def test_typos_are_corrected_and_lookalikes_are_not(text, intent):
+    assert _classify(text)["intent"] == intent
+
+
+@needs_node
+def test_hostile_or_malformed_input_never_throws():
+    script = (
+        "const {classifyIntent} = require(process.argv[1]);"
+        "const inputs = [null, undefined, 42, true, {}, [], ['brief'], '', 'x'.repeat(200000),"
+        " '<script>alert(1)</script>', '\\u0000\\u0007brief me', '%s %s %n', '\\ud83d\\ude00'.repeat(500),"
+        " 'a '.repeat(50000), '(((((', '\\\\', 'SELECT * FROM users; --'];"
+        "const out = inputs.map(i => classifyIntent(i));"
+        "process.stdout.write(JSON.stringify(out.every(o => typeof o.intent === 'string')));"
+    )
+    out = subprocess.run(["node", "-e", script, os.path.join(STATIC, "intents.js")],
+                         capture_output=True, text=True, check=True, timeout=30).stdout
+    assert json.loads(out) is True

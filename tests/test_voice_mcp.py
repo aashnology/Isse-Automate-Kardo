@@ -101,8 +101,21 @@ def test_workflow_required_intents_ask_instead_of_guessing(client):
     assert r["tools"] == [] and "Which workflow" in r["reply"]
 
 
-def test_unknown_intent_is_a_400(client):
-    assert _ask(client, intent="format_disk").status_code == 400
+@pytest.mark.parametrize("body", [
+    {"intent": "format_disk"}, {"intent": None}, {}, {"intent": 5}, {"intent": ["brief"]},
+    {"intent": "why", "workflow": {"x": 1}}, {"intent": "unknown", "workflow": "x" * 500},
+    {"intent": "automate", "workflow": "weekly_reporting", "proposal_id": "'; DROP TABLE"},
+])
+def test_odd_bodies_get_a_structured_reply_not_an_error(client, body):
+    resp = _ask(client, **body)
+    data = resp.get_json()
+    assert resp.status_code == 200 and data["reply"] and isinstance(data["tools"], list)
+
+
+def test_non_json_and_oversized_bodies_are_handled(client):
+    assert client.post("/api/agent", data="not json", content_type="text/plain").get_json()["reply"]
+    big = client.post("/api/agent", json={"intent": "brief", "pad": "x" * 10000})
+    assert big.status_code == 413 and big.get_json()["reply"]
 
 
 def test_unreachable_mcp_server_is_a_503_not_a_silent_fallback(monkeypatch):

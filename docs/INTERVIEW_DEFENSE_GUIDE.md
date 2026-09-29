@@ -478,7 +478,7 @@ without saying so.
   vars / `~/.aws/credentials` / IAM role), never a hardcoded key.
 - `.github/workflows/ci.yml` runs the full pytest suite plus both
   evaluation scripts on every push to `main`.
-- `tests/` — 125 tests across 9 pytest files: `test_core.py` (scoring
+- `tests/` — 158 tests across 11 pytest files: `test_core.py` (scoring
   invariants, clustering edge cases, segmentation, propose/confirm state
   machine, data-determinism regressions), `test_data_adapters.py`,
   `test_google_and_briefing.py` (CSV/Google link handling with a fake
@@ -486,7 +486,10 @@ without saying so.
   `test_session_memory_integration.py` (persistence and its effect on tool
   output), `test_web_bridge.py`, `test_intents.py`, `test_speech.py`
   (chat router and speech cleanup, run in node), and `test_mcp_protocol.py`
-  (real server process, real MCP client, protocol 2025-11-25).
+  (real server process, real MCP client, protocol 2025-11-25),
+  `test_voice_mcp.py` (the `/api/agent` path against a real MCP server), and
+  `test_extension.py` (manifest, bundled router drift, client logic against
+  both live servers).
 
 ---
 
@@ -498,3 +501,42 @@ step across runs, and use that instead of a manually assigned constant.
 It's a bounded, well-scoped change that doesn't touch the architecture,
 and it directly strengthens the one place in the scoring pipeline that's
 currently a human guess rather than derived from the event log itself.
+
+---
+
+## 15. Voice through MCP, the extension, and input hardening
+
+**What changed.** Hexi's voice path used to call the analysis modules
+in-process, like the typed chat. Now `POST /api/agent` (`web/server.py`)
+runs each classified request through the running MCP server using the
+official MCP client (`web/mcp_bridge.py`), which refuses a server that
+negotiates below 2025-11-25. So the demo's voice interaction exercises the
+same Streamable HTTP surface Alexa+ would.
+
+**Judge question:** *"Why does voice go through MCP but typed chat doesn't?"*
+Typed chat and the tabs predate the bridge and are kept as the fallback when
+the MCP server is down, so the page still demos. Voice is the path that
+claims to be agentic, so it's the one that uses the protocol. Say that
+directly; don't imply every interaction goes through MCP.
+
+**Judge question:** *"Can a misheard word run an automation?"* No. A spoken
+"automate it" only calls `propose_automation`. `confirm_automation` runs on a
+later utterance carrying the stored proposal id, and any other request
+clears that id. `confirm_action` itself is still a stub, so nothing real
+executes either way.
+
+**Judge question:** *"Where's the speech-to-text?"* The browser's. Audio goes
+to the browser vendor in Chrome/Edge. What is ours is the router and the
+MCP call. Nothing here was run with a real microphone in a real browser.
+
+**Extension.** `extension/` is an MV3 side panel calling `/api/agent`, limited
+to localhost. It holds a copy of `intents.js` (extensions can't load scripts
+from localhost), and a test fails if the copy drifts. Never loaded into
+Chrome in this build; the request logic is tested in node against both real
+servers.
+
+**Hardening.** `intents.js` sanitizes input and does narrow typo correction;
+`/api/agent` validates every field, caps the body at 4 KB, and answers odd
+input with a structured reply. A wrong port in the extension request is the
+likely first-run failure: `/api/agent` lives on the Hexi server (:5000), not
+the MCP endpoint (:8000).

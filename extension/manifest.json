@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Hexi — Isse Automate Kardo",
+  "version": "0.1.0",
+  "description": "Ask Hexi by voice or text from a side panel. Requests run through the local MCP server; nothing leaves your machine except browser speech recognition.",
+  "minimum_chrome_version": "114",
+  "permissions": ["sidePanel", "storage"],
+  "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "Open Hexi" },
+  "side_panel": { "default_path": "panel.html" }
+}

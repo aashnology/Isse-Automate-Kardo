@@ -445,7 +445,7 @@ function appendChat(who, text) {
 
 const HELP_TEXT = "Try: what's costing me time, why is reporting slow, any unusual runs, automate it, stop suggesting bug triage, brief me, or what have I dismissed.";
 
-async function handleChatMessage(raw) {
+async function handleChatMessageInner(raw) {
   appendChat("you", raw);
   if (!backendUp) { appendChat("hexi", "I'm asleep right now — start web/server.py, then reset."); return; }
 
@@ -522,6 +522,15 @@ async function handleChatMessage(raw) {
   }
 }
 
+// Nothing a user types or says should surface as an uncaught error.
+async function handleChatMessage(raw) {
+  try {
+    await handleChatMessageInner(raw);
+  } catch (e) {
+    appendChat("hexi", "Something went wrong reaching the backend. " + HELP_TEXT);
+  }
+}
+
 // ---------------------------- Voice -> MCP ----------------------------------
 // Spoken requests run through the MCP server (via /api/agent), not the
 // in-process shortcuts typed chat uses. "Automate" is two utterances: the
@@ -534,11 +543,13 @@ async function handleVoice(said) {
   if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
   appendChat("you", said);
   const name = workflow || currentTarget;
-  const res = await fetch(API + "/api/agent", {
+  let res = null;
+  try { res = await fetch(API + "/api/agent", {
     method: "POST", headers: {"Content-Type": "application/json"},
     body: JSON.stringify({intent, workflow: name, proposal_id: intent === "automate" ? pendingProposal : null}),
-  }).catch(() => null);
+  }); } catch (e) { res = null; }
   const data = res ? await res.json().catch(() => ({})) : {};
+  if (res && !res.ok && res.status !== 503) { appendChat("hexi", data.reply || HELP_TEXT); return; }
   if (!res || !res.ok) {
     setStatus("MCP server not reachable — start src/mcp_server.py. Using the direct path instead.");
     document.getElementById("chatLog").lastChild.remove();
@@ -548,7 +559,7 @@ async function handleVoice(said) {
   if (name) currentTarget = name;
   pendingProposal = data.pending_proposal_id || null;
   setMood(data.mood);
-  setStatus(`Answered through MCP (${data.tools.join(", ")}, protocol ${data.protocol}).`);
+  setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}).`);
   appendChat("hexi", data.reply);
 }
 

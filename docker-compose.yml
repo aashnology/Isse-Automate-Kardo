@@ -1,9 +1,25 @@
 services:
-  friction-radar:
+  mcp:
     build: .
+    command: ["python", "mcp_server.py"]
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"   # MCP endpoint: http://localhost:8000/mcp
     env_file:
       - .env  # cp .env.example .env first; safe defaults (Bedrock off) if you skip this
     volumes:
-      - ./data:/app/data  # persist the generated synthetic data across restarts
+      - ./data:/app/data  # shared with `hexi` so dismissals persist and both see one dataset
+
+  hexi:
+    build: .
+    working_dir: /app/web
+    command: ["python", "server.py"]
+    depends_on:
+      - mcp
+    environment:
+      HEXI_MCP_URL: http://mcp:8000/mcp   # /api/agent reaches the MCP server over the compose network
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:5000:5000"   # Hexi page + /api/agent: http://localhost:5000
+    volumes:
+      - ./data:/app/data

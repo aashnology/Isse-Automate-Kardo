@@ -24,6 +24,10 @@ from mcp.client.streamable_http import streamable_http_client
 
 MIN_PROTOCOL = "2025-11-25"  # ISO dates, so string comparison is ordered
 NEEDS_WORKFLOW = {"why", "anomalies", "automate", "dismiss", "restore"}
+EXAMPLES = [
+    "what's costing me time", "why is reporting slow", "any unusual runs in the tickets",
+    "automate it", "stop suggesting bug triage", "what have I dismissed", "brief me",
+]
 
 
 class McpUnavailable(Exception):
@@ -81,6 +85,13 @@ def _hours(minutes):
 def run_intent(intent, workflow=None, proposal_id=None, url=None):
     """Execute one classified voice intent through MCP tools. Returns
     {reply, mood, pending_proposal_id, tools, protocol}."""
+    if intent not in NEEDS_WORKFLOW | {"brief", "friction", "dismissed_list"}:
+        # Unknown, empty, help, or anything unrecognised: answer with what can
+        # be asked rather than an error. No tool is called.
+        return {"reply": "I didn't catch a request I can act on. Try: " + "; ".join(EXAMPLES[:4]) + ".",
+                "mood": "idle", "pending_proposal_id": proposal_id, "tools": [], "protocol": None,
+                "intent": "unknown", "examples": EXAMPLES}
+
     if intent in NEEDS_WORKFLOW and not workflow:
         return {"reply": "Which workflow? Try reporting, bug triage, or onboarding.",
                 "mood": "idle", "pending_proposal_id": proposal_id, "tools": [], "protocol": None}
@@ -102,8 +113,6 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None):
         calls = [("restore_workflow_suggestions", {"workflow_name": workflow})]
     elif intent == "dismissed_list":
         calls = [("list_dismissed_workflow_suggestions", {})]
-    else:
-        raise ValueError(f"unsupported intent: {intent}")
 
     version, (data,) = call_tools(calls, url=url)
     out = {"reply": "", "mood": "idle", "pending_proposal_id": None,
