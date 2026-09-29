@@ -45,6 +45,7 @@ from data_adapters import (
 from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 import user_memory
+import mcp_bridge
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -127,6 +128,20 @@ def brief():
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     ))
 
+
+@app.route("/api/agent", methods=["POST"])
+def agent():
+    """Voice path: executes a classified intent through the running MCP
+    server (real MCP client, Streamable HTTP, protocol >= 2025-11-25).
+    503 if the MCP server isn't up, so the page can say so and fall back."""
+    body = request.get_json(silent=True) or {}
+    try:
+        return jsonify(mcp_bridge.run_intent(
+            body.get("intent"), body.get("workflow"), body.get("proposal_id")))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    except mcp_bridge.McpUnavailable as exc:
+        return jsonify({"error": str(exc)}), 503
 
 @app.route("/api/import", methods=["POST"])
 def import_data():

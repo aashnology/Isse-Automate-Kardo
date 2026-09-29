@@ -522,6 +522,36 @@ async function handleChatMessage(raw) {
   }
 }
 
+// ---------------------------- Voice -> MCP ----------------------------------
+// Spoken requests run through the MCP server (via /api/agent), not the
+// in-process shortcuts typed chat uses. "Automate" is two utterances: the
+// first proposes and stores the proposal id, the next "yes" confirms it.
+let pendingProposal = null;
+
+async function handleVoice(said) {
+  const { intent, workflow } = HexiIntents.classifyIntent(said);
+  const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "dismiss", "restore", "dismissed_list"];
+  if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
+  appendChat("you", said);
+  const name = workflow || currentTarget;
+  const res = await fetch(API + "/api/agent", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({intent, workflow: name, proposal_id: intent === "automate" ? pendingProposal : null}),
+  }).catch(() => null);
+  const data = res ? await res.json().catch(() => ({})) : {};
+  if (!res || !res.ok) {
+    setStatus("MCP server not reachable — start src/mcp_server.py. Using the direct path instead.");
+    document.getElementById("chatLog").lastChild.remove();
+    handleChatMessage(said);
+    return;
+  }
+  if (name) currentTarget = name;
+  pendingProposal = data.pending_proposal_id || null;
+  setMood(data.mood);
+  setStatus(`Answered through MCP (${data.tools.join(", ")}, protocol ${data.protocol}).`);
+  appendChat("hexi", data.reply);
+}
+
 // ---------------------------- Voice input -----------------------------------
 // Uses the browser's SpeechRecognition (Chrome, Edge, Safari). Worth knowing:
 // in Chrome and Edge the audio is sent to the browser vendor's cloud service
@@ -550,7 +580,7 @@ function startListening() {
     heard = true;
     const said = e.results[0][0].transcript;
     document.getElementById("chatInput").value = "";
-    handleChatMessage(said);
+    handleVoice(said);
   };
   recognizer.onerror = (e) => {
     const reasons = {
