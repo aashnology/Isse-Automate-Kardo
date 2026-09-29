@@ -478,13 +478,15 @@ without saying so.
   vars / `~/.aws/credentials` / IAM role), never a hardcoded key.
 - `.github/workflows/ci.yml` runs the full pytest suite plus both
   evaluation scripts on every push to `main`.
-- `tests/` — 34 tests across `test_core.py` (scoring invariants,
-  clustering edge cases, segmentation sanity checks, the propose/confirm
-  state machine), `test_data_adapters.py` (real-format ingestion, including
-  an end-to-end discovery check), `test_user_memory.py` (persistence
-  survives a module reload, atomic writes), and
-  `test_session_memory_integration.py` (dismissals actually change what
-  `get_top_friction_points` and `propose_automation` return).
+- `tests/` — 125 tests across 9 pytest files: `test_core.py` (scoring
+  invariants, clustering edge cases, segmentation, propose/confirm state
+  machine, data-determinism regressions), `test_data_adapters.py`,
+  `test_google_and_briefing.py` (CSV/Google link handling with a fake
+  fetcher, shared briefing), `test_user_memory.py` and
+  `test_session_memory_integration.py` (persistence and its effect on tool
+  output), `test_web_bridge.py`, `test_intents.py`, `test_speech.py`
+  (chat router and speech cleanup, run in node), and `test_mcp_protocol.py`
+  (real server process, real MCP client, protocol 2025-11-25).
 
 ---
 
