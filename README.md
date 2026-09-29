@@ -48,7 +48,7 @@ Built for the Amazon Developer Hackathon: Build, Ship, Shape — Alexa+ track.
 | ✅ Shipped | Briefing narration with a tested template fallback; the Bedrock path is implemented but not yet run against live AWS |
 | ✅ Shipped | Real data-source import (ActivityWatch, Toggl Track) through the same discovery pipeline |
 | ✅ Shipped | Cross-session memory — dismissed workflows stay dismissed after a restart, not just within one conversation |
-| ✅ Shipped | Orbi — an interactive browser demo UI, driven by real calls into the same pipeline |
+| ✅ Shipped | Hexi — an interactive browser demo UI, driven by real calls into the same pipeline |
 | 🔜 Next | Real execution behind a confirmed automation (currently simulated) |
 
 ## Build status
@@ -236,18 +236,18 @@ cp .env.example .env             # edit if you want Bedrock narration on
 docker compose up --build
 ```
 
-### Orbi (interactive demo UI)
+### Hexi (interactive demo UI)
 
 ```bash
 python web/server.py             # REST bridge + frontend at :5000
 ```
 
-Open `http://localhost:5000`. Orbi is a small on-screen character that
+Open `http://localhost:5000`. Hexi is a small on-screen character that
 reacts to a simulated workspace (a ticket queue, a spreadsheet, an inbox)
 built for this demo, and every expression change is driven by a real call
 to the same pipeline the MCP tools use — `web/server.py` imports and calls
 the exact functions `mcp_server.py`'s tools call, not a second
-implementation. Click through the tabs, watch Orbi notice a repeatable
+implementation. Click through the tabs, watch Hexi notice a repeatable
 pattern and propose automating it, confirm or dismiss it, then restart the
 server and check that a dismissal is still remembered.
 
@@ -265,10 +265,10 @@ you were just discussing.
 **Speak to it.** The **Speak** button uses the browser's speech recognition
 (Chrome, Edge, Safari; hidden in Firefox). One thing to know: in Chrome and
 Edge the audio is sent to the browser vendor's cloud service to be
-transcribed. That is unlike Orbi's spoken *replies*, which are generated on
+transcribed. That is unlike Hexi's spoken *replies*, which are generated on
 your device. The button's tooltip says so, and typing always works.
 
-**Orbi talks back.** Its chat replies and its automation suggestion are
+**Hexi talks back.** Its chat replies and its automation suggestion are
 read aloud using the browser's built-in speech synthesis — no API, no key,
 no cost, nothing sent anywhere. The "Voice" button in the status bar mutes
 it (the choice is remembered), and speech only starts after you interact
@@ -306,7 +306,7 @@ Edge have the most natural-sounding voices.
 
 **What this is not, said plainly:** a website cannot see your other browser
 tabs or other sites — that's a hard security boundary, not a limitation of
-this build. Orbi "watches" a sandboxed workspace built into this one page,
+this build. Hexi "watches" a sandboxed workspace built into this one page,
 not your real tabs. Real cross-tab visibility would need a browser
 extension with broad permissions and a real consent design, which is a
 different, bigger product than this hackathon build attempts. Saying so

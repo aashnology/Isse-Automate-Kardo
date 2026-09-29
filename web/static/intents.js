@@ -1,4 +1,4 @@
-// Orbi's chat router: turns a typed or spoken sentence into {intent, workflow}.
+// Hexi's chat router: turns a typed or spoken sentence into {intent, workflow}.
 // Deliberately plain keyword matching, not an LLM -- and deliberately pulled
 // out of the page into a pure module so it can be tested. The first version
 // lived inline, matched substrings instead of whole words, and so read
@@ -49,5 +49,5 @@
 
   var api = { classifyIntent: classifyIntent, matchWorkflow: matchWorkflow };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  root.OrbiIntents = api;
+  root.HexiIntents = api;
 })(typeof window !== "undefined" ? window : globalThis);

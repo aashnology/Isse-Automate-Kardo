@@ -21,7 +21,7 @@ def client(tmp_path, monkeypatch):
 def test_index_serves_the_frontend(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    assert b"orbi" in resp.data.lower() or b"Orbi" in resp.data
+    assert b"hexi" in resp.data.lower() or b"Hexi" in resp.data
 
 
 def test_friction_points_matches_the_real_pipeline(client):

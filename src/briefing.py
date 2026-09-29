@@ -1,6 +1,6 @@
 """
 One place that builds the spoken briefing, used by both the MCP tool
-(narrate_briefing) and Orbi's "brief me". Keeping it here means the two
+(narrate_briefing) and Hexi's "brief me". Keeping it here means the two
 interfaces can't drift apart: same analysis in, same sentence out.
 
 Workflows the user has dismissed are excluded. A briefing that raised

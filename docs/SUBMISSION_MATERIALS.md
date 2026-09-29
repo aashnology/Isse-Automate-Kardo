@@ -18,7 +18,7 @@ should be checkable there.
 - **Amazon Bedrock (Converse API via boto3)** -- one optional tool,
   `narrate_briefing`. **Written and reviewed but never run against a live AWS
   account** (see friction log); the template fallback path is what's tested.
-- **GitHub REST API** -- read-only PR-history import for the Orbi demo. Not
+- **GitHub REST API** -- read-only PR-history import for the Hexi demo. Not
   an Amazon tool; listed for completeness.
 
 ### What worked well
@@ -121,7 +121,7 @@ read with that in mind.
 - **Severity:** medium-high for this track -- it is the difference between
   "conforms to the spec" and "works on the product."
 - **Workaround:** protocol-level test against the real running server
-  (`tests/test_mcp_protocol.py`), plus a browser demo (Orbi) that simulates
+  (`tests/test_mcp_protocol.py`), plus a browser demo (Hexi) that simulates
   the conversational experience. Neither is claimed to be Alexa+.
 - **Suggestion:** an official test harness or a documented developer-mode
   connection flow.

@@ -1,6 +1,6 @@
 """
 A thin REST bridge in front of this project's actual analysis modules, for
-the browser demo (Orbi). This is NOT a second implementation of the
+the browser demo (Hexi). This is NOT a second implementation of the
 pipeline -- it imports and calls the exact same functions mcp_server.py's
 tools call. If a judge compares this file's endpoints against
 mcp_server.py's tools, they should look like two doors into one house, not
@@ -19,7 +19,7 @@ synthetic dataset. What this demo is NOT, and never claims to be: a browser
 extension watching your real tabs. That's a genuinely different product
 (real cross-tab visibility requires a browser extension with broad host
 permissions, and a real consent/privacy design this hackathon build doesn't
-attempt) -- see README's "Orbi demo" section for the honest version of this
+attempt) -- see README's "Hexi demo" section for the honest version of this
 distinction.
 """
 
@@ -119,7 +119,7 @@ def dismissed():
 @app.route("/api/brief")
 def brief():
     """The same briefing the MCP tool narrate_briefing returns -- both call
-    briefing.build_briefing, so Orbi's "brief me" and the MCP tool can't
+    briefing.build_briefing, so Hexi's "brief me" and the MCP tool can't
     drift apart."""
     top_k = int(request.args.get("top_k", 3))
     return jsonify(build_briefing(

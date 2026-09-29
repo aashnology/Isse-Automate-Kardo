@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Isse Automate Kardo — Orbi</title>
+<title>Isse Automate Kardo — Hexi</title>
 <style>
   :root {
     --bg: #f6f5f2; --card: #ffffff; --border: #e2e0da; --text: #2c2c2a; --muted: #6b6a63;
@@ -27,24 +27,24 @@
   .chip:hover { background: var(--bg); }
   .chat-msg { font-size: 13px; padding: 7px 11px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
   .chat-msg.you { align-self: flex-end; background: #FAC775; color: #412402; }
-  .chat-msg.orbi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
+  .chat-msg.hexi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
 
-  .orbi-dock { position: relative; height: 60px; margin: 0 16px; }
-  .orbi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
+  .hexi-dock { position: relative; height: 60px; margin: 0 16px; }
+  .hexi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
   .bubble { display:none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; max-width: 230px; font-size: 13px; }
   .bubble button { font-size: 12px; padding: 4px 10px; margin-top: 6px; margin-right: 6px; }
 
-  .orbi-pulse { animation: pulseSlow 2.2s ease-in-out infinite; transform-origin: center; }
-  .orbi-blink { animation: blinkEyes 3s steps(1) infinite; transform-origin: center; }
-  .orbi-scan { animation: scanX 1.6s ease-in-out infinite; }
-  .orbi-pop { animation: popIn 0.5s ease-out; }
-  .orbi-wiggle { animation: wiggle 0.7s ease-in-out infinite; transform-origin: center; }
-  .orbi-think { animation: think 2.4s ease-in-out infinite; transform-origin: center; }
-  .orbi-bob { animation: bob 3s ease-in-out infinite; }
+  .hexi-pulse { animation: pulseSlow 2.2s ease-in-out infinite; transform-origin: center; }
+  .hexi-blink { animation: blinkEyes 3s steps(1) infinite; transform-origin: center; }
+  .hexi-scan { animation: scanX 1.6s ease-in-out infinite; }
+  .hexi-pop { animation: popIn 0.5s ease-out; }
+  .hexi-wiggle { animation: wiggle 0.7s ease-in-out infinite; transform-origin: center; }
+  .hexi-think { animation: think 2.4s ease-in-out infinite; transform-origin: center; }
+  .hexi-bob { animation: bob 3s ease-in-out infinite; }
   .progress-track { width: 36px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 4px; }
   .progress-fill { height: 100%; width: 0%; background: #854F0B; border-radius: 2px; transition: width 1.3s linear; }
-  .orbi-dot { width:4px; height:4px; border-radius:50%; background:#854F0B; display:inline-block; animation: dotPulse 1s ease-in-out infinite; }
-  .orbi-z { animation: floatZ 2.4s ease-in infinite; opacity: 0; }
+  .hexi-dot { width:4px; height:4px; border-radius:50%; background:#854F0B; display:inline-block; animation: dotPulse 1s ease-in-out infinite; }
+  .hexi-z { animation: floatZ 2.4s ease-in infinite; opacity: 0; }
   .z2 { animation-delay: 0.6s; }
   @keyframes pulseSlow { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
   @keyframes blinkEyes { 0%,90%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.15);} }
@@ -74,10 +74,10 @@
 
   <div class="panel" id="panel"><p class="status">Click a tab to load its real step breakdown.</p></div>
 
-  <div class="orbi-dock">
-    <div class="orbi-wrap" id="orbiWrap" style="left: 0px;">
+  <div class="hexi-dock">
+    <div class="hexi-wrap" id="hexiWrap" style="left: 0px;">
       <div style="display:flex; flex-direction:column; align-items:center;">
-        <svg id="orbiSvg" width="40" height="40" viewBox="0 0 48 48"></svg>
+        <svg id="hexiSvg" width="40" height="40" viewBox="0 0 48 48"></svg>
         <div class="progress-track" id="progressTrack" style="display:none;">
           <div class="progress-fill" id="progressFill"></div>
         </div>
@@ -91,9 +91,9 @@
   </div>
 
   <div class="status-bar">
-    <span class="status" id="statusText">Connecting to Orbi...</span>
+    <span class="status" id="statusText">Connecting to Hexi...</span>
     <span style="display:flex; gap:6px;">
-      <button class="btn" id="voiceBtn" title="Orbi reads its replies aloud">Voice: on</button>
+      <button class="btn" id="voiceBtn" title="Hexi reads its replies aloud">Voice: on</button>
       <button class="btn" id="resetBtn">Reset demo</button>
     </span>
   </div>
@@ -110,7 +110,7 @@
       <input id="chatInput" type="text"
         placeholder="Ask: what's costing me time? why is reporting slow? automate it. stop suggesting bug triage."
         style="flex:1; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit;">
-      <button class="btn" id="micBtn" title="Speak to Orbi. In Chrome and Edge the audio is sent to the browser vendor's speech service to be transcribed.">Speak</button>
+      <button class="btn" id="micBtn" title="Speak to Hexi. In Chrome and Edge the audio is sent to the browser vendor's speech service to be transcribed.">Speak</button>
       <button class="btn" id="chatSend">Send</button>
     </div>
   </div>
@@ -127,35 +127,35 @@ let currentProposalId = null;
 let backendUp = false;
 
 const FACES = {
-  asleep: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="2" class="orbi-bob"/>
+  asleep: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#D3D1C7" stroke="#5F5E5A" stroke-width="2" class="hexi-bob"/>
     <path d="M13 22 Q17 25 21 22" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     <path d="M27 22 Q31 25 35 22" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round"/>
     <ellipse cx="24" cy="32" rx="3" ry="2" fill="#2C2C2A"/>
-    <text class="orbi-z" x="34" y="10" font-size="7" fill="#5F5E5A">z</text>
-    <text class="orbi-z z2" x="39" y="5" font-size="9" fill="#5F5E5A">z</text>`,
-  idle: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="orbi-pulse"/>
-    <rect class="orbi-blink" x="14" y="19" width="6" height="7" rx="1" fill="#042C53"/>
-    <rect class="orbi-blink" x="28" y="19" width="6" height="7" rx="1" fill="#042C53"/>
+    <text class="hexi-z" x="34" y="10" font-size="7" fill="#5F5E5A">z</text>
+    <text class="hexi-z z2" x="39" y="5" font-size="9" fill="#5F5E5A">z</text>`,
+  idle: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="hexi-pulse"/>
+    <rect class="hexi-blink" x="14" y="19" width="6" height="7" rx="1" fill="#042C53"/>
+    <rect class="hexi-blink" x="28" y="19" width="6" height="7" rx="1" fill="#042C53"/>
     <path d="M17 31 Q24 34 31 31" stroke="#042C53" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-  watching: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="orbi-scan"/>
+  watching: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#B5D4F4" stroke="#185FA5" stroke-width="2" class="hexi-scan"/>
     <rect x="12" y="15" width="8" height="2.5" fill="#042C53" transform="rotate(-14 16 16)"/>
     <rect x="14" y="20" width="6" height="6" fill="#042C53"/>
     <rect x="28" y="21" width="6" height="4" fill="#042C53"/>
     <path d="M17 31 Q24 30 31 31" stroke="#042C53" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-  curious: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#F0997B" stroke="#993C1D" stroke-width="2" class="orbi-pop"/>
+  curious: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#F0997B" stroke="#993C1D" stroke-width="2" class="hexi-pop"/>
     <circle cx="17" cy="22" r="4.5" fill="#4A1B0C"/><circle cx="31" cy="22" r="4.5" fill="#4A1B0C"/>
     <circle cx="24" cy="33" r="3.5" fill="none" stroke="#4A1B0C" stroke-width="2.5"/>`,
-  suggesting: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#FAC775" stroke="#854F0B" stroke-width="2" class="orbi-think"/>
+  suggesting: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#FAC775" stroke="#854F0B" stroke-width="2" class="hexi-think"/>
     <path d="M12 17 Q16 13 20 16" stroke="#412402" stroke-width="2.2" fill="none" stroke-linecap="round"/>
     <circle cx="17" cy="21" r="3" fill="#412402"/><circle cx="31" cy="20" r="3" fill="#412402"/>
     <path d="M20 33 Q24 31 28 32" stroke="#412402" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-  confirmed: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#97C459" stroke="#3B6D11" stroke-width="2" class="orbi-wiggle"/>
+  confirmed: `<polygon points="24,4 42,15 42,33 24,44 6,33 6,15" fill="#97C459" stroke="#3B6D11" stroke-width="2" class="hexi-wiggle"/>
     <circle cx="16" cy="21" r="5" fill="#173404"/><path d="M27 23 L35 20" stroke="#173404" stroke-width="2.5" stroke-linecap="round"/>
     <path d="M13 31 Q24 40 35 29 Q28 34 24 30 Q20 34 13 31" fill="#173404"/>
     <polygon points="6,10 9,4 11,10" fill="#639922"/><polygon points="38,8 41,3 42,9" fill="#639922"/>`,
 };
 
-function setMood(mood) { document.getElementById("orbiSvg").innerHTML = FACES[mood]; }
+function setMood(mood) { document.getElementById("hexiSvg").innerHTML = FACES[mood]; }
 function setStatus(text) { document.getElementById("statusText").textContent = text; }
 
 async function api(path, opts) {
@@ -174,7 +174,7 @@ async function checkBackend() {
     await api("/api/friction-points?top_k=1");
     backendUp = true;
     setMood("idle");
-    setStatus("Orbi is watching this workspace.");
+    setStatus("Hexi is watching this workspace.");
   } catch (e) {
     backendUp = false;
     setMood("asleep");
@@ -185,7 +185,7 @@ async function checkBackend() {
 async function selectTab(workflowName, btn) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
-  document.getElementById("orbiWrap").style.left = tabPositions[workflowName] + "px";
+  document.getElementById("hexiWrap").style.left = tabPositions[workflowName] + "px";
 
   if (workflowName === "import") {
     renderImportPanel();
@@ -228,7 +228,7 @@ async function selectTab(workflowName, btn) {
       const fp = top.friction_points[0];
       currentTarget = fp.workflow_name;
       setMood("curious");
-      setStatus("Orbi noticed a pattern across your tabs.");
+      setStatus("Hexi noticed a pattern across your tabs.");
 
       const track = document.getElementById("progressTrack");
       const fill = document.getElementById("progressFill");
@@ -244,7 +244,7 @@ async function selectTab(workflowName, btn) {
           `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
         document.getElementById("bubble").style.display = "block";
         speak(document.getElementById("bubbleText").textContent);
-        setStatus("Orbi thinks this can be automated.");
+        setStatus("Hexi thinks this can be automated.");
       }, 1300);
     }
   }
@@ -354,7 +354,7 @@ async function automateWorkflow(name) {
 async function dismissWorkflow(name) {
   await api("/api/dismiss", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({workflow_name: name, reason: "dismissed via Orbi demo"}),
+    body: JSON.stringify({workflow_name: name, reason: "dismissed via Hexi demo"}),
   });
   setMood("idle");
   document.getElementById("bubble").style.display = "none";
@@ -393,7 +393,7 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
   document.getElementById("progressFill").style.width = "0%";
   document.getElementById("panel").innerHTML = '<p class="status">Click a tab to load its real step breakdown.</p>';
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-  document.getElementById("orbiWrap").style.left = "0px";
+  document.getElementById("hexiWrap").style.left = "0px";
   checkBackend();
 });
 
@@ -406,7 +406,7 @@ checkBackend();
 // also what browsers require before they'll allow audio at all.
 const speechSupported = "speechSynthesis" in window;
 let voiceOn = true;
-try { voiceOn = localStorage.getItem("orbiVoice") !== "off"; } catch (e) {}
+try { voiceOn = localStorage.getItem("hexiVoice") !== "off"; } catch (e) {}
 
 function refreshVoiceButton() {
   const btn = document.getElementById("voiceBtn");
@@ -417,7 +417,7 @@ function refreshVoiceButton() {
 function speak(text) {
   if (!speechSupported || !voiceOn) return;
   window.speechSynthesis.cancel();  // never queue up stale replies
-  const utterance = new SpeechSynthesisUtterance(OrbiSpeech.speakable(text));
+  const utterance = new SpeechSynthesisUtterance(HexiSpeech.speakable(text));
   const english = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
   if (english) utterance.voice = english;
   utterance.rate = 1.02;
@@ -426,7 +426,7 @@ function speak(text) {
 
 document.getElementById("voiceBtn").addEventListener("click", () => {
   voiceOn = !voiceOn;
-  try { localStorage.setItem("orbiVoice", voiceOn ? "on" : "off"); } catch (e) {}
+  try { localStorage.setItem("hexiVoice", voiceOn ? "on" : "off"); } catch (e) {}
   if (!voiceOn && speechSupported) window.speechSynthesis.cancel();
   refreshVoiceButton();
 });
@@ -440,18 +440,18 @@ function appendChat(who, text) {
   div.textContent = text;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
-  if (who === "orbi") speak(text);
+  if (who === "hexi") speak(text);
 }
 
 const HELP_TEXT = "Try: what's costing me time, why is reporting slow, any unusual runs, automate it, stop suggesting bug triage, brief me, or what have I dismissed.";
 
 async function handleChatMessage(raw) {
   appendChat("you", raw);
-  if (!backendUp) { appendChat("orbi", "I'm asleep right now — start web/server.py, then reset."); return; }
+  if (!backendUp) { appendChat("hexi", "I'm asleep right now — start web/server.py, then reset."); return; }
 
-  const { intent, workflow } = OrbiIntents.classifyIntent(raw);
+  const { intent, workflow } = HexiIntents.classifyIntent(raw);
   const name = workflow || currentTarget;
-  const needName = (question) => { appendChat("orbi", question); };
+  const needName = (question) => { appendChat("hexi", question); };
 
   switch (intent) {
     case "brief": {
@@ -459,47 +459,47 @@ async function handleChatMessage(raw) {
       const points = b.based_on.top_friction_points;
       if (points.length) currentTarget = points[0].workflow_name;
       setMood(points.length ? "curious" : "idle");
-      appendChat("orbi", b.narration);
+      appendChat("hexi", b.narration);
       return;
     }
     case "friction": {
       const top = await api("/api/friction-points?top_k=1");
-      if (!top.friction_points.length) { appendChat("orbi", "Nothing to report yet — every workflow is dismissed or empty."); return; }
+      if (!top.friction_points.length) { appendChat("hexi", "Nothing to report yet — every workflow is dismissed or empty."); return; }
       const fp = top.friction_points[0];
       currentTarget = fp.workflow_name;
       setMood("curious");
-      appendChat("orbi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
+      appendChat("hexi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
       return;
     }
     case "why": {
       if (!name) { needName("Which workflow? Try 'reporting', 'bug triage', or 'onboarding'."); return; }
       currentTarget = name;
       const debug = await api("/api/debug/" + name);
-      if (debug.error) { appendChat("orbi", debug.error); return; }
+      if (debug.error) { appendChat("hexi", debug.error); return; }
       const top = debug.step_breakdown[0];
-      appendChat("orbi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
+      appendChat("hexi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
       return;
     }
     case "anomalies": {
       if (!name) { needName("Which workflow should I check for anomalies?"); return; }
       const a = await api("/api/anomalies/" + name);
       if (a.anomalies && a.anomalies.length) {
-        appendChat("orbi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
+        appendChat("hexi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
       } else {
-        appendChat("orbi", a.note || `No anomalous runs in '${name}'.`);
+        appendChat("hexi", a.note || `No anomalous runs in '${name}'.`);
       }
       return;
     }
     case "automate": {
       if (!name) { needName("Automate what? Ask what's costing you time first."); return; }
       const result = await automateWorkflow(name);
-      appendChat("orbi", result.message);
+      appendChat("hexi", result.message);
       return;
     }
     case "dismiss": {
       if (!name) { needName("Stop suggesting what?"); return; }
       const result = await dismissWorkflow(name);
-      appendChat("orbi", result.message);
+      appendChat("hexi", result.message);
       return;
     }
     case "restore": {
@@ -508,17 +508,17 @@ async function handleChatMessage(raw) {
         method: "POST", headers: {"Content-Type": "application/json"},
         body: JSON.stringify({workflow_name: workflow}),
       });
-      appendChat("orbi", `Restored — I'll suggest '${workflow}' again if it comes up.`);
+      appendChat("hexi", `Restored — I'll suggest '${workflow}' again if it comes up.`);
       return;
     }
     case "dismissed_list": {
       const d = await api("/api/dismissed");
       const names = d.dismissed_workflows.map(w => w.workflow_name);
-      appendChat("orbi", names.length ? `You've asked me to stop suggesting: ${names.join(", ")}.` : "You haven't dismissed anything.");
+      appendChat("hexi", names.length ? `You've asked me to stop suggesting: ${names.join(", ")}.` : "You haven't dismissed anything.");
       return;
     }
     default:
-      appendChat("orbi", HELP_TEXT);
+      appendChat("hexi", HELP_TEXT);
   }
 }
 
@@ -540,7 +540,7 @@ function setListening(on, resetFace = true) {
 
 function startListening() {
   if (recognizer) { recognizer.stop(); return; }   // second click cancels
-  if (speechSupported) window.speechSynthesis.cancel();  // don't transcribe Orbi's own voice
+  if (speechSupported) window.speechSynthesis.cancel();  // don't transcribe Hexi's own voice
   recognizer = new Recognition();
   recognizer.lang = "en-US";
   recognizer.interimResults = false;
@@ -564,7 +564,7 @@ function startListening() {
   };
   recognizer.onend = () => {
     recognizer = null;
-    // If something was heard, the reply sets Orbi's face; only reset it
+    // If something was heard, the reply sets Hexi's face; only reset it
     // when nothing was, so the two can't fight over the expression.
     setListening(false, !heard);
   };

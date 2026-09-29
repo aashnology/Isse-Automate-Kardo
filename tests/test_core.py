@@ -186,7 +186,7 @@ def test_activity_events_are_identical_regardless_of_what_ran_before():
     # Regression test for a real bug: the generators used to share the global
     # random generator, so the same call returned different data depending on
     # how many numbers anything else had already drawn. That made the MCP
-    # server (reads a file) and Orbi (regenerated its own) analyse different
+    # server (reads a file) and Hexi (regenerated its own) analyse different
     # datasets while the README called the data "deterministic".
     from datetime import datetime, timezone
     from synthetic_data import generate_activity_events, generate_information_stream

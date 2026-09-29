@@ -67,7 +67,7 @@ def test_words_are_matched_whole_not_as_substrings():
 def test_page_uses_the_tested_router_not_an_inline_copy():
     html = open(os.path.join(STATIC, "index.html"), encoding="utf-8").read()
     assert 'src="/intents.js"' in html
-    assert "OrbiIntents.classifyIntent" in html
+    assert "HexiIntents.classifyIntent" in html
     # the old inline matcher must be gone, or the tests above prove nothing
     assert "WORKFLOW_SYNONYMS" not in html
     assert "/(waste|costing|most time|top|biggest|friction)/" not in html

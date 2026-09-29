@@ -313,11 +313,11 @@ about cutting corners on the part that's actually there.
 shows what's currently dismissed and why — this was built with an undo
 path from the start, not bolted on after.
 
-## 11. Orbi — the interactive demo UI, and its honest boundary
+## 11. Hexi — the interactive demo UI, and its honest boundary
 
 `web/server.py` is a thin REST bridge in front of the exact same modules
 `mcp_server.py`'s tools call (`FrictionRadar`, `WorkflowDiscovery`,
-`actions.py`, `user_memory.py`) — not a second implementation. Orbi
+`actions.py`, `user_memory.py`) — not a second implementation. Hexi
 (`web/static/index.html`) is a small animated character whose expression
 changes are driven entirely by what those real calls return: it goes
 curious → suggesting only when a real `get_top_friction_points` call
@@ -325,10 +325,10 @@ returns a workflow that isn't dismissed, and the number in its speech
 bubble is the real `total_time_cost_minutes`, not a placeholder.
 
 **Judge question — the one to get right, because it's the obvious
-follow-up:** *"Does Orbi actually watch my browser tabs?"* The honest
+follow-up:** *"Does Hexi actually watch my browser tabs?"* The honest
 answer, said directly and without hedging: no, and it structurally can't
 from a website — browser tabs are sandboxed from each other and from the
-page itself, by design, for everyone's security. Orbi "watches" a
+page itself, by design, for everyone's security. Hexi "watches" a
 simulated workspace (a ticket queue, spreadsheet, and inbox) built into
 this one page, using this project's own synthetic dataset. Real cross-tab
 visibility would require a browser extension with broad host permissions
@@ -337,21 +337,21 @@ this hackathon build attempts. Getting caught implying otherwise would cost
 far more credibility than saying this upfront ever could.
 
 **Judge question:** *"Why build a second interface when you already have
-an MCP server?"* MCP Inspector proves the MCP server works; Orbi
+an MCP server?"* MCP Inspector proves the MCP server works; Hexi
 demonstrates the *product experience* an Alexa+-style surface is aiming
 for, in a form a judge can watch without needing to read JSON. They're
 answering different judging criteria: Tech Implementation is Inspector's
-job, Design is Orbi's.
+job, Design is Hexi's.
 
-**Judge question:** *"Is the propose/confirm flow through Orbi actually
+**Judge question:** *"Is the propose/confirm flow through Hexi actually
 real, or scripted for the demo?"* Show, don't just say: click "Automate
 it" on `bug_triage` (whose steps are all outside `AUTOMATABLE_STEPS`) and
-Orbi honestly reports nothing was safe to automate, rather than a scripted
+Hexi honestly reports nothing was safe to automate, rather than a scripted
 success. That asymmetry — one workflow succeeds, another correctly
 doesn't — is the proof it's calling the real backend, not playing a
 recorded animation.
 
-**The chat box.** Below the workspace, a text input lets you ask Orbi
+**The chat box.** Below the workspace, a text input lets you ask Hexi
 things directly ("what's costing me the most time," "automate it," "stop
 suggesting bug triage"). This is a small keyword-matched intent router in
 plain JavaScript — not an LLM, not Bedrock — that calls the exact same
@@ -362,7 +362,7 @@ card) to demo at all. It reads as a real exchange because it's driving
 real analysis underneath simple matching, not because the matching itself
 is sophisticated.
 
-**Spoken replies.** Orbi reads its chat replies and suggestions aloud with
+**Spoken replies.** Hexi reads its chat replies and suggestions aloud with
 the browser's native `speechSynthesis` — deliberately not Bedrock, Polly or
 any API, so it costs nothing, needs no credentials, and works offline. The
 honest framing if asked: this is text-to-speech on the way *out*, not voice
@@ -390,10 +390,10 @@ until the router was pulled out into `intents.js` and tested with the phrases
 people actually say. It now matches whole words and has 20+ phrase tests plus
 a test that the page uses the tested module rather than an inline copy.
 
-**Judge question:** *"Are Orbi and the MCP server looking at the same data?"*
+**Judge question:** *"Are Hexi and the MCP server looking at the same data?"*
 They are now, and weren't before. The generators used the global random
 generator, so output depended on call order: the MCP server read a file while
-Orbi regenerated its own events, and they disagreed (23.5h vs 32.5h for the
+Hexi regenerated its own events, and they disagreed (23.5h vs 32.5h for the
 same workflow), while the README called the data deterministic. Found by a
 test asserting the two interfaces return the same briefing. Fixed with a
 private seeded generator per function and one shared loader; regression tests

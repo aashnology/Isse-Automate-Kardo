@@ -7,13 +7,13 @@ it's a strong bonus, not the core Alexa+ story, and it's fine if a rushed
 judge never gets there.
 
 **Recording setup:** `python web/server.py`, then screen-record the browser
-at `localhost:5000`. Orbi's every expression change is a real call into the
+at `localhost:5000`. Hexi's every expression change is a real call into the
 same pipeline `mcp_server.py`'s tools use (`web/server.py` imports the exact
 same functions) — this is not a scripted animation. Keep MCP Inspector
 (`npx @modelcontextprotocol/inspector` against `python src/mcp_server.py`)
 open in a second tab for the one beat that needs it (the double-confirm
 rejection, §1:35 below) — that's a backend-only safety property with no
-natural home in Orbi's UI, and Inspector proves it's the real MCP server,
+natural home in Hexi's UI, and Inspector proves it's the real MCP server,
 which the submission needs shown regardless.
 
 ---
@@ -26,7 +26,7 @@ which the submission needs shown regardless.
 > real workflows with zero labels, tells you which one is wasting the most
 > time and why, and only automates something after you say yes."
 
-**On screen:** Title card, then straight to Orbi's page loading (idle →
+**On screen:** Title card, then straight to Hexi's page loading (idle →
 breathing/blinking, establishing it's alive before anything happens).
 
 ---
@@ -34,7 +34,7 @@ breathing/blinking, establishing it's alive before anything happens).
 ## 0:15–0:35 — Discovery with no labels
 
 **Action:** Click through the three tabs (ticket queue, spreadsheet, inbox).
-Orbi tracks across the dock as you go.
+Hexi tracks across the dock as you go.
 
 **Voiceover:**
 > "No hardcoded workflow names here — clicking through pulls each tab's
@@ -55,9 +55,9 @@ step breakdown.
 
 ---
 
-## 0:55–1:15 — Orbi notices the pattern
+## 0:55–1:15 — Hexi notices the pattern
 
-**Action:** After the third tab, Orbi goes curious, then suggesting, with
+**Action:** After the third tab, Hexi goes curious, then suggesting, with
 the real speech bubble (workflow name, real hours, real automation tier).
 
 **Voiceover:**
@@ -69,7 +69,7 @@ the real speech bubble (workflow name, real hours, real automation tier).
 
 ## 1:15–1:35 — Human-in-the-loop, on camera
 
-**Action:** Click "Automate it." Orbi goes confirmed.
+**Action:** Click "Automate it." Hexi goes confirmed.
 
 **Voiceover:**
 > "It proposes — it never just does it. Only clicking confirm executes
@@ -79,8 +79,8 @@ the real speech bubble (workflow name, real hours, real automation tier).
 
 ## 1:35–2:00 — Prove it isn't scripted, and prove the safety property
 
-**Action (Orbi):** Switch to a workflow with no automatable steps (bug
-triage) and click "Automate it" — Orbi honestly reports nothing was safe to
+**Action (Hexi):** Switch to a workflow with no automatable steps (bug
+triage) and click "Automate it" — Hexi honestly reports nothing was safe to
 automate, not a fake success.
 
 **Action (Inspector, quick cutaway):** Call `confirm_automation` with an
@@ -95,9 +95,9 @@ already-used proposal id.
 
 ## 2:00–2:30 — The standout: it remembers, across sessions
 
-**Action:** Click "Not now" on a suggestion (Orbi → idle, status confirms
+**Action:** Click "Not now" on a suggestion (Hexi → idle, status confirms
 it's saved to disk). **Kill and restart `web/server.py` on camera.** Reload
-the page, revisit the same tabs — Orbi doesn't re-suggest it.
+the page, revisit the same tabs — Hexi doesn't re-suggest it.
 
 **Voiceover:**
 > "Here's the part that isn't just a single-turn Q&A bot: I just told it to
@@ -114,8 +114,8 @@ skeptical judge unless the restart is on screen.
 
 ## 2:30–2:50 — Bedrock, briefly (AWS Builder)
 
-**Action:** Click the **Brief me** chip in Orbi. It calls the same
-`build_briefing` function the MCP tool `narrate_briefing` uses, and Orbi
+**Action:** Click the **Brief me** chip in Hexi. It calls the same
+`build_briefing` function the MCP tool `narrate_briefing` uses, and Hexi
 reads the result aloud. (Turn the browser's sound on and check the voice on
 the recording machine beforehand — voices vary by browser and OS.)
 
@@ -125,7 +125,7 @@ the recording machine beforehand — voices vary by browser and OS.)
 > already computed here, it never scores or ranks anything itself."
 
 **Optional 5 seconds, if you have room:** click **Speak**, say "what's costing
-me time", and let Orbi answer. It's the most Alexa+-like moment in the whole
+me time", and let Hexi answer. It's the most Alexa+-like moment in the whole
 demo. Chrome or Edge only, and the transcription is done by the browser
 vendor's cloud service, so don't describe it as running locally.
 
@@ -155,12 +155,12 @@ list first):
 2. Bedrock section — genuinely optional; the fallback line covers you if cut.
 3. The anomaly note — strong but the second-most-ownable point.
 
-**Never cut:** the discovery-with-no-labels open, Orbi noticing the
+**Never cut:** the discovery-with-no-labels open, Hexi noticing the
 pattern, and the restart-and-still-remembers sequence. Those three are what
 separate this from "obvious" on the judging rubric.
 
 **One honesty note for the room, not the video:** the bug-triage run this
 demo shows as anomalous, and the whole "watches a workspace" framing, run
 on this project's own synthetic dataset inside one page — not your real
-browser tabs. See README's "Orbi (interactive demo UI)" section for why
+browser tabs. See README's "Hexi (interactive demo UI)" section for why
 that's a hard boundary, not a shortcut, if a judge asks.

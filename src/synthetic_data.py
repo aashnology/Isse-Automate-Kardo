@@ -179,7 +179,7 @@ def _emit_workflow(rng, events, workflow_name, week_start, run_id, variable=Fals
 
 def load_activity_events(data_dir=None):
     """The single source of truth for the demo activity data. Both the MCP
-    server and the Orbi web bridge call this, so they analyse the same
+    server and the Hexi web bridge call this, so they analyse the same
     events instead of each regenerating their own."""
     import os
     data_dir = data_dir or os.path.join(os.path.dirname(__file__), "..", "data")
