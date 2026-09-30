@@ -33,6 +33,7 @@ from workflow_discovery import WorkflowDiscovery
 from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 from data_adapters import from_activitywatch_events, from_toggl_csv
+from safe_import import resolve_import_path, UnsafeImportPath
 import user_memory
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -54,13 +55,41 @@ friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
 narrator = BedrockNarrator()
 
-# host 0.0.0.0 so this is reachable from outside the container when run via
-# Docker; port configurable so it doesn't collide with anything else the
-# judge already has running locally.
+# FastMCP only auto-enables DNS-rebinding/Origin protection when host is
+# exactly "127.0.0.1", "localhost", or "::1" (see mcp/server/transport_security.py
+# in the installed 1.30.0 SDK) -- for any other host, including "0.0.0.0",
+# protection defaults OFF unless explicitly configured. So: default to the
+# loopback bind (safe, and it's what a judge running this locally needs
+# anyway); binding wider is an explicit opt-in via MCP_BIND_HOST, and when
+# that's not a loopback address we build TransportSecuritySettings
+# ourselves from MCP_ALLOWED_HOSTS/MCP_ALLOWED_ORIGINS so it doesn't fall
+# back to silently unprotected.
+_bind_host = os.environ.get("MCP_BIND_HOST", "127.0.0.1")
+_transport_security = None
+if _bind_host not in ("127.0.0.1", "localhost", "::1"):
+    from mcp.server.transport_security import TransportSecuritySettings
+
+    allowed_hosts = [h.strip() for h in os.environ.get("MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+    allowed_origins = [o.strip() for o in os.environ.get("MCP_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+    if not allowed_hosts or not allowed_origins:
+        raise RuntimeError(
+            "MCP_BIND_HOST is set to a non-loopback address, which disables FastMCP's "
+            "automatic DNS-rebinding protection. Set MCP_ALLOWED_HOSTS and "
+            "MCP_ALLOWED_ORIGINS (comma-separated) to run this way -- e.g. inside Docker, "
+            "where MCP_ALLOWED_HOSTS=localhost:8000 and MCP_ALLOWED_ORIGINS=http://localhost:8000 "
+            "if the container is only ever reached via a mapped localhost port on the host."
+        )
+    _transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+
 mcp = FastMCP(
     "friction-radar",
-    host="0.0.0.0",
+    host=_bind_host,
     port=int(os.environ.get("MCP_SERVER_PORT", "8000")),
+    transport_security=_transport_security,
 )
 
 
@@ -82,18 +111,33 @@ def discover_workflows_from_import(source: str, file_path: str) -> dict:
     activity data instead of this project's synthetic dataset -- proof the
     pipeline isn't tied to synthetic data. `source` is "activitywatch" (a
     JSON export of ActivityWatch events, github.com/ActivityWatch) or
-    "toggl" (a Toggl Track CSV export). `file_path` is a path to that file,
-    readable from wherever this server is running. Imported data has no
-    outcome/rework labels, so only the unsupervised half of this project
-    (segmentation, clustering, anomaly detection) runs on it -- see
-    data_adapters.py for exactly what that trade-off is and why."""
-    if source == "activitywatch":
-        with open(file_path) as f:
-            raw = from_activitywatch_events(json.load(f))
-    elif source == "toggl":
-        raw = from_toggl_csv(file_path)
-    else:
+    "toggl" (a Toggl Track CSV export). `file_path` names a file that has
+    been placed in this server's import directory (IMPORT_DIR, default
+    data/imports/) -- it is never opened relative to the server's working
+    directory or the filesystem root, so it can't be used to read files
+    outside that directory. Imported data has no outcome/rework labels, so
+    only the unsupervised half of this project (segmentation, clustering,
+    anomaly detection) runs on it -- see data_adapters.py for exactly what
+    that trade-off is and why."""
+    extensions = {"activitywatch": {".json"}, "toggl": {".csv"}}.get(source)
+    if extensions is None:
         return {"error": f"Unknown source '{source}'. Use 'activitywatch' or 'toggl'."}
+
+    try:
+        safe_path = resolve_import_path(file_path, extensions)
+    except UnsafeImportPath as exc:
+        return {"error": str(exc)}
+
+    try:
+        if source == "activitywatch":
+            with open(safe_path) as f:
+                raw = from_activitywatch_events(json.load(f))
+        else:
+            raw = from_toggl_csv(safe_path)
+    except Exception:
+        # Never echo the parse exception: for a JSON/CSV parse failure it
+        # can include a fragment of the file's own content.
+        return {"error": f"Couldn't parse '{os.path.basename(file_path)}' as {source} data."}
 
     wd = WorkflowDiscovery.from_raw_events(raw)
     return {"source": source, "events_imported": len(raw), "discovered_workflows": wd.discover()}
