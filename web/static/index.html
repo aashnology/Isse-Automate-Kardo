@@ -155,6 +155,21 @@ const FACES = {
     <polygon points="6,10 9,4 11,10" fill="#639922"/><polygon points="38,8 41,3 42,9" fill="#639922"/>`,
 };
 
+// Any string that can originate from imported data (a CSV cell, a pasted
+// step name, a GitHub/Google error message) is untrusted and must be
+// escaped before it goes into innerHTML -- it can otherwise carry a script
+// tag or an event handler straight into the page. Values placed via
+// textContent elsewhere in this file don't need this; the browser already
+// treats textContent as plain text.
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function setMood(mood) { document.getElementById("hexiSvg").innerHTML = FACES[mood]; }
 function setStatus(text) { document.getElementById("statusText").textContent = text; }
 
@@ -198,11 +213,11 @@ async function selectTab(workflowName, btn) {
   const debug = await api("/api/debug/" + workflowName);
   const panel = document.getElementById("panel");
   if (debug.error) {
-    panel.innerHTML = `<p class="status">${debug.error}</p>`;
+    panel.innerHTML = `<p class="status">${escapeHtml(debug.error)}</p>`;
     return;
   }
   panel.innerHTML = debug.step_breakdown.map(s =>
-    `<div class="row"><span>${s.step}</span><span>${Math.round(s.share_of_total * 100)}% of time</span></div>`
+    `<div class="row"><span>${escapeHtml(s.step)}</span><span>${Math.round(s.share_of_total * 100)}% of time</span></div>`
   ).join("");
 
   const anomalyData = await api("/api/anomalies/" + workflowName);
@@ -309,7 +324,7 @@ async function runImport() {
     }
 
     if (data.error) {
-      results.innerHTML = `<p class="status">${data.error}</p>`;
+      results.innerHTML = `<p class="status">${escapeHtml(data.error)}</p>`;
       setMood("idle");
       return;
     }
@@ -317,13 +332,14 @@ async function runImport() {
     setMood("curious");
     let html = `<p class="status" style="margin-bottom:6px;">${data.events_imported} events → ${data.discovered_workflows.length} discovered pattern(s)</p>`;
     for (const c of data.discovered_workflows) {
+      const sequence = c.canonical_sequence.map(escapeHtml).join(" → ");
       html += `<div class="row" style="flex-direction:column; align-items:flex-start; gap:2px;">
-        <span>${c.canonical_sequence.join(" → ")}</span>
+        <span>${sequence}</span>
         <span style="color:var(--muted); font-size:11px;">${c.run_count} run(s)</span>
       </div>`;
       const anomalies = (data.anomalies_by_cluster && data.anomalies_by_cluster[c.matched_label]) || [];
       if (anomalies.length) {
-        html += `<p class="status" style="margin:4px 0 8px 4px;">⚠ ${anomalies.length} unusual run(s) — worst took ${Math.round(anomalies[0].total_minutes)} min, mainly '${anomalies[0].likely_cause_step}'.</p>`;
+        html += `<p class="status" style="margin:4px 0 8px 4px;">⚠ ${anomalies.length} unusual run(s) — worst took ${Math.round(anomalies[0].total_minutes)} min, mainly '${escapeHtml(anomalies[0].likely_cause_step)}'.</p>`;
       }
     }
     results.innerHTML = html;
