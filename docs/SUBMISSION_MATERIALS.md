@@ -7,6 +7,51 @@ should be checkable there.
 
 ---
 
+## Project text description
+
+Alexa+ watches how you work, finds where the time actually goes, and tells
+you exactly what's worth automating -- you say yes, and only then does it
+act.
+
+Isse Automate Kardo is a self-hosted MCP server (spec 2025-11-25+,
+Streamable HTTP) with 13 tools exposed to Alexa+. It takes a stream of raw
+activity events -- no pre-existing workflow labels -- and:
+
+- **discovers recurring workflows** from the event stream itself, using
+  sequence-similarity clustering (LCS + union-find), not hardcoded names
+- **ranks them by total time cost** and an automation-potential tier
+- **root-causes the slow ones**, down to which specific step is eating the
+  time
+- **flags anomalous runs** (IQR-based outlier detection on duration) and
+  attributes the anomaly to a step
+- **proposes automating the low-judgment steps** -- and only the
+  low-judgment ones; steps that need human discretion are never proposed
+- **executes nothing without an explicit confirm call**, and a used
+  proposal can't be replayed
+- **remembers standing preferences** ("stop suggesting this") on disk,
+  across restarts and sessions -- not just within one conversation
+
+Everything above is deterministic Python (scikit-learn/numpy), explainable
+end to end -- no language model anywhere in the pipeline, including the
+spoken briefing (`narrate_briefing`), which composes already-computed
+results into one sentence via a fixed template.
+
+A browser demo (Hexi) sits alongside the MCP server for anyone without an
+Alexa+ developer-mode connection to try: the same functions the MCP tools
+call, reachable from a page instead of Alexa+. It can also ingest real
+data -- an ActivityWatch export, a Toggl CSV, pasted steps, a public
+GitHub repo's PR history, or a shared Google Sheet/Drive file -- and run
+the same label-free discovery against it, which is the direct answer to
+"does this only work on synthetic data."
+
+**Track:** Alexa+. **Mini challenge:** Open Source (see the Open Source
+entry below). **Built during the submission window** -- this is a from-
+scratch project; the repository's initial commit falls inside the
+hackathon's submission period, so there's no pre-existing work to
+disclose or distinguish from what changed during the window.
+
+---
+
 ## Product feedback
 
 ### Tools, APIs and SDKs used, and for what
@@ -127,6 +172,23 @@ standard means the work isn't locked to one assistant.
 - **Workaround:** renamed (identical signature).
 - **Suggestion:** update docs/examples to the current name and note the
   deprecation in the migration guide.
+
+---
+
+## Open Source mini challenge
+
+- **Contribution URL:** `<fill in the actual PR URL for ActivityWatch/aw-client
+  PR #122 -- not drafted here since it wasn't available to check>`
+- **Project repository URL:** https://github.com/aashnology/Isse-Automate-Kardo
+- **GitHub username:** aashnology
+- **Description:** A fix to an example script in
+  [ActivityWatch/aw-client](https://github.com/ActivityWatch/aw-client)
+  (PR #122), reviewed and corrected after real maintainer feedback.
+  ActivityWatch is one of this project's own data adapters
+  (`data_adapters.py`'s `from_activitywatch_events`), so this wasn't a
+  drive-by contribution picked for the mini challenge -- it's the same
+  project this submission already depends on and imports real exports
+  from.
 
 ---
 
