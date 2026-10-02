@@ -16,6 +16,7 @@ Two small pieces that turn "two separate systems" into "one product":
 
 import re
 import threading
+import time
 import uuid
 
 # a tiny, honest keyword map -- not ML, just enough to demo the bridge
@@ -31,6 +32,20 @@ AUTOMATABLE_STEPS = {"column_cleanup", "rename", "export", "upload", "file_downl
 _PROPOSALS = {}  # in-memory store: proposal_id -> proposal dict
 _PROPOSALS_LOCK = threading.Lock()
 MAX_STORED_PROPOSALS = 1000  # bound on _PROPOSALS so a flood of proposals can't grow it unboundedly
+PROPOSAL_TTL_SECONDS = 60 * 60  # an hour-old "yes, automate it" shouldn't still be confirmable
+
+
+def _is_expired(proposal, now=None):
+    return (now if now is not None else time.time()) - proposal["created_at"] > PROPOSAL_TTL_SECONDS
+
+
+def _prune_expired_locked(now=None):
+    """Caller must already hold _PROPOSALS_LOCK. Opportunistic cleanup --
+    called from propose_action so an idle server doesn't need a background
+    thread just to forget old proposals."""
+    now = now if now is not None else time.time()
+    for pid in [pid for pid, p in _PROPOSALS.items() if _is_expired(p, now)]:
+        del _PROPOSALS[pid]
 
 
 def find_related_signal(ranking_engine, workflow_name, top_k=2):
@@ -75,11 +90,13 @@ def propose_action(workflow_name, debug_result):
         "proposed_automation": proposed_steps,
         "summary": f"Automate these steps in '{workflow_name}': {', '.join(proposed_steps)}.",
         "status": "pending_confirmation",
+        "created_at": time.time(),
     }
     with _PROPOSALS_LOCK:
+        _prune_expired_locked()
         if len(_PROPOSALS) >= MAX_STORED_PROPOSALS:
-            # Evict the oldest proposal (dicts preserve insertion order) --
-            # a demo-scale safeguard, not a real expiry policy.
+            # Still at the cap after pruning expired entries -- evict the
+            # oldest (dicts preserve insertion order) as a last resort.
             _PROPOSALS.pop(next(iter(_PROPOSALS)))
         _PROPOSALS[proposal_id] = proposal
     return proposal
@@ -90,6 +107,14 @@ def confirm_action(proposal_id):
         proposal = _PROPOSALS.get(proposal_id)
         if not proposal:
             return {"error": f"No pending proposal with id '{proposal_id}'. Proposals expire after being confirmed once."}
+        if _is_expired(proposal):
+            del _PROPOSALS[proposal_id]
+            return {
+                "error": (
+                    f"Proposal '{proposal_id}' has expired (proposals are only valid for "
+                    f"{PROPOSAL_TTL_SECONDS // 60} minutes). Ask to automate it again to get a new one."
+                )
+            }
         if proposal["status"] == "executed":
             return {"error": f"Proposal '{proposal_id}' was already executed."}
 

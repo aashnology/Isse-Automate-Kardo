@@ -51,3 +51,35 @@ def test_proposal_ids_are_full_uuids_not_truncated():
     # own MAX_STORED_PROPOSALS scale; a full UUID4 (36 chars, hyphenated)
     # does not.
     assert len(proposal["proposal_id"]) == 36
+
+
+def test_expired_proposal_cannot_be_confirmed(monkeypatch):
+    import actions
+
+    proposal = propose_action("weekly_reporting", _debug_result())
+    # Age the proposal past the TTL without waiting an hour in a test.
+    actions._PROPOSALS[proposal["proposal_id"]]["created_at"] -= actions.PROPOSAL_TTL_SECONDS + 1
+
+    result = confirm_action(proposal["proposal_id"])
+    assert "error" in result
+    assert "expired" in result["error"].lower()
+    # An expired proposal is removed, not left around for a later retry to
+    # somehow succeed against.
+    assert proposal["proposal_id"] not in actions._PROPOSALS
+
+
+def test_fresh_proposal_is_not_treated_as_expired():
+    proposal = propose_action("weekly_reporting", _debug_result())
+    result = confirm_action(proposal["proposal_id"])
+    assert result["status"] == "executed"
+
+
+def test_propose_action_prunes_expired_proposals_opportunistically():
+    import actions
+
+    stale = propose_action("weekly_reporting", _debug_result())
+    actions._PROPOSALS[stale["proposal_id"]]["created_at"] -= actions.PROPOSAL_TTL_SECONDS + 1
+
+    propose_action("onboarding_new_partner", _debug_result())  # triggers the prune
+
+    assert stale["proposal_id"] not in actions._PROPOSALS

@@ -236,7 +236,9 @@ def propose_automation(workflow_name: str) -> dict:
 def confirm_automation(proposal_id: str) -> dict:
     """Execute a previously proposed automation. Only call this after the
     user has explicitly said yes to a specific proposal_id returned by
-    propose_automation -- never call it speculatively."""
+    propose_automation -- never call it speculatively. A proposal is only
+    valid for an hour after it was made; call propose_automation again for
+    a fresh one if confirming fails with an 'expired' error."""
     return confirm_action(proposal_id)
 
 
