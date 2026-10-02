@@ -2,9 +2,7 @@
 
 Target: **under 3:00**, since judges aren't required to watch past that
 mark. Everything genuinely differentiating (root-cause debug, cross-session
-memory) is front-loaded before 2:30; Bedrock/AWS is placed last on purpose —
-it's a strong bonus, not the core Alexa+ story, and it's fine if a rushed
-judge never gets there.
+memory) is front-loaded before 2:30.
 
 **Recording setup:** `python web/server.py`, then screen-record the browser
 at `localhost:5000`. Hexi's every expression change is a real call into the
@@ -112,7 +110,7 @@ skeptical judge unless the restart is on screen.
 
 ---
 
-## 2:30–2:50 — Bedrock, briefly (AWS Builder)
+## 2:30–2:50 — Brief me, and the voice moment
 
 **Action:** Click the **Brief me** chip in Hexi. It calls the same
 `build_briefing` function the MCP tool `narrate_briefing` uses, and Hexi
@@ -120,28 +118,21 @@ reads the result aloud. (Turn the browser's sound on and check the voice on
 the recording machine beforehand — voices vary by browser and OS.)
 
 **Voiceover:**
-> "And for the AWS Builder track: this same analysis gets composed into
-> one spoken-ready sentence by Amazon Bedrock — it only phrases numbers
-> already computed here, it never scores or ranks anything itself."
+> "One tap pulls the same analysis into a single spoken answer — no
+> separate step for the user, just the findings, said plainly."
 
-**Optional 5 seconds, if you have room:** click **Speak**, say "what's costing
-me time", and let Hexi answer. It's the most Alexa+-like moment in the whole
-demo. Chrome or Edge only, and the transcription is done by the browser
-vendor's cloud service, so don't describe it as running locally.
-
-**If Bedrock isn't enabled/tested by recording time:** say so plainly on
-camera instead of hiding it — *"this falls back to a template when Bedrock
-isn't configured, which is exactly what's running right now"* is a fine,
-honest line and matches this project's whole ethos. Do not imply Bedrock
-ran if it didn't.
+**If you have room:** click **Speak**, say "what's costing me time", and let
+Hexi answer. It's the most Alexa+-like moment in the whole demo. Chrome or
+Edge only, and the transcription is done by the browser vendor's cloud
+service, so don't describe it as running locally.
 
 ---
 
 ## 2:50–3:00 — Close
 
 **Voiceover:**
-> "Deterministic where it needs to be explainable, an LLM only where it's
-> phrasing — not deciding. That's Isse Automate Kardo."
+> "Deterministic end to end, explainable at every step — that's Isse
+> Automate Kardo."
 
 **On screen:** Repo URL card.
 
@@ -152,7 +143,7 @@ ran if it didn't.
 Priority order to trim, worst-to-keep-first (cut from the top of this
 list first):
 1. The Inspector double-confirm cutaway — nice but not essential.
-2. Bedrock section — genuinely optional; the fallback line covers you if cut.
+2. The "Speak" voice moment — genuinely optional; "Brief me" alone covers the point.
 3. The anomaly note — strong but the second-most-ownable point.
 
 **Never cut:** the discovery-with-no-labels open, Hexi noticing the

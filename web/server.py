@@ -42,7 +42,6 @@ from data_adapters import (
     from_activitywatch_events, from_toggl_csv, from_pasted_steps,
     from_github_pull_requests, from_csv_text, fetch_google_file,
 )
-from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 import user_memory
 
@@ -59,7 +58,6 @@ MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 ACTIVITY_EVENTS = load_activity_events()
 friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
-narrator = BedrockNarrator()
 
 MAX_WORKFLOW_NAME_LEN = 200
 MAX_REASON_LEN = 500
@@ -196,9 +194,9 @@ def brief():
     """The same briefing the MCP tool narrate_briefing returns -- both call
     briefing.build_briefing, so Hexi's "brief me" and the MCP tool can't
     drift apart."""
-    top_k = int(request.args.get("top_k", 3))
+    top_k = _clamped_top_k(request.args.get("top_k"))
     return jsonify(build_briefing(
-        friction_radar, workflow_discovery, narrator, top_k=top_k,
+        friction_radar, workflow_discovery, top_k=top_k,
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     ))
 

@@ -57,12 +57,6 @@ best guess dressed up as analysis.
 - **Anomaly detection needs a handful of runs of the same workflow before
   it says anything** — with only one or two data points it says so instead
   of guessing.
-- **Bedrock narration is off by default.** Without
-  `ENABLE_BEDROCK_NARRATION=true` and working AWS credentials,
-  `narrate_briefing` still returns a complete, correct answer from the
-  template path, with `"source": "template"` in the response so it's never
-  ambiguous which one ran. The live Bedrock path has been reviewed but not
-  yet run against a real AWS account (see `docs/SUBMISSION_MATERIALS.md`).
 - **The Google Sheet/Drive import has not been run against real Google
   servers** in this development environment (no network path to Google from
   the build sandbox) — it's tested against a fake response standing in for

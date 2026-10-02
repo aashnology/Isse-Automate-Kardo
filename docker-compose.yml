@@ -14,7 +14,7 @@ services:
       MCP_ALLOWED_HOSTS: "localhost:8000,127.0.0.1:8000"
       MCP_ALLOWED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
     env_file:
-      - path: .env  # cp .env.example .env first for Bedrock credentials
-        required: false  # safe defaults (Bedrock off, template narration) if you skip this
+      - path: .env  # cp .env.example .env first -- see .env.example for what it's for
+        required: false  # fine to skip entirely; nothing here needs it to run
     volumes:
       - ./data:/app/data  # persist the generated synthetic data across restarts

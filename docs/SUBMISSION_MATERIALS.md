@@ -15,9 +15,6 @@ should be checkable there.
   over Streamable HTTP. Verified with a real MCP client in
   `tests/test_mcp_protocol.py` (negotiates protocol `2025-11-25`, lists the
   tools, executes a call).
-- **Amazon Bedrock (Converse API via boto3)** -- one optional tool,
-  `narrate_briefing`. **Written and reviewed but never run against a live AWS
-  account** (see friction log); the template fallback path is what's tested.
 - **GitHub REST API** -- read-only PR-history import for the Hexi demo. Not
   an Amazon tool; listed for completeness.
 
@@ -64,25 +61,13 @@ should be checkable there.
 
 ### Onboarding experience (zero to hello world)
 
-MCP: fast. A working server with one tool is a few lines, and the SDK's own
-client made the first end-to-end check easy. AWS/Bedrock: never reached hello
-world, for the reason in the friction log below.
+Fast. A working MCP server with one tool is a few lines, and the SDK's own
+client made the first end-to-end check easy.
 
 ### Would we build with these again?
 
-**MCP: yes, without hesitation** -- the abstraction is good and the open
-standard means the work isn't locked to one assistant. **AWS: yes in
-principle, but only once trying it doesn't require a payment card and
-navigating a recently changed billing model as a student.**
-
-### AWS services
-
-Amazon Bedrock (Converse API), used by `narrate_briefing` to phrase
-already-computed analysis into a spoken-ready summary, gated behind
-`ENABLE_BEDROCK_NARRATION`. Bedrock never scores, ranks or touches raw data.
-**Honest status: implemented with a tested deterministic fallback; not
-exercised against live AWS.** The AWS Builder mini-challenge entry should be
-read with that in mind.
+**Yes, without hesitation** -- the abstraction is good and the open
+standard means the work isn't locked to one assistant.
 
 ---
 
@@ -90,8 +75,9 @@ read with that in mind.
 
 ### 1. Could not test Bedrock/SES without adding a payment card
 
-- **Task attempted:** set up an AWS account to test Bedrock narration and an
-  SES-backed "confirm automation" action.
+- **Task attempted:** set up an AWS account to try Bedrock narration and an
+  SES-backed "confirm automation" action, for the AWS Builder mini
+  challenge.
 - **Steps taken:** reviewed the Free Tier signup flow and current SES/Bedrock
   free-tier terms.
 - **Expected:** a low-risk way to test one or two services for pennies of
@@ -105,10 +91,16 @@ read with that in mind.
 - **Severity:** medium. Not a platform defect, but it keeps a segment of
   participants out of the AWS Builder mini-challenge despite negligible real
   cost.
-- **Workaround:** built Bedrock narration with an honest, tested template
-  fallback (off by default); deferred live testing.
+- **Workaround:** none that felt honest. An untested Bedrock integration,
+  even gated behind a flag, is still a claim of AWS usage this project
+  couldn't back up with anything run against live AWS -- so rather than
+  submit that, Bedrock and the AWS Builder mini-challenge entry were
+  dropped from this submission entirely. `narrate_briefing` is now a plain
+  deterministic template, no AWS dependency anywhere in the repo.
 - **Suggestion:** surface a card-free path in the hackathon's own AWS
-  materials (e.g. a temporary sandbox with hackathon-scoped credentials).
+  materials (e.g. a temporary sandbox with hackathon-scoped credentials) --
+  this is exactly the kind of friction that pushes a cost-conscious student
+  out of a mini challenge they'd otherwise have a real entry for.
 
 ### 2. No Alexa+ test surface for an MCP server
 
@@ -143,4 +135,4 @@ read with that in mind.
 - **Alexa+ developer-mode connection for self-hosted MCP servers** --
   *critical* for this track (see friction log #2).
 - **Card-free hackathon sandbox for AWS services** -- *important* for
-  student participation.
+  student participation (see friction log #1).

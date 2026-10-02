@@ -10,7 +10,6 @@ import pytest
 from data_adapters import (
     from_csv_text, google_export_url, fetch_google_file, MAX_REMOTE_BYTES,
 )
-from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 from friction_radar import FrictionRadar
 from synthetic_data import generate_activity_events
@@ -162,31 +161,30 @@ def test_oversized_files_are_refused():
 @pytest.fixture(scope="module")
 def parts():
     events = generate_activity_events()
-    return (FrictionRadar(events), WorkflowDiscovery(events, similarity_threshold=0.75),
-            BedrockNarrator(enabled=False))
+    return FrictionRadar(events), WorkflowDiscovery(events, similarity_threshold=0.75)
 
 
 def test_briefing_names_the_top_workflow_and_says_it_used_the_template(parts):
-    radar, wd, narrator = parts
-    result = build_briefing(radar, wd, narrator, top_k=2)
+    radar, wd = parts
+    result = build_briefing(radar, wd, top_k=2)
     top = radar.top_friction_points(top_k=1)[0]["workflow_name"]
     assert top.replace("_", " ") in result["narration"].replace("_", " ")
     assert result["source"] == "template"
 
 
 def test_briefing_leaves_out_dismissed_workflows(parts):
-    radar, wd, narrator = parts
+    radar, wd = parts
     top = radar.top_friction_points(top_k=1)[0]["workflow_name"]
-    result = build_briefing(radar, wd, narrator, top_k=3, exclude={top})
+    result = build_briefing(radar, wd, top_k=3, exclude={top})
     names = [p["workflow_name"] for p in result["based_on"]["top_friction_points"]]
     assert top not in names
     assert top not in result["narration"]
 
 
 def test_briefing_with_everything_excluded_says_so(parts):
-    radar, wd, narrator = parts
+    radar, wd = parts
     every = {p["workflow_name"] for p in radar.top_friction_points(top_k=10)}
-    result = build_briefing(radar, wd, narrator, top_k=3, exclude=every)
+    result = build_briefing(radar, wd, top_k=3, exclude=every)
     assert "nothing to report" in result["narration"].lower()
 
 

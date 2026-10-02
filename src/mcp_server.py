@@ -30,7 +30,6 @@ from synthetic_data import generate_information_stream, generate_activity_events
 from friction_radar import FrictionRadar
 from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
-from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 from data_adapters import from_activitywatch_events, from_toggl_csv
 from safe_import import resolve_import_path, UnsafeImportPath
@@ -53,7 +52,6 @@ with open(events_path) as f:
 
 friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
-narrator = BedrockNarrator()
 
 # FastMCP only auto-enables DNS-rebinding/Origin protection when host is
 # exactly "127.0.0.1", "localhost", or "::1" (see mcp/server/transport_security.py
@@ -194,19 +192,17 @@ def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
     return workflow_discovery.detect_anomalous_runs(workflow_name, top_k=top_k)
 
 
-# ---------------------------- Narration tool (AWS Bedrock) ------------------
+# ---------------------------- Narration tool ---------------------------------
 
 @mcp.tool()
 def narrate_briefing(top_k: int = 3) -> dict:
     """Compose one short, spoken-ready briefing covering the top friction
-    points and any anomalous runs, using Amazon Bedrock to phrase the
-    already-computed analysis (Bedrock never sees raw data and never scores
-    anything -- it only turns finished numbers into sentences). Falls back
-    to a plain templated summary if Bedrock isn't configured. Use this when
-    the user wants one pulled-together update rather than calling several
-    tools themselves."""
+    points and any anomalous runs -- a deterministic template over the
+    already-computed analysis, not a language-model call. Use this when the
+    user wants one pulled-together update rather than calling several tools
+    themselves."""
     return build_briefing(
-        friction_radar, workflow_discovery, narrator, top_k=top_k,
+        friction_radar, workflow_discovery, top_k=top_k,
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     )
 

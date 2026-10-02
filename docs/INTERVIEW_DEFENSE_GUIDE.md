@@ -12,11 +12,11 @@ Alexa+ watches how you actually work (an event stream), finds recurring
 workflows in that stream with no pre-existing labels, ranks them by time
 cost, root-causes the slow ones, flags the runs that went unusually long,
 and proposes automating the low-judgment steps — but never executes
-anything until you say yes. Bedrock's only job is turning the finished
-analysis into a sentence Alexa+ can speak.
+anything until you say yes. `narrate_briefing` turns the finished
+analysis into one spoken sentence via a deterministic template.
 
 **Track:** Alexa+ (self-hosted MCP server, Streamable HTTP, spec
-2025-11-25+). **Mini challenges:** AWS Builder (Bedrock narration).
+2025-11-25+). **Mini challenges:** Open Source.
 
 ---
 
@@ -24,30 +24,35 @@ analysis into a sentence Alexa+ can speak.
 
 ```
 Alexa+ → MCP server (Streamable HTTP) → {workflow_discovery, friction_radar,
-                                          actions, bedrock_narrator}
+                                          actions, briefing}
                                               ↑
                                        synthetic_data.py
 ```
 
-Every analytical module (discovery, scoring, anomaly detection) is plain
-Python + scikit-learn/numpy — no LLM call anywhere in that path. The one
-LLM call in the whole system lives in `bedrock_narrator.py`, downstream of
-all of it, and only phrases numbers that already exist.
+Every module (discovery, scoring, anomaly detection, narration) is plain
+Python + scikit-learn/numpy — no LLM call anywhere in this project. There
+is no external AI dependency, no credential to configure, and nothing that
+can fail, cost money, or behave nondeterministically between two runs of
+the same input.
 
-**Why keep the LLM out of the analysis?** Two reasons, and both should be
-said out loud if asked: (1) an automation *decision* needs to be
+**Why keep the LLM out entirely?** An automation *decision* needs to be
 explainable and reproducible — "why did you propose automating this step"
-needs a deterministic answer, not "the model felt like it," and (2) it's
-cheaper and faster to run sequence clustering and IQR fences in Python
-than to route every tool call through an LLM.
+needs a deterministic answer, not "the model felt like it." The same goes
+for the spoken briefing: a fixed template over numbers this project already
+computed is something you can read the source of and know exactly what it
+will say, for any input.
 
 **Judge question:** *"Isn't this just data engineering with an MCP wrapper
-— where's the AI?"* Answer: the AI is in `narrate_briefing` (Bedrock) and
-in the *methodology* — sequence clustering and trace clustering are
-process-mining techniques (see docs/RESEARCH_AND_NOTES.md), not
-hand-rolled if/else rules. The deliberate choice to keep scoring
-deterministic and push language generation to the edge is itself the
-design decision to defend, not a gap.
+— where's the AI?"* Answer: it's in the *methodology*, not a model call —
+sequence clustering and trace clustering are process-mining techniques
+(see docs/RESEARCH_AND_NOTES.md), not hand-rolled if/else rules. Keeping
+the whole pipeline deterministic and explainable, end to end, including
+narration, is the design decision to defend, not a gap. (An earlier
+version used Amazon Bedrock to phrase `narrate_briefing`'s output; it was
+removed before submission because it was never exercised against a live
+AWS account and the AWS Builder mini challenge was dropped along with it
+rather than claim an integration that was only ever run against a
+template fallback -- see docs/SUBMISSION_MATERIALS.md's friction log.)
 
 ---
 
@@ -212,19 +217,15 @@ glossing over.
 
 ---
 
-## 8. Amazon Bedrock — the AWS Builder integration
+## 8. `narrate_briefing` — composing results into one spoken answer
 
-`bedrock_narrator.py`'s `BedrockNarrator.narrate()` calls the Bedrock
-**Converse API** (default model `amazon.nova-lite-v1:0`, configurable) via
-the new `narrate_briefing` MCP tool. It receives the *already-computed*
-`top_friction_points` + `detect_anomalous_runs` output as its only input
-and is instructed (system prompt) to phrase 2-4 spoken sentences from it,
-never invent a number, and never rank or add information.
-
-Gated behind `ENABLE_BEDROCK_NARRATION` (off by default); on any failure
-(no credentials, network, throttling) it falls back to a deterministic
-template rather than raising — the response always states which path
-(`bedrock:<model>` vs. `template`) produced the sentence.
+`briefing.py`'s `build_briefing` is called by both the MCP tool
+`narrate_briefing` and Hexi's "Brief me" chip — one implementation behind
+both interfaces, so they can't drift apart. It receives the
+*already-computed* `top_friction_points` + `detect_anomalous_runs` output
+and composes a short, spoken-ready summary from it via a fixed template —
+no model call, no external dependency, same output for the same input
+every time.
 
 **Judge question:** *"Isn't this the same job Alexa+ itself does — turning
 results into speech?"* No, and this is worth stating precisely: Alexa+
@@ -235,18 +236,16 @@ Alexa+ ever sees it — so Alexa+ gets one clean sentence to speak instead
 of reasoning over three separate JSON blobs itself. It's a genuinely
 different job: cross-result composition, not per-result text-to-speech.
 
-**Judge question:** *"Why Nova Lite and not Claude or another model?"*
-Practical defensible answer: it's an Amazon-native model available in
-Bedrock, appropriate for a short, low-stakes phrasing task (not reasoning
-or code generation), and the model id is a one-line env var — the
-narrator class doesn't hardcode any model-specific behavior.
-
-**Known limitation, worth naming unprompted:** the Bedrock call was
-written and reviewed carefully but has not been exercised against a live
-AWS account in this build environment (no AWS network egress in the
-sandbox this was built in) — the template fallback path has been fully
-tested; the live Bedrock path should be smoke-tested once with real
-credentials before the demo video is recorded.
+**Judge question:** *"Why not use an LLM to phrase this more naturally?"*
+It was tried first, with Amazon Bedrock, and deliberately removed before
+submission: an untested integration gated behind a flag is still a claim
+of AWS usage this project couldn't back up with anything run against live
+AWS (no payment-card-free way to test it as a student — see
+docs/SUBMISSION_MATERIALS.md's friction log), so the honest move was to
+drop it and the AWS Builder mini challenge entry with it, rather than
+submit a claim resting on an untested fallback path. The template that
+replaced it is simpler, has no failure mode to fall back from, and is
+fully exercised by tests.
 
 ---
 
@@ -354,8 +353,8 @@ recorded animation.
 **The chat box.** Below the workspace, a text input lets you ask Hexi
 things directly ("what's costing me the most time," "automate it," "stop
 suggesting bug triage"). This is a small keyword-matched intent router in
-plain JavaScript — not an LLM, not Bedrock — that calls the exact same
-`/api/*` endpoints the tabs call. Say this plainly if asked: it's pattern
+plain JavaScript — not an LLM — that calls the exact same `/api/*`
+endpoints the tabs call. Say this plainly if asked: it's pattern
 matching, not natural-language understanding, and it was built that way on
 purpose so the conversational surface doesn't depend on an API call (or a
 card) to demo at all. It reads as a real exchange because it's driving
@@ -363,8 +362,8 @@ real analysis underneath simple matching, not because the matching itself
 is sophisticated.
 
 **Spoken replies.** Hexi reads its chat replies and suggestions aloud with
-the browser's native `speechSynthesis` — deliberately not Bedrock, Polly or
-any API, so it costs nothing, needs no credentials, and works offline. The
+the browser's native `speechSynthesis` — deliberately not a cloud TTS API,
+so it costs nothing, needs no credentials, and works offline. The
 honest framing if asked: this is text-to-speech on the way *out*, not voice
 understanding on the way *in* — you still type, and the intent router is
 still keyword matching. Voice input is a planned next step, not something
@@ -465,7 +464,7 @@ without saying so.
 | Automation execution is a stub | Out of scope for a hackathon demo; needs a real target system to call | Hook `confirm_action` to a real script/Zapier-style integration |
 | Segmentation assumes no interleaved workflows | Time-gap-only segmentation can't distinguish "switched tasks" from "still working" | Sequence-aware segmentation using activity-type transitions, not just timing |
 | `avg_judgment_cost` is a hand-set constant | No historical rework/outcome data to learn it from yet | Derive per-step judgment cost from observed rework rate and duration variance |
-| Bedrock narration untested against live AWS | No AWS network access in the build sandbox | Smoke-test with real credentials before recording the demo |
+| No LLM anywhere in the pipeline, including narration | An earlier Bedrock integration was never exercised against live AWS and was dropped before submission rather than claimed untested (see docs/SUBMISSION_MATERIALS.md's friction log) | Re-add narration via a model call only once it can be tested end-to-end against real credentials |
 
 ---
 
@@ -474,11 +473,13 @@ without saying so.
 - `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
   `docker-compose.yml` for a one-command local run.
 - `.env.example` documents every configurable variable; nothing sensitive
-  is committed — Bedrock uses standard AWS credential resolution (env
-  vars / `~/.aws/credentials` / IAM role), never a hardcoded key.
+  is committed, and there's no AWS or other third-party credential this
+  project depends on at all.
 - `.github/workflows/ci.yml` runs the full pytest suite plus both
   evaluation scripts on every push to `main`.
-- `tests/` — 34 tests across `test_core.py` (scoring invariants,
+- `tests/` — 146 tests (check `pytest tests/ --collect-only` for the current
+  count; this number drifts as the project grows) across `test_core.py`
+  (scoring invariants,
   clustering edge cases, segmentation sanity checks, the propose/confirm
   state machine), `test_data_adapters.py` (real-format ingestion, including
   an end-to-end discovery check), `test_user_memory.py` (persistence
