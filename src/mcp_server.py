@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 from synthetic_data import generate_information_stream, generate_activity_events
 from friction_radar import FrictionRadar
@@ -93,7 +94,7 @@ mcp = FastMCP(
 
 # ---------------------------- Discovery tools -------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def discover_workflows() -> dict:
     """Discover recurring workflows directly from the raw activity event
     sequences, using sequence-similarity clustering -- not from any
@@ -103,7 +104,7 @@ def discover_workflows() -> dict:
     return {"discovered_workflows": clusters}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def discover_workflows_from_import(source: str, file_path: str) -> dict:
     """Run the same label-free discovery pipeline against real, imported
     activity data instead of this project's synthetic dataset -- proof the
@@ -143,7 +144,7 @@ def discover_workflows_from_import(source: str, file_path: str) -> dict:
 
 # ---------------------------- Friction Radar tools --------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> dict:
     """Return the workflows costing the user the most time, ranked by total
     time cost, with an automation-potential score for each. Use this when the
@@ -157,14 +158,14 @@ def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> 
     return {"friction_points": points[:top_k]}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def explain_friction(workflow_name: str) -> dict:
     """Explain in plain terms why a given workflow is or isn't a good
     automation candidate."""
     return {"workflow_name": workflow_name, "explanation": friction_radar.explain(workflow_name)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def estimate_time_cost(workflow_name: str) -> dict:
     """Return the total and average time cost for a named recurring
     workflow."""
@@ -174,7 +175,7 @@ def estimate_time_cost(workflow_name: str) -> dict:
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def debug_workflow(workflow_name: str) -> dict:
     """Root-cause a slow workflow: break down which specific steps actually
     consume the time, not just the total. Use this when the user asks why
@@ -182,7 +183,7 @@ def debug_workflow(workflow_name: str) -> dict:
     return friction_radar.debug_workflow(workflow_name)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
     """Find specific occurrences of a workflow that took unusually long
     compared to that workflow's own typical pattern, and identify which
@@ -194,7 +195,7 @@ def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
 
 # ---------------------------- Narration tool ---------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def narrate_briefing(top_k: int = 3) -> dict:
     """Compose one short, spoken-ready briefing covering the top friction
     points and any anomalous runs -- a deterministic template over the
@@ -209,7 +210,7 @@ def narrate_briefing(top_k: int = 3) -> dict:
 
 # ---------------------------- Action tools ----------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
 def propose_automation(workflow_name: str) -> dict:
     """Propose automating the low-judgment steps of a workflow, based on its
     debug_workflow breakdown. This NEVER executes anything -- it only returns
@@ -231,7 +232,7 @@ def propose_automation(workflow_name: str) -> dict:
     return propose_action(workflow_name, debug_result)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=False, openWorldHint=False))
 def confirm_automation(proposal_id: str) -> dict:
     """Execute a previously proposed automation. Only call this after the
     user has explicitly said yes to a specific proposal_id returned by
@@ -244,7 +245,7 @@ def confirm_automation(proposal_id: str) -> dict:
 # see user_memory.py's docstring for why this, specifically, is the thing
 # backed by a file rather than kept in memory like everything else.
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def dismiss_workflow_suggestions(workflow_name: str, reason: str = "") -> dict:
     """Stop suggesting automation for this workflow, from now on, across
     future conversations -- not just for the rest of this one. Use this when
@@ -254,7 +255,7 @@ def dismiss_workflow_suggestions(workflow_name: str, reason: str = "") -> dict:
     return user_memory.dismiss_workflow(workflow_name, reason=reason)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def restore_workflow_suggestions(workflow_name: str) -> dict:
     """Undo a previous dismissal -- resume offering automation suggestions
     for this workflow. Use this when the user says they've changed their
@@ -262,7 +263,7 @@ def restore_workflow_suggestions(workflow_name: str) -> dict:
     return user_memory.restore_workflow(workflow_name)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def list_dismissed_workflow_suggestions() -> dict:
     """List every workflow the user has asked not to be offered automation
     for, with why (if given) and when. Use this if the user asks what
