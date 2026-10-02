@@ -20,24 +20,32 @@ which the submission needs shown regardless.
 
 **Voiceover:**
 > "Alexa+ can watch how you actually work — but only if something turns
-> raw activity into an answer. This is Isse Automate Kardo: it finds your
-> real workflows with zero labels, tells you which one is wasting the most
-> time and why, and only automates something after you say yes."
+> raw activity into an answer. This is Isse Automate Kardo: it finds which
+> workflow is wasting the most time, shows you exactly why, and only
+> automates something after you say yes."
 
 **On screen:** Title card, then straight to Hexi's page loading (idle →
 breathing/blinking, establishing it's alive before anything happens).
 
 ---
 
-## 0:15–0:35 — Discovery with no labels
+## 0:15–0:35 — Where the time goes, per workflow
 
 **Action:** Click through the three tabs (ticket queue, spreadsheet, inbox).
 Hexi tracks across the dock as you go.
 
 **Voiceover:**
-> "No hardcoded workflow names here — clicking through pulls each tab's
-> real step breakdown from sequence-similarity clustering over raw events.
-> It's finding the structure itself, not matching a label."
+> "Each tab shows where the time actually goes in that workflow — a real
+> step-by-step breakdown pulled from the event log, not a guess. Bring
+> your own data instead of these three built-in examples, and it finds
+> the workflows themselves, with no labels at all."
+
+**Accuracy note (why the wording is "each tab shows," not "finds with no
+labels"):** these three tabs call `debug_workflow`, which groups by each
+tab's own known `workflow_name` — real analysis, but not label-free. The
+actual label-free sequence-clustering path (no `workflow_name` involved)
+is what the fourth tab, "My data," runs on an imported file or pasted
+text — see below for whether that's worth its own beat in this cut.
 
 ---
 
@@ -155,3 +163,14 @@ demo shows as anomalous, and the whole "watches a workspace" framing, run
 on this project's own synthetic dataset inside one page — not your real
 browser tabs. See README's "Running it / Hexi" section for why
 that's a hard boundary, not a shortcut, if a judge asks.
+
+**Open question, worth deciding before recording:** this cut never shows
+the "My data" tab, which is the one thing in this demo that actually runs
+label-free discovery (no `workflow_name` anywhere) rather than grouping by
+a known one. Two options: (A) record as scripted above — the claim still
+stands in the text description and README, backed by real tests, just not
+on camera; or (B) add a ~15s beat showing "My data" on a small pasted
+example, trimming something from the cut list to make room. (A) is lower
+effort and what this script currently assumes; (B) makes the headline
+claim visibly provable to a judge who only watches the video. Defaulting
+to (A) unless told otherwise.
