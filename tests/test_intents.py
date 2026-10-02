@@ -65,23 +65,30 @@ def test_words_are_matched_whole_not_as_substrings():
 
 
 def test_page_uses_the_tested_router_not_an_inline_copy():
+    # index.html loads intents.js and app.js as external files (no inline
+    # <script>, so the page can run a strict script-src 'self' CSP); the
+    # actual call into the router now lives in app.js.
     html = open(os.path.join(STATIC, "index.html"), encoding="utf-8").read()
+    js = open(os.path.join(STATIC, "app.js"), encoding="utf-8").read()
     assert 'src="/intents.js"' in html
-    assert "HexiIntents.classifyIntent" in html
+    assert "HexiIntents.classifyIntent" in js
     # the old inline matcher must be gone, or the tests above prove nothing
-    assert "WORKFLOW_SYNONYMS" not in html
+    assert "WORKFLOW_SYNONYMS" not in html and "WORKFLOW_SYNONYMS" not in js
     assert "/(waste|costing|most time|top|biggest|friction)/" not in html
+    assert "/(waste|costing|most time|top|biggest|friction)/" not in js
 
 
 def test_page_exposes_the_new_controls():
     html = open(os.path.join(STATIC, "index.html"), encoding="utf-8").read()
+    js = open(os.path.join(STATIC, "app.js"), encoding="utf-8").read()
     assert 'id="micBtn"' in html
     assert 'id="chips"' in html
-    assert "/api/brief" in html
-    assert "google_link" in html
+    assert "/api/brief" in js
+    assert "google_link" in js
 
 
 def test_intents_helper_is_served():
     import server as web_server
     with web_server.app.test_client() as c:
         assert c.get("/intents.js").status_code == 200
+        assert c.get("/app.js").status_code == 200

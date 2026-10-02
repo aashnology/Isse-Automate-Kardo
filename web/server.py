@@ -23,8 +23,12 @@ attempt) -- see README's "Hexi demo" section for the honest version of this
 distinction.
 """
 
+import logging
 import os
 import sys
+import threading
+import time
+from collections import defaultdict, deque
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -33,6 +37,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, jsonify, request, send_from_directory
+
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 from synthetic_data import load_activity_events
 from friction_radar import FrictionRadar
@@ -61,6 +70,63 @@ workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.7
 
 MAX_WORKFLOW_NAME_LEN = 200
 MAX_REASON_LEN = 500
+
+log = logging.getLogger("friction_radar.web")
+
+# A plain in-memory sliding-window limiter, per client IP. This is a
+# single-process hackathon demo (see docker-compose.yml -- one container,
+# no load balancer), so this doesn't need Redis or a third-party
+# dependency to do its job: stop one client from hammering the API,
+# not coordinate limits across a fleet.
+RATE_LIMIT_MAX_REQUESTS = 60
+RATE_LIMIT_WINDOW_SECONDS = 60
+_rate_limit_lock = threading.Lock()
+_request_times = defaultdict(deque)
+
+
+def _rate_limit_exceeded(client_id):
+    now = time.time()
+    with _rate_limit_lock:
+        bucket = _request_times[client_id]
+        while bucket and now - bucket[0] > RATE_LIMIT_WINDOW_SECONDS:
+            bucket.popleft()
+        if len(bucket) >= RATE_LIMIT_MAX_REQUESTS:
+            return True
+        bucket.append(now)
+        return False
+
+
+@app.before_request
+def _enforce_rate_limit():
+    if app.config.get("TESTING"):
+        # The test suite's own request volume across many test modules,
+        # all sharing this one process's _request_times state, has nothing
+        # to do with a real client hammering the API -- it would start
+        # failing tests intermittently as the suite grows, not catch a
+        # real problem.
+        return None
+    # request.remote_addr is who the WSGI server saw connect -- correct for
+    # this project's own deployment (direct to the Flask dev server, no
+    # reverse proxy in front), but would need X-Forwarded-For handling if
+    # that ever changes.
+    client_id = request.remote_addr or "unknown"
+    if _rate_limit_exceeded(client_id):
+        return jsonify({"error": "Too many requests. Please slow down."}), 429
+
+
+@app.after_request
+def _log_and_secure(response):
+    log.info("%s %s -> %s", request.method, request.path, response.status_code)
+    # script-src/style-src have no 'unsafe-inline' for scripts (everything
+    # is in external files under web/static/) but do for styles -- the
+    # single inline <style> block in index.html isn't worth splitting out
+    # for this project's threat model, and CSS can't execute script.
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+    )
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 class BadRequest(Exception):

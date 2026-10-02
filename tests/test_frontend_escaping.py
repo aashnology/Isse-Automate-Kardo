@@ -1,23 +1,25 @@
 """
-Regression test for the XSS fix in web/static/index.html: any string that
+Regression test for the XSS fix, now in web/static/app.js: any string that
 can come from imported data (a pasted step name, a CSV cell, a GitHub/Google
 error) must be HTML-escaped before it lands in innerHTML. This extracts the
 real escapeHtml() function from the shipped file and runs it under Node, so
 the test breaks if the function is ever removed or weakened -- not just if
-this file's copy of it goes stale.
+this file's copy of it goes stale. The logic moved from an inline <script>
+in index.html to this external file so the page could run a strict
+script-src 'self' Content-Security-Policy with no 'unsafe-inline'.
 """
 import re
 import subprocess
 import os
 
-INDEX_HTML = os.path.join(os.path.dirname(__file__), "..", "web", "static", "index.html")
+APP_JS = os.path.join(os.path.dirname(__file__), "..", "web", "static", "app.js")
 
 
 def _extract_escape_fn():
-    with open(INDEX_HTML) as f:
-        html = f.read()
-    match = re.search(r"function escapeHtml\(value\)\s*\{.*?\n\}", html, re.S)
-    assert match, "escapeHtml() not found in index.html -- was it removed?"
+    with open(APP_JS) as f:
+        js = f.read()
+    match = re.search(r"function escapeHtml\(value\)\s*\{.*?\n\}", js, re.S)
+    assert match, "escapeHtml() not found in app.js -- was it removed?"
     return match.group(0)
 
 
@@ -46,9 +48,9 @@ def test_escape_html_neutralizes_script_and_event_handlers():
 def test_untrusted_render_sites_use_escape_html():
     """Guard against a future edit re-introducing raw interpolation at the
     three sites that render imported/error data via innerHTML."""
-    with open(INDEX_HTML) as f:
-        html = f.read()
-    assert "escapeHtml(debug.error)" in html
-    assert "escapeHtml(data.error)" in html
-    assert "c.canonical_sequence.map(escapeHtml)" in html
-    assert "escapeHtml(anomalies[0].likely_cause_step)" in html
+    with open(APP_JS) as f:
+        js = f.read()
+    assert "escapeHtml(debug.error)" in js
+    assert "escapeHtml(data.error)" in js
+    assert "c.canonical_sequence.map(escapeHtml)" in js
+    assert "escapeHtml(anomalies[0].likely_cause_step)" in js
