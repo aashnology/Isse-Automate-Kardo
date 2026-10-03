@@ -215,6 +215,28 @@ version would trigger a real script/integration here. This is stated in
 the code, the README, and here — it is not something to be caught
 glossing over.
 
+**Judge question:** *"You said 'only once' — what stops two confirms from
+both succeeding?"* This was a real bug caught and fixed during hardening,
+worth describing exactly because it's the property this stub exists to
+demonstrate: the original check-then-set (read status, check it isn't
+"executed", then set it) had no lock, so two concurrent confirms of the
+same `proposal_id` could both pass the check before either wrote the new
+status — a classic TOCTOU race, and the one place in this project where a
+race would mean literally double-executing an action the user only
+approved once. Fixed with a `threading.Lock` around the whole
+check-and-set. Proven with a test that fires 20 concurrent confirms at one
+proposal and asserts exactly one succeeds — and that test was confirmed to
+actually fail against the old unlocked code before the fix went in, not
+just written to pass.
+
+Two smaller fixes alongside it: proposal IDs are now a full UUID4 (was an
+8-character slice, which has a real collision risk at this project's own
+`MAX_STORED_PROPOSALS` scale), and a proposal now expires an hour after
+it's made — `confirm_automation`'s docstring tells a calling model to
+re-propose if it gets an "expired" error, and an idle server prunes
+expired proposals opportunistically on the next `propose_automation` call
+rather than needing a background thread.
+
 ---
 
 ## 8. `narrate_briefing` — composing results into one spoken answer
@@ -278,6 +300,33 @@ you do run it against your own data before the demo, say so and use the
 real numbers; if not, describe it exactly as it stands: pipeline-verified
 on realistic fixtures, not yet on a live personal export.
 
+**Judge question:** *"`file_path` is a parameter an MCP client controls —
+what stops it pointing anywhere on the server's filesystem?"* This was a
+real finding during hardening, not a hypothetical: `file_path` used to go
+straight to `open()`. Fixed with `safe_import.py`: every import path is
+resolved (symlinks included) and must land inside one allowlisted
+directory (`IMPORT_DIR`, default `data/imports/`), checked against an
+extension allowlist, and capped in size, all before `open()` is ever
+called — a `"../../.env"` or an absolute path or a symlink pointing
+outside the directory is rejected before it reaches the filesystem call.
+Parse failures also don't echo the underlying exception back to the
+caller, since a JSON/CSV parse error can quote a fragment of the file's
+own content. Nine tests cover traversal, symlink escape, oversized and
+wrong-extension files, and the real MCP tool end-to-end — including one
+that writes a file with a marker string outside the allowed directory and
+asserts the marker never appears in the tool's response.
+
+The GitHub PR-history import (Hexi's "My data" tab, not an MCP tool) had a
+matching issue: `owner`/`repo` from the web form were interpolated
+unvalidated into the GitHub API URL. A regex (`^[A-Za-z0-9_.-]{1,100}$`)
+now rejects anything that isn't a real repo name before the request is
+built, and `GITHUB_TOKEN` is only used when the operator explicitly opts
+in via `GITHUB_TOKEN_PUBLIC_DEMO_OK` — without that, a token set purely to
+raise the operator's own rate limit can't be used by a visitor of the
+public demo to read private repos the token happens to have access to.
+
+---
+
 ## 10. Cross-session memory — real state, not a session variable
 
 `user_memory.py` backs exactly one thing with a file on disk:
@@ -300,12 +349,22 @@ claimed.
 
 **Judge question:** *"Why a JSON file, not a real database?"* Answer
 directly: this project has exactly one user per deployment — there's no
-multi-tenant auth story here, no concurrent-writer problem to solve. A
-database would be infrastructure theater for what this actually needs.
-The write path is still done properly regardless (temp file + `os.replace`
-for atomicity, same pattern as `data_adapters.py`'s export and
-`export_for_workflow_mining.py`'s fix) — the honesty is about scale, not
-about cutting corners on the part that's actually there.
+multi-tenant auth story here. A database would be infrastructure theater
+for what this actually needs. That doesn't mean no concurrent-writer
+problem, though — get that distinction right if pressed. One user still
+means *two processes* can write this file: the MCP server and the Flask
+bridge both import `user_memory` directly and both run against
+`data/user_memory.json`. That was a real bug caught during hardening — a
+plain read-modify-write with no lock, so a dismissal from one process
+could be silently lost if the other process's write landed in between.
+Fixed with a cross-process file lock (`O_CREAT|O_EXCL`, atomic on both
+POSIX and Windows — no new dependency needed for that), stale-lock
+detection so a crashed holder can't deadlock every future call, a unique
+temp filename per write instead of a fixed one, and recovery from a
+corrupt/partial JSON file instead of crashing on every call after one bad
+write. Proven with a test that spawns two real OS processes (not two
+threads) racing to dismiss different workflows, and confirmed to fail
+without the lock before the fix went in.
 
 **Judge question:** *"What happens if I dismiss something by mistake?"*
 `restore_workflow_suggestions` reverses it, and `list_dismissed_workflow_suggestions`
@@ -456,6 +515,28 @@ here as a known limitation and a legitimate next step (a median-based or
 outlier-excluded average would be more robust) rather than corrected
 without saying so.
 
+**Judge question:** *"This renders imported data with `innerHTML` — what
+stops a hostile CSV cell or pasted step name from injecting script?"* It
+used to not stop that: `canonical_sequence` steps, `likely_cause_step`,
+and import error messages were all interpolated straight into `innerHTML`
+at four places. Fixed with an `escapeHtml()` helper applied at all four
+sites, with Node-executed tests that run the real function (extracted from
+the shipped file, not a copy) against real payloads like
+`<img src=x onerror=alert(1)>` and assert no `<`/`>` survives.
+
+That fix is also why the page's JavaScript now lives in
+`web/static/app.js` instead of an inline `<script>` in `index.html`: it
+lets the page run with a real Content-Security-Policy —
+`script-src 'self'`, no `unsafe-inline` for scripts at all — so even an
+XSS bug that somehow got past the escaping couldn't execute an inline
+payload. (The one inline `<style>` block keeps `unsafe-inline` for
+`style-src` only; CSS can't execute script, so splitting it out wasn't
+worth it for this project's threat model.) The web bridge also now rate-
+limits per client IP (60 requests/minute, a plain in-memory sliding
+window — no Redis needed for a single-container demo) and logs every
+request's method/path/status, both added and verified live against a
+running server before being written up as tests.
+
 ## 12. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |
@@ -470,20 +551,58 @@ without saying so.
 
 ## 13. Deployability
 
-- `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
-  `docker-compose.yml` for a one-command local run.
+- `Dockerfile` (python:3.12-slim, deps cached in their own layer, runs as a
+  dedicated non-root user) + `docker-compose.yml` for a one-command local
+  run. The compose file maps the host port to `127.0.0.1` only, makes
+  `env_file` optional (it used to hard-fail if `.env` didn't exist), and
+  sets the container's required internal `0.0.0.0` bind alongside explicit
+  `MCP_ALLOWED_HOSTS`/`MCP_ALLOWED_ORIGINS` -- see the next bullet for why
+  that pairing matters. **Honestly unverified:** Docker was never actually
+  built or run in the environment this was hardened in (no Docker
+  available there) -- the compose YAML is valid and was reasoned through
+  carefully, but `docker compose up --build` should be run for real before
+  relying on it for the demo.
+- **Network binding, and a real finding worth naming unprompted:** reading
+  the installed `mcp==1.30.0` SDK source directly (not assuming) showed
+  FastMCP only auto-enables DNS-rebinding/Origin protection when `host` is
+  exactly `127.0.0.1`, `localhost`, or `::1` -- binding `0.0.0.0`, which
+  this project originally did unconditionally, silently disables it. Both
+  the MCP server and the web bridge now default to loopback; binding wider
+  is an explicit opt-in that requires an allowed-hosts/origins list to be
+  set, and the server refuses to start otherwise rather than run
+  unprotected. Verified live, not just read: confirmed the server starts
+  fine on the loopback default, refuses to start on `0.0.0.0` without the
+  allowlist, and starts and answers correctly once it's set.
+- **MCP tool annotations:** all 13 tools now declare `readOnlyHint`/
+  `destructiveHint`/`idempotentHint` (e.g. `confirm_automation` is the one
+  `destructiveHint=True` tool -- it's this project's actual point of no
+  return, even as a stub). A client that trusts these can skip confirming
+  before any read-only call and knows to treat `confirm_automation`
+  specially -- exactly the kind of MCP-native client behavior the Alexa+
+  judging criteria calls "creative" rather than "obvious." Verified live
+  over a real MCP session (`list_tools` against the running server), and a
+  test asserts the classification is internally consistent.
 - `.env.example` documents every configurable variable; nothing sensitive
   is committed, and there's no AWS or other third-party credential this
   project depends on at all.
-- `.github/workflows/ci.yml` runs the full pytest suite plus both
-  evaluation scripts on every push to `main`.
-- `tests/` — 146 tests (check `pytest tests/ --collect-only` for the current
-  count; this number drifts as the project grows) across `test_core.py`
-  (scoring invariants,
-  clustering edge cases, segmentation sanity checks, the propose/confirm
-  state machine), `test_data_adapters.py` (real-format ingestion, including
-  an end-to-end discovery check), `test_user_memory.py` (persistence
-  survives a module reload, atomic writes), and
+- `.github/workflows/ci.yml` runs the full pytest suite and both evaluation
+  scripts on every push, plus a separate `security` job: `pip-audit`
+  against `requirements.txt` (no known CVEs in the current dependency set,
+  checked locally before relying on it) and `gitleaks` over the full git
+  history (also run locally first -- no secrets found across the repo's
+  commits).
+- `tests/` -- 159 tests (check `pytest tests/ --collect-only` for the
+  current count; this number drifts as the project grows) across
+  `test_core.py` (scoring invariants, clustering edge cases, segmentation
+  sanity checks, the propose/confirm state machine), `test_data_adapters.py`
+  (real-format ingestion, including an end-to-end discovery check),
+  `test_user_memory.py`/`test_user_memory_concurrency.py` (persistence
+  survives a module reload, atomic writes, and a real two-process race),
+  `test_actions_concurrency.py` (20 concurrent confirms resolve to exactly
+  one execution, proposal expiry), `test_safe_import.py` (path-traversal
+  and symlink-escape rejection), `test_frontend_escaping.py` and
+  `test_rate_limit_and_headers.py` (the XSS fix and the rate
+  limiter/CSP, run against the real shipped files, not copies), and
   `test_session_memory_integration.py` (dismissals actually change what
   `get_top_friction_points` and `propose_automation` return).
 
