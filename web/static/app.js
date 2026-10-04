@@ -327,6 +327,95 @@ document.getElementById("voiceBtn").addEventListener("click", () => {
 });
 refreshVoiceButton();
 
+// ---------------------------- Workflow cards --------------------------------
+// A short carousel of the costliest workflows, shown after Hexi answers a
+// "what's costing me time" or briefing request. Built with textContent only:
+// nothing from the data is ever parsed as HTML. The Automate button proposes
+// first and shows what would change; it takes a second click to confirm.
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+
+function prettyName(name) { return String(name).replace(/_/g, " "); }
+
+function buildWorkflowCard(p, rank) {
+  const card = el("div", "wf-card");
+  const head = el("div", "wf-head");
+  head.appendChild(el("span", "wf-rank", "#" + rank));
+  head.appendChild(el("span", "wf-name", prettyName(p.workflow_name)));
+  card.appendChild(head);
+
+  card.appendChild(el("div", "wf-hours", (Math.round(p.total_time_cost_minutes / 6) / 10) + " h total"));
+  card.appendChild(el("div", "wf-meta",
+    `${p.frequency} runs · ${Math.round(p.rework_rate * 100)}% rework`));
+
+  const bar = el("div", "wf-bar");
+  const fill = el("div", "wf-bar-fill");
+  fill.style.width = Math.round(p.automation_potential * 100) + "%";
+  bar.appendChild(fill);
+  card.appendChild(bar);
+  card.appendChild(el("div", "wf-tier", `${p.automation_tier} (${Math.round(p.automation_potential * 100)}% potential)`));
+
+  const note = el("div", "wf-note");
+  const actions = el("div", "wf-actions");
+  const why = el("button", "chip", "Why slow?");
+  why.addEventListener("click", async () => {
+    try {
+      const d = await api("/api/debug/" + encodeURIComponent(p.workflow_name));
+      const top = d.step_breakdown && d.step_breakdown[0];
+      note.textContent = top
+        ? `'${top.step}' takes ${Math.round(top.share_of_total * 100)}% of the time.`
+        : (d.error || "No breakdown available.");
+    } catch (e) { note.textContent = "Couldn't load that."; }
+  });
+  const automate = el("button", "chip", "Automate");
+  automate.addEventListener("click", async () => {
+    try {
+      const prop = await api("/api/propose", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({workflow_name: p.workflow_name}),
+      });
+      if (!prop.proposal_id) { note.textContent = prop.summary || "Nothing here is safe to automate."; return; }
+      note.textContent = prop.summary;
+      automate.textContent = "Yes, automate";
+      automate.onclick = async () => {
+        automate.disabled = true;
+        try {
+          await api("/api/confirm", {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({proposal_id: prop.proposal_id}),
+          });
+          note.textContent = "Done — marked as automated (execution is simulated in this build).";
+          setMood("confirmed");
+        } catch (e) { note.textContent = "Couldn't confirm that."; automate.disabled = false; }
+      };
+    } catch (e) { note.textContent = "Couldn't reach the backend."; }
+  });
+  actions.appendChild(why);
+  actions.appendChild(automate);
+  card.appendChild(actions);
+  card.appendChild(note);
+  return card;
+}
+
+async function showWorkflowCards() {
+  try {
+    const top = await api("/api/friction-points?top_k=3");
+    const pts = top.friction_points || [];
+    if (!pts.length) return;
+    const row = el("div", "wf-row");
+    pts.forEach((p, i) => row.appendChild(buildWorkflowCard(p, i + 1)));
+    const log = document.getElementById("chatLog");
+    log.appendChild(row);
+    log.scrollTop = log.scrollHeight;
+  } catch (e) { /* the spoken/text answer already landed; cards are extra */ }
+}
+
+const CARD_TOOLS = ["get_top_friction_points", "narrate_briefing"];
+
 // ---------------------------- Chat / command interface ----------------------
 function appendChat(who, text) {
   const log = document.getElementById("chatLog");
@@ -355,6 +444,7 @@ async function handleChatMessageInner(raw) {
       if (points.length) currentTarget = points[0].workflow_name;
       setMood(points.length ? "curious" : "idle");
       appendChat("hexi", b.narration);
+      await showWorkflowCards();
       return;
     }
     case "friction": {
@@ -364,6 +454,7 @@ async function handleChatMessageInner(raw) {
       currentTarget = fp.workflow_name;
       setMood("curious");
       appendChat("hexi", `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h, rated ${fp.automation_tier}.`);
+      await showWorkflowCards();
       return;
     }
     case "why": {
@@ -456,6 +547,7 @@ async function handleVoice(said) {
   setMood(data.mood);
   setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}).`);
   appendChat("hexi", data.reply);
+  if ((data.tools || []).some(t => CARD_TOOLS.includes(t))) await showWorkflowCards();
 }
 
 // ---------------------------- Voice input -----------------------------------
