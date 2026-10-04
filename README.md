@@ -1,7 +1,6 @@
 # Isse Automate Kardo
 
-Alexa+ watches how you work, finds where the time actually goes, and tells
-you exactly what's worth automating — you say yes, and only then does it act.
+Meet Hexi, an Alexa+ MCP assistant that finds where your time goes, pinpoints the bottleneck step and says "Isse Automate Kardo." It remembers what you dismiss, so it never nags twice.
 
 Built for Amazon's **Build, Ship, Shape** hackathon, **Alexa+ track**, with
 an entry in the **Open Source** mini challenge.
