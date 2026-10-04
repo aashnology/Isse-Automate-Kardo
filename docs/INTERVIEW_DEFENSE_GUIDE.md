@@ -622,7 +622,7 @@ currently a human guess rather than derived from the event log itself.
 
 ---
 
-## 15. Voice through MCP, the extension, and input hardening
+## 15. Hexi through MCP, the extension, and input hardening
 
 **What changed.** Hexi's voice path used to call the analysis modules
 in-process, like the typed chat. Now `POST /api/agent` (`web/server.py`)
@@ -631,11 +631,14 @@ official MCP client (`web/mcp_bridge.py`), which refuses a server that
 negotiates below 2025-11-25. So the demo's voice interaction exercises the
 same Streamable HTTP surface Alexa+ would.
 
-**Judge question:** *"Why does voice go through MCP but typed chat doesn't?"*
-Typed chat and the tabs predate the bridge and are kept as the fallback when
-the MCP server is down, so the page still demos. Voice is the path that
-claims to be agentic, so it's the one that uses the protocol. Say that
-directly; don't imply every interaction goes through MCP.
+**Judge question:** *"Does everything in Hexi really go through MCP?"*
+Yes when the MCP server is running. Every REST endpoint the tabs and chat use
+(`web/server.py`, `_mcp_first`) calls the matching MCP tool first and returns
+`"via": "mcp"`. Only if the server is unreachable does it run the same Python
+function directly and return `"via": "direct"`, with a 10-second cool-down so
+a stopped server doesn't slow each request. A test (`tests/test_web_via_mcp.py`)
+checks that both paths return identical analysis. The routing in chat is still
+a keyword classifier; no language model chooses the tools. Say that plainly.
 
 **Judge question:** *"Can a misheard word run an automation?"* No. A spoken
 "automate it" only calls `propose_automation`. `confirm_automation` runs on a

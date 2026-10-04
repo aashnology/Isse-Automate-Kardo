@@ -70,6 +70,12 @@ def call_tools(calls, url=None, timeout=15):
         raise McpUnavailable(f"couldn't reach the MCP server: {exc}") from exc
 
 
+def call_tool(name, args, url=None, timeout=15):
+    """Call a single MCP tool. Returns (protocol_version, result_dict)."""
+    version, (data,) = call_tools([(name, args)], url=url, timeout=timeout)
+    return version, data
+
+
 def _leaves(exc):
     if isinstance(exc, BaseExceptionGroup):
         for inner in exc.exceptions:
