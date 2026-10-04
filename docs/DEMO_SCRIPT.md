@@ -6,10 +6,11 @@ memory) is front-loaded before 2:30.
 
 **Recording setup:** two terminals: `python src/mcp_server.py` (MCP, :8000,
 protocol 2025-11-25) and `python web/server.py` (Hexi + `/api/agent`, :5000).
-Screen-record the browser at `localhost:5000`. Hexi's tabs and typed chat call
-the same functions the MCP tools use; her **voice** requests go further and
-run through the MCP server itself via `/api/agent`, and the status bar names
-the tool and protocol version. None of this is a scripted animation. Keep MCP
+Screen-record the browser at `localhost:5000`. Every Hexi request goes to the MCP
+server first (the JSON responses carry `"via": "mcp"`), and typed or spoken
+requests go through `/api/agent`; the status bar names the tool and protocol
+version. Answers to "what's costing me
+time" and "brief me" also show workflow cards with Why slow? and Automate. None of this is a scripted animation. Keep MCP
 Inspector (`npx @modelcontextprotocol/inspector`, URL `http://localhost:8000/mcp`)
 open in a second tab for the one beat that needs it (the double-confirm
 rejection, §1:35 below) — that's a backend-only safety property with no

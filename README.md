@@ -103,6 +103,38 @@ yet live in [`docs/RESEARCH_AND_NOTES.md`](docs/RESEARCH_AND_NOTES.md) —
 kept out of here so this stays readable, not because there's nothing to
 say about them.
 
+## Research & References
+
+Each method below is implemented in this repo, not wrapped from a library, so
+it can be read and explained line by line. Fuller notes and the known
+limitations are in [docs/RESEARCH_AND_NOTES.md](docs/RESEARCH_AND_NOTES.md).
+
+- **Workflow discovery from raw event logs**, in `src/workflow_discovery.py`.
+  Van der Aalst, Weijters & Maruster,
+  [Workflow Mining: Discovering Process Models from Event Logs](https://doi.org/10.1109/TKDE.2004.47)
+  (IEEE TKDE, 2004), frames the problem: recover a process from events alone.
+  Bose & van der Aalst,
+  [Context Aware Trace Clustering](https://doi.org/10.1137/1.9781611972795.35)
+  (SDM, 2009), is the basis for grouping runs by sequence similarity. We use
+  normalized Longest Common Subsequence because it tolerates reordered and
+  missing steps between two runs of the same workflow.
+- **Diverse ranking**, in `src/ranking_engine.py` (tested, not exposed as a
+  tool). Carbonell & Goldstein,
+  [The Use of MMR, Diversity-Based Reranking](https://blog.langchain.com/content/files/~jgc/publication/the_use_mmr_diversity_based_ltmir_1998.pdf)
+  (SIGIR, 1998), keeps a top-k list from repeating one story.
+- **Anomalous runs**, in `src/workflow_discovery.py`. Tukey's IQR fence
+  (*Exploratory Data Analysis*, 1977) rather than a z-score, because run
+  durations are right-skewed.
+
+## Agent Skill
+
+`skills/friction-radar/SKILL.md` is an Agent Skill for any model that uses this
+MCP server: which tool to use for which request, and the consent rules around
+`confirm_automation` (propose first, execute only after an explicit yes in a
+later turn). A test checks that every tool the skill names exists on the
+running server. The skill is documentation for the client's model; nothing in
+this repo's runtime loads it.
+
 ## Running it
 
 Two services, one shared core. Start both for the full demo:
@@ -122,8 +154,10 @@ python web/server.py             # terminal 2: Hexi on :5000
 ```
 
 The MCP server alone is enough for any MCP client (Alexa+, MCP Inspector).
-Hexi's typed chat and tabs also work without it; only the voice path and
-the extension need the MCP server running.
+Hexi's tabs, chat and voice ask the MCP server first. If it isn't running they
+fall back to calling the same Python functions directly, so the page still
+works; each API response has a `via` field (`mcp` or `direct`) saying which
+answered. The extension needs the MCP server running.
 
 ### With Docker
 
