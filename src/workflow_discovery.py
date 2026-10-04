@@ -48,6 +48,10 @@ def sequence_similarity(seq_a, seq_b):
     return lcs / max(len(seq_a), len(seq_b))
 
 
+MAX_CLUSTERED_RUNS = 2000  # discover() is O(n^2) in run count; imported data is untrusted size
+MAX_STEPS_PER_RUN = 500  # bounds _lcs_length's O(len_a * len_b) cost per pair, independent of run count
+
+
 class WorkflowDiscovery:
     def __init__(self, events, similarity_threshold=0.75, run_id_field="workflow_run_id"):
         self.events = events
@@ -55,9 +59,17 @@ class WorkflowDiscovery:
         self.run_id_field = run_id_field
         self.runs = self._group_into_runs(events)  # run_id -> ordered events
         self.run_ids = list(self.runs.keys())
+        if len(self.run_ids) > MAX_CLUSTERED_RUNS:
+            # Keep the most recent runs rather than an arbitrary dict-order
+            # slice -- recent activity is what the demo/product story is
+            # about, and it keeps behavior deterministic given sorted input.
+            self.run_ids.sort(key=lambda rid: self.runs[rid][0]["timestamp"], reverse=True)
+            self.run_ids = self.run_ids[:MAX_CLUSTERED_RUNS]
+            self.runs = {rid: self.runs[rid] for rid in self.run_ids}
         self.sequences = {
-            rid: tuple(e["activity"] for e in run) for rid, run in self.runs.items()
+            rid: tuple(e["activity"] for e in run[:MAX_STEPS_PER_RUN]) for rid, run in self.runs.items()
         }
+        self._discover_cache = None  # runs/threshold are fixed after __init__, so this is safe to cache
 
     @classmethod
     def from_raw_events(cls, raw_events, similarity_threshold=0.75, segmentation_threshold_minutes=None):
@@ -83,7 +95,15 @@ class WorkflowDiscovery:
         """Union-find clustering over pairwise sequence similarity. Does NOT
         look at workflow_name -- that field is only used afterward, to label
         the discovered clusters for the demo narration, and to sanity-check
-        the clustering against ground truth while building this."""
+        the clustering against ground truth while building this.
+
+        Memoized: this is O(n^2) in the number of runs, and
+        detect_anomalous_runs below calls it again per workflow looked up.
+        Safe to cache because self.runs/self.sequences never change after
+        __init__ -- each import request builds its own WorkflowDiscovery
+        instance (see web/server.py's /api/import)."""
+        if self._discover_cache is not None:
+            return self._discover_cache
         n = len(self.run_ids)
         parent = list(range(n))
 
@@ -143,6 +163,7 @@ class WorkflowDiscovery:
             })
 
         results.sort(key=lambda c: -c["run_count"])
+        self._discover_cache = results
         return results
 
     def detect_anomalous_runs(self, workflow_label, top_k=3):

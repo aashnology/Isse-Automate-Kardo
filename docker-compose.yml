@@ -3,9 +3,19 @@ services:
     build: .
     command: ["python", "mcp_server.py"]
     ports:
-      - "127.0.0.1:8000:8000"   # MCP endpoint: http://localhost:8000/mcp
+      - "127.0.0.1:8000:8000"  # loopback-only on the host by default; widen deliberately for remote access
+    environment:
+      # Binding 0.0.0.0 inside the container is required for Docker's port
+      # mapping to reach the process. That disables FastMCP's automatic
+      # DNS-rebinding protection (it only auto-enables for a loopback host),
+      # so mcp_server.py refuses to start unless these two are set. "mcp:8000"
+      # is the in-network name the hexi service uses to reach this server.
+      MCP_BIND_HOST: "0.0.0.0"
+      MCP_ALLOWED_HOSTS: "localhost:8000,127.0.0.1:8000,mcp:8000"
+      MCP_ALLOWED_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
     env_file:
-      - .env  # cp .env.example .env first; safe defaults (Bedrock off) if you skip this
+      - path: .env  # cp .env.example .env first -- see .env.example for what it's for
+        required: false  # fine to skip entirely; nothing here needs it to run
     volumes:
       - ./data:/app/data  # shared with `hexi` so dismissals persist and both see one dataset
 

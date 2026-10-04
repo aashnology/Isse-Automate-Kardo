@@ -148,7 +148,16 @@ def from_github_pull_requests(owner, repo, max_prs=30, token=None):
     single demo call. Pass a personal access token via `token` only if you
     hit that limit; never required for a public repo."""
     import json as _json
+    import re
     import urllib.request
+
+    # owner/repo come straight from a web form. GitHub names are restricted
+    # to this character set; anything else is either a typo or an attempt
+    # to smuggle extra path segments/query parameters into the API URL.
+    name_pattern = re.compile(r"^[A-Za-z0-9_.-]{1,100}$")
+    if not name_pattern.match(owner) or not name_pattern.match(repo):
+        raise ValueError("Repo must look like 'owner/repo' (letters, digits, '-', '_', '.' only).")
+    max_prs = max(1, min(int(max_prs), 100))
 
     url = (
         f"https://api.github.com/repos/{owner}/{repo}/pulls"

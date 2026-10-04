@@ -12,11 +12,11 @@ Alexa+ watches how you actually work (an event stream), finds recurring
 workflows in that stream with no pre-existing labels, ranks them by time
 cost, root-causes the slow ones, flags the runs that went unusually long,
 and proposes automating the low-judgment steps — but never executes
-anything until you say yes. Bedrock's only job is turning the finished
-analysis into a sentence Alexa+ can speak.
+anything until you say yes. `narrate_briefing` turns the finished
+analysis into one spoken sentence via a deterministic template.
 
 **Track:** Alexa+ (self-hosted MCP server, Streamable HTTP, spec
-2025-11-25+). **Mini challenges:** AWS Builder (Bedrock narration).
+2025-11-25+). **Mini challenges:** Open Source.
 
 ---
 
@@ -24,30 +24,35 @@ analysis into a sentence Alexa+ can speak.
 
 ```
 Alexa+ → MCP server (Streamable HTTP) → {workflow_discovery, friction_radar,
-                                          actions, bedrock_narrator}
+                                          actions, briefing}
                                               ↑
                                        synthetic_data.py
 ```
 
-Every analytical module (discovery, scoring, anomaly detection) is plain
-Python + scikit-learn/numpy — no LLM call anywhere in that path. The one
-LLM call in the whole system lives in `bedrock_narrator.py`, downstream of
-all of it, and only phrases numbers that already exist.
+Every module (discovery, scoring, anomaly detection, narration) is plain
+Python + scikit-learn/numpy — no LLM call anywhere in this project. There
+is no external AI dependency, no credential to configure, and nothing that
+can fail, cost money, or behave nondeterministically between two runs of
+the same input.
 
-**Why keep the LLM out of the analysis?** Two reasons, and both should be
-said out loud if asked: (1) an automation *decision* needs to be
+**Why keep the LLM out entirely?** An automation *decision* needs to be
 explainable and reproducible — "why did you propose automating this step"
-needs a deterministic answer, not "the model felt like it," and (2) it's
-cheaper and faster to run sequence clustering and IQR fences in Python
-than to route every tool call through an LLM.
+needs a deterministic answer, not "the model felt like it." The same goes
+for the spoken briefing: a fixed template over numbers this project already
+computed is something you can read the source of and know exactly what it
+will say, for any input.
 
 **Judge question:** *"Isn't this just data engineering with an MCP wrapper
-— where's the AI?"* Answer: the AI is in `narrate_briefing` (Bedrock) and
-in the *methodology* — sequence clustering and trace clustering are
-process-mining techniques (see docs/RESEARCH_AND_NOTES.md), not
-hand-rolled if/else rules. The deliberate choice to keep scoring
-deterministic and push language generation to the edge is itself the
-design decision to defend, not a gap.
+— where's the AI?"* Answer: it's in the *methodology*, not a model call —
+sequence clustering and trace clustering are process-mining techniques
+(see docs/RESEARCH_AND_NOTES.md), not hand-rolled if/else rules. Keeping
+the whole pipeline deterministic and explainable, end to end, including
+narration, is the design decision to defend, not a gap. (An earlier
+version used Amazon Bedrock to phrase `narrate_briefing`'s output; it was
+removed before submission because it was never exercised against a live
+AWS account and the AWS Builder mini challenge was dropped along with it
+rather than claim an integration that was only ever run against a
+template fallback -- see docs/SUBMISSION_MATERIALS.md's friction log.)
 
 ---
 
@@ -210,21 +215,39 @@ version would trigger a real script/integration here. This is stated in
 the code, the README, and here — it is not something to be caught
 glossing over.
 
+**Judge question:** *"You said 'only once' — what stops two confirms from
+both succeeding?"* This was a real bug caught and fixed during hardening,
+worth describing exactly because it's the property this stub exists to
+demonstrate: the original check-then-set (read status, check it isn't
+"executed", then set it) had no lock, so two concurrent confirms of the
+same `proposal_id` could both pass the check before either wrote the new
+status — a classic TOCTOU race, and the one place in this project where a
+race would mean literally double-executing an action the user only
+approved once. Fixed with a `threading.Lock` around the whole
+check-and-set. Proven with a test that fires 20 concurrent confirms at one
+proposal and asserts exactly one succeeds — and that test was confirmed to
+actually fail against the old unlocked code before the fix went in, not
+just written to pass.
+
+Two smaller fixes alongside it: proposal IDs are now a full UUID4 (was an
+8-character slice, which has a real collision risk at this project's own
+`MAX_STORED_PROPOSALS` scale), and a proposal now expires an hour after
+it's made — `confirm_automation`'s docstring tells a calling model to
+re-propose if it gets an "expired" error, and an idle server prunes
+expired proposals opportunistically on the next `propose_automation` call
+rather than needing a background thread.
+
 ---
 
-## 8. Amazon Bedrock — the AWS Builder integration
+## 8. `narrate_briefing` — composing results into one spoken answer
 
-`bedrock_narrator.py`'s `BedrockNarrator.narrate()` calls the Bedrock
-**Converse API** (default model `amazon.nova-lite-v1:0`, configurable) via
-the new `narrate_briefing` MCP tool. It receives the *already-computed*
-`top_friction_points` + `detect_anomalous_runs` output as its only input
-and is instructed (system prompt) to phrase 2-4 spoken sentences from it,
-never invent a number, and never rank or add information.
-
-Gated behind `ENABLE_BEDROCK_NARRATION` (off by default); on any failure
-(no credentials, network, throttling) it falls back to a deterministic
-template rather than raising — the response always states which path
-(`bedrock:<model>` vs. `template`) produced the sentence.
+`briefing.py`'s `build_briefing` is called by both the MCP tool
+`narrate_briefing` and Hexi's "Brief me" chip — one implementation behind
+both interfaces, so they can't drift apart. It receives the
+*already-computed* `top_friction_points` + `detect_anomalous_runs` output
+and composes a short, spoken-ready summary from it via a fixed template —
+no model call, no external dependency, same output for the same input
+every time.
 
 **Judge question:** *"Isn't this the same job Alexa+ itself does — turning
 results into speech?"* No, and this is worth stating precisely: Alexa+
@@ -235,18 +258,16 @@ Alexa+ ever sees it — so Alexa+ gets one clean sentence to speak instead
 of reasoning over three separate JSON blobs itself. It's a genuinely
 different job: cross-result composition, not per-result text-to-speech.
 
-**Judge question:** *"Why Nova Lite and not Claude or another model?"*
-Practical defensible answer: it's an Amazon-native model available in
-Bedrock, appropriate for a short, low-stakes phrasing task (not reasoning
-or code generation), and the model id is a one-line env var — the
-narrator class doesn't hardcode any model-specific behavior.
-
-**Known limitation, worth naming unprompted:** the Bedrock call was
-written and reviewed carefully but has not been exercised against a live
-AWS account in this build environment (no AWS network egress in the
-sandbox this was built in) — the template fallback path has been fully
-tested; the live Bedrock path should be smoke-tested once with real
-credentials before the demo video is recorded.
+**Judge question:** *"Why not use an LLM to phrase this more naturally?"*
+It was tried first, with Amazon Bedrock, and deliberately removed before
+submission: an untested integration gated behind a flag is still a claim
+of AWS usage this project couldn't back up with anything run against live
+AWS (no payment-card-free way to test it as a student — see
+docs/SUBMISSION_MATERIALS.md's friction log), so the honest move was to
+drop it and the AWS Builder mini challenge entry with it, rather than
+submit a claim resting on an untested fallback path. The template that
+replaced it is simpler, has no failure mode to fall back from, and is
+fully exercised by tests.
 
 ---
 
@@ -279,6 +300,33 @@ you do run it against your own data before the demo, say so and use the
 real numbers; if not, describe it exactly as it stands: pipeline-verified
 on realistic fixtures, not yet on a live personal export.
 
+**Judge question:** *"`file_path` is a parameter an MCP client controls —
+what stops it pointing anywhere on the server's filesystem?"* This was a
+real finding during hardening, not a hypothetical: `file_path` used to go
+straight to `open()`. Fixed with `safe_import.py`: every import path is
+resolved (symlinks included) and must land inside one allowlisted
+directory (`IMPORT_DIR`, default `data/imports/`), checked against an
+extension allowlist, and capped in size, all before `open()` is ever
+called — a `"../../.env"` or an absolute path or a symlink pointing
+outside the directory is rejected before it reaches the filesystem call.
+Parse failures also don't echo the underlying exception back to the
+caller, since a JSON/CSV parse error can quote a fragment of the file's
+own content. Nine tests cover traversal, symlink escape, oversized and
+wrong-extension files, and the real MCP tool end-to-end — including one
+that writes a file with a marker string outside the allowed directory and
+asserts the marker never appears in the tool's response.
+
+The GitHub PR-history import (Hexi's "My data" tab, not an MCP tool) had a
+matching issue: `owner`/`repo` from the web form were interpolated
+unvalidated into the GitHub API URL. A regex (`^[A-Za-z0-9_.-]{1,100}$`)
+now rejects anything that isn't a real repo name before the request is
+built, and `GITHUB_TOKEN` is only used when the operator explicitly opts
+in via `GITHUB_TOKEN_PUBLIC_DEMO_OK` — without that, a token set purely to
+raise the operator's own rate limit can't be used by a visitor of the
+public demo to read private repos the token happens to have access to.
+
+---
+
 ## 10. Cross-session memory — real state, not a session variable
 
 `user_memory.py` backs exactly one thing with a file on disk:
@@ -301,12 +349,22 @@ claimed.
 
 **Judge question:** *"Why a JSON file, not a real database?"* Answer
 directly: this project has exactly one user per deployment — there's no
-multi-tenant auth story here, no concurrent-writer problem to solve. A
-database would be infrastructure theater for what this actually needs.
-The write path is still done properly regardless (temp file + `os.replace`
-for atomicity, same pattern as `data_adapters.py`'s export and
-`export_for_workflow_mining.py`'s fix) — the honesty is about scale, not
-about cutting corners on the part that's actually there.
+multi-tenant auth story here. A database would be infrastructure theater
+for what this actually needs. That doesn't mean no concurrent-writer
+problem, though — get that distinction right if pressed. One user still
+means *two processes* can write this file: the MCP server and the Flask
+bridge both import `user_memory` directly and both run against
+`data/user_memory.json`. That was a real bug caught during hardening — a
+plain read-modify-write with no lock, so a dismissal from one process
+could be silently lost if the other process's write landed in between.
+Fixed with a cross-process file lock (`O_CREAT|O_EXCL`, atomic on both
+POSIX and Windows — no new dependency needed for that), stale-lock
+detection so a crashed holder can't deadlock every future call, a unique
+temp filename per write instead of a fixed one, and recovery from a
+corrupt/partial JSON file instead of crashing on every call after one bad
+write. Proven with a test that spawns two real OS processes (not two
+threads) racing to dismiss different workflows, and confirmed to fail
+without the lock before the fix went in.
 
 **Judge question:** *"What happens if I dismiss something by mistake?"*
 `restore_workflow_suggestions` reverses it, and `list_dismissed_workflow_suggestions`
@@ -354,8 +412,8 @@ recorded animation.
 **The chat box.** Below the workspace, a text input lets you ask Hexi
 things directly ("what's costing me the most time," "automate it," "stop
 suggesting bug triage"). This is a small keyword-matched intent router in
-plain JavaScript — not an LLM, not Bedrock — that calls the exact same
-`/api/*` endpoints the tabs call. Say this plainly if asked: it's pattern
+plain JavaScript — not an LLM — that calls the exact same `/api/*`
+endpoints the tabs call. Say this plainly if asked: it's pattern
 matching, not natural-language understanding, and it was built that way on
 purpose so the conversational surface doesn't depend on an API call (or a
 card) to demo at all. It reads as a real exchange because it's driving
@@ -363,8 +421,8 @@ real analysis underneath simple matching, not because the matching itself
 is sophisticated.
 
 **Spoken replies.** Hexi reads its chat replies and suggestions aloud with
-the browser's native `speechSynthesis` — deliberately not Bedrock, Polly or
-any API, so it costs nothing, needs no credentials, and works offline. The
+the browser's native `speechSynthesis` — deliberately not a cloud TTS API,
+so it costs nothing, needs no credentials, and works offline. The
 honest framing if asked: this is text-to-speech on the way *out*, not voice
 understanding on the way *in* — you still type, and the intent router is
 still keyword matching. Voice input is a planned next step, not something
@@ -457,6 +515,28 @@ here as a known limitation and a legitimate next step (a median-based or
 outlier-excluded average would be more robust) rather than corrected
 without saying so.
 
+**Judge question:** *"This renders imported data with `innerHTML` — what
+stops a hostile CSV cell or pasted step name from injecting script?"* It
+used to not stop that: `canonical_sequence` steps, `likely_cause_step`,
+and import error messages were all interpolated straight into `innerHTML`
+at four places. Fixed with an `escapeHtml()` helper applied at all four
+sites, with Node-executed tests that run the real function (extracted from
+the shipped file, not a copy) against real payloads like
+`<img src=x onerror=alert(1)>` and assert no `<`/`>` survives.
+
+That fix is also why the page's JavaScript now lives in
+`web/static/app.js` instead of an inline `<script>` in `index.html`: it
+lets the page run with a real Content-Security-Policy —
+`script-src 'self'`, no `unsafe-inline` for scripts at all — so even an
+XSS bug that somehow got past the escaping couldn't execute an inline
+payload. (The one inline `<style>` block keeps `unsafe-inline` for
+`style-src` only; CSS can't execute script, so splitting it out wasn't
+worth it for this project's threat model.) The web bridge also now rate-
+limits per client IP (60 requests/minute, a plain in-memory sliding
+window — no Redis needed for a single-container demo) and logs every
+request's method/path/status, both added and verified live against a
+running server before being written up as tests.
+
 ## 12. Trade-offs and honest gaps (say these before being asked)
 
 | Gap | Why it's there | What "done" would look like |
@@ -465,31 +545,69 @@ without saying so.
 | Automation execution is a stub | Out of scope for a hackathon demo; needs a real target system to call | Hook `confirm_action` to a real script/Zapier-style integration |
 | Segmentation assumes no interleaved workflows | Time-gap-only segmentation can't distinguish "switched tasks" from "still working" | Sequence-aware segmentation using activity-type transitions, not just timing |
 | `avg_judgment_cost` is a hand-set constant | No historical rework/outcome data to learn it from yet | Derive per-step judgment cost from observed rework rate and duration variance |
-| Bedrock narration untested against live AWS | No AWS network access in the build sandbox | Smoke-test with real credentials before recording the demo |
+| No LLM anywhere in the pipeline, including narration | An earlier Bedrock integration was never exercised against live AWS and was dropped before submission rather than claimed untested (see docs/SUBMISSION_MATERIALS.md's friction log) | Re-add narration via a model call only once it can be tested end-to-end against real credentials |
 
 ---
 
 ## 13. Deployability
 
-- `Dockerfile` (python:3.12-slim, deps cached in their own layer) +
-  `docker-compose.yml` for a one-command local run.
+- `Dockerfile` (python:3.12-slim, deps cached in their own layer, runs as a
+  dedicated non-root user) + `docker-compose.yml` for a one-command local
+  run. The compose file maps the host port to `127.0.0.1` only, makes
+  `env_file` optional (it used to hard-fail if `.env` didn't exist), and
+  sets the container's required internal `0.0.0.0` bind alongside explicit
+  `MCP_ALLOWED_HOSTS`/`MCP_ALLOWED_ORIGINS` -- see the next bullet for why
+  that pairing matters. **Honestly unverified:** Docker was never actually
+  built or run in the environment this was hardened in (no Docker
+  available there) -- the compose YAML is valid and was reasoned through
+  carefully, but `docker compose up --build` should be run for real before
+  relying on it for the demo.
+- **Network binding, and a real finding worth naming unprompted:** reading
+  the installed `mcp==1.30.0` SDK source directly (not assuming) showed
+  FastMCP only auto-enables DNS-rebinding/Origin protection when `host` is
+  exactly `127.0.0.1`, `localhost`, or `::1` -- binding `0.0.0.0`, which
+  this project originally did unconditionally, silently disables it. Both
+  the MCP server and the web bridge now default to loopback; binding wider
+  is an explicit opt-in that requires an allowed-hosts/origins list to be
+  set, and the server refuses to start otherwise rather than run
+  unprotected. Verified live, not just read: confirmed the server starts
+  fine on the loopback default, refuses to start on `0.0.0.0` without the
+  allowlist, and starts and answers correctly once it's set.
+- **MCP tool annotations:** all 13 tools now declare `readOnlyHint`/
+  `destructiveHint`/`idempotentHint` (e.g. `confirm_automation` is the one
+  `destructiveHint=True` tool -- it's this project's actual point of no
+  return, even as a stub). A client that trusts these can skip confirming
+  before any read-only call and knows to treat `confirm_automation`
+  specially -- exactly the kind of MCP-native client behavior the Alexa+
+  judging criteria calls "creative" rather than "obvious." Verified live
+  over a real MCP session (`list_tools` against the running server), and a
+  test asserts the classification is internally consistent.
 - `.env.example` documents every configurable variable; nothing sensitive
-  is committed — Bedrock uses standard AWS credential resolution (env
-  vars / `~/.aws/credentials` / IAM role), never a hardcoded key.
-- `.github/workflows/ci.yml` runs the full pytest suite plus both
-  evaluation scripts on every push to `main`.
-- `tests/` — 158 tests across 11 pytest files: `test_core.py` (scoring
-  invariants, clustering edge cases, segmentation, propose/confirm state
-  machine, data-determinism regressions), `test_data_adapters.py`,
+  is committed, and there's no AWS or other third-party credential this
+  project depends on at all.
+- `.github/workflows/ci.yml` runs the full pytest suite and both evaluation
+  scripts on every push, plus a separate `security` job: `pip-audit`
+  against `requirements.txt` and `gitleaks` over the full git history.
+- `tests/` -- 192 tests (check `pytest tests/ --collect-only` for the
+  current count; this number drifts as the project grows) across
+  `test_core.py` (scoring invariants, clustering edge cases, segmentation,
+  the propose/confirm state machine), `test_data_adapters.py` (real-format
+  ingestion, including an end-to-end discovery check),
   `test_google_and_briefing.py` (CSV/Google link handling with a fake
-  fetcher, shared briefing), `test_user_memory.py` and
-  `test_session_memory_integration.py` (persistence and its effect on tool
-  output), `test_web_bridge.py`, `test_intents.py`, `test_speech.py`
-  (chat router and speech cleanup, run in node), and `test_mcp_protocol.py`
-  (real server process, real MCP client, protocol 2025-11-25),
-  `test_voice_mcp.py` (the `/api/agent` path against a real MCP server), and
-  `test_extension.py` (manifest, bundled router drift, client logic against
-  both live servers).
+  fetcher, shared briefing), `test_user_memory.py` /
+  `test_user_memory_concurrency.py` (persistence, atomic writes, a real
+  two-process race), `test_session_memory_integration.py` (dismissals change
+  what the tools return), `test_actions_concurrency.py` (20 concurrent
+  confirms resolve to exactly one execution, proposal expiry),
+  `test_safe_import.py` (path-traversal and symlink-escape rejection),
+  `test_workflow_discovery_limits.py`, `test_tool_annotations.py`,
+  `test_frontend_escaping.py` and `test_rate_limit_and_headers.py` (the XSS
+  fix and the rate limiter/CSP, run against the real shipped files),
+  `test_web_bridge.py`, `test_intents.py`, `test_speech.py` (chat router and
+  speech cleanup, run in node), `test_mcp_protocol.py` (real server process,
+  real MCP client, protocol 2025-11-25), `test_voice_mcp.py` (the
+  `/api/agent` path against a real MCP server), and `test_extension.py`
+  (manifest, bundled router drift, client logic against both live servers).
 
 ---
 

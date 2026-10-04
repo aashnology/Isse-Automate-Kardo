@@ -2,9 +2,7 @@
 
 Target: **under 3:00**, since judges aren't required to watch past that
 mark. Everything genuinely differentiating (root-cause debug, cross-session
-memory) is front-loaded before 2:30; Bedrock/AWS is placed last on purpose —
-it's a strong bonus, not the core Alexa+ story, and it's fine if a rushed
-judge never gets there.
+memory) is front-loaded before 2:30.
 
 **Recording setup:** two terminals: `python src/mcp_server.py` (MCP, :8000,
 protocol 2025-11-25) and `python web/server.py` (Hexi + `/api/agent`, :5000).
@@ -24,24 +22,32 @@ which the submission needs shown regardless.
 
 **Voiceover:**
 > "Alexa+ can watch how you actually work — but only if something turns
-> raw activity into an answer. This is Isse Automate Kardo: it finds your
-> real workflows with zero labels, tells you which one is wasting the most
-> time and why, and only automates something after you say yes."
+> raw activity into an answer. This is Isse Automate Kardo: it finds which
+> workflow is wasting the most time, shows you exactly why, and only
+> automates something after you say yes."
 
 **On screen:** Title card, then straight to Hexi's page loading (idle →
 breathing/blinking, establishing it's alive before anything happens).
 
 ---
 
-## 0:15–0:35 — Discovery with no labels
+## 0:15–0:35 — Where the time goes, per workflow
 
 **Action:** Click through the three tabs (ticket queue, spreadsheet, inbox).
 Hexi tracks across the dock as you go.
 
 **Voiceover:**
-> "No hardcoded workflow names here — clicking through pulls each tab's
-> real step breakdown from sequence-similarity clustering over raw events.
-> It's finding the structure itself, not matching a label."
+> "Each tab shows where the time actually goes in that workflow — a real
+> step-by-step breakdown pulled from the event log, not a guess. Bring
+> your own data instead of these three built-in examples, and it finds
+> the workflows themselves, with no labels at all."
+
+**Accuracy note (why the wording is "each tab shows," not "finds with no
+labels"):** these three tabs call `debug_workflow`, which groups by each
+tab's own known `workflow_name` — real analysis, but not label-free. The
+actual label-free sequence-clustering path (no `workflow_name` involved)
+is what the fourth tab, "My data," runs on an imported file or pasted
+text — see below for whether that's worth its own beat in this cut.
 
 ---
 
@@ -114,7 +120,7 @@ skeptical judge unless the restart is on screen.
 
 ---
 
-## 2:30–2:50 — Bedrock, briefly (AWS Builder)
+## 2:30–2:50 — Brief me, and the voice moment
 
 **Action:** Click the **Brief me** chip in Hexi. It calls the same
 `build_briefing` function the MCP tool `narrate_briefing` uses, and Hexi
@@ -122,9 +128,8 @@ reads the result aloud. (Turn the browser's sound on and check the voice on
 the recording machine beforehand — voices vary by browser and OS.)
 
 **Voiceover:**
-> "And for the AWS Builder track: this same analysis gets composed into
-> one spoken-ready sentence by Amazon Bedrock — it only phrases numbers
-> already computed here, it never scores or ranks anything itself."
+> "One tap pulls the same analysis into a single spoken answer — no
+> separate step for the user, just the findings, said plainly."
 
 **Optional 10 seconds, if you have room:** click **Speak** and say "what's
 costing me time". Hexi answers aloud, and the status bar reads "Answered
@@ -136,19 +141,13 @@ don't describe it as running locally. If you'd rather show the Chrome
 extension (`extension/`, side panel), the same requests work from any tab;
 say which one you're showing.
 
-**If Bedrock isn't enabled/tested by recording time:** say so plainly on
-camera instead of hiding it — *"this falls back to a template when Bedrock
-isn't configured, which is exactly what's running right now"* is a fine,
-honest line and matches this project's whole ethos. Do not imply Bedrock
-ran if it didn't.
-
 ---
 
 ## 2:50–3:00 — Close
 
 **Voiceover:**
-> "Deterministic where it needs to be explainable, an LLM only where it's
-> phrasing — not deciding. That's Isse Automate Kardo."
+> "Deterministic end to end, explainable at every step — that's Isse
+> Automate Kardo."
 
 **On screen:** Repo URL card.
 
@@ -159,7 +158,7 @@ ran if it didn't.
 Priority order to trim, worst-to-keep-first (cut from the top of this
 list first):
 1. The Inspector double-confirm cutaway — nice but not essential.
-2. Bedrock section — genuinely optional; the fallback line covers you if cut.
+2. The "Speak" voice moment — genuinely optional; "Brief me" alone covers the point.
 3. The anomaly note — strong but the second-most-ownable point.
 
 **Never cut:** the discovery-with-no-labels open, Hexi noticing the
@@ -171,3 +170,14 @@ demo shows as anomalous, and the whole "watches a workspace" framing, run
 on this project's own synthetic dataset inside one page — not your real
 browser tabs. See README's "Running it / Hexi" section for why
 that's a hard boundary, not a shortcut, if a judge asks.
+
+**Open question, worth deciding before recording:** this cut never shows
+the "My data" tab, which is the one thing in this demo that actually runs
+label-free discovery (no `workflow_name` anywhere) rather than grouping by
+a known one. Two options: (A) record as scripted above — the claim still
+stands in the text description and README, backed by real tests, just not
+on camera; or (B) add a ~15s beat showing "My data" on a small pasted
+example, trimming something from the cut list to make room. (A) is lower
+effort and what this script currently assumes; (B) makes the headline
+claim visibly provable to a judge who only watches the video. Defaulting
+to (A) unless told otherwise.

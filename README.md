@@ -4,7 +4,7 @@ Alexa+ watches how you work, finds where the time actually goes, and tells
 you exactly what's worth automating — you say yes, and only then does it act.
 
 Built for Amazon's **Build, Ship, Shape** hackathon, **Alexa+ track**, with
-entries in the **AWS Builder** and **Open Source** mini challenges.
+an entry in the **Open Source** mini challenge.
 
 ## Meet Hexi
 
@@ -62,8 +62,8 @@ Try her yourself — see **Running it** below.
    -> confirm_automation()             executes only after you say so
 
 "Just give me the rundown."
-   -> narrate_briefing()               Bedrock phrases the already-computed
-                                         findings into one spoken answer
+   -> narrate_briefing()               turns the already-computed findings
+                                         into one spoken answer
 ```
 
 ## How it's built
@@ -80,12 +80,11 @@ that negotiates an older version (`web/mcp_bridge.py`). It has not been
 tested inside an Alexa+ surface, because none is available to developers.
 
 Clustering, scoring, and anomaly detection are all deterministic — no LLM
-involved in deciding what matters. The one place an LLM (Amazon Bedrock)
-shows up is `narrate_briefing`, and its job there is narrow on purpose:
-turn numbers this project already computed into a sentence. It never
-ranks, scores, or touches the underlying data itself, and it's opt-in via
-`ENABLE_BEDROCK_NARRATION` — without it, the same tool still returns a
-complete, correct answer from a deterministic template.
+involved anywhere in this pipeline, including `narrate_briefing`: it turns
+numbers this project already computed into a sentence via a fixed
+template, never a model call. It never ranks, scores, or touches the
+underlying data itself, and it has no external dependency or credential to
+configure — it returns the same complete, correct answer every time.
 
 The pipeline isn't tied to synthetic data, either. `data_adapters.py` reads
 real [ActivityWatch](https://github.com/ActivityWatch/activitywatch) and
@@ -119,7 +118,7 @@ Two services, one shared core. Start both for the full demo:
 ```bash
 pip install -r requirements.txt
 python src/synthetic_data.py     # generates data/*.json (idempotent)
-python src/mcp_server.py         # terminal 1: MCP server on :8000
+python src/mcp_server.py         # terminal 1: MCP server, Streamable HTTP at :8000/mcp
 python web/server.py             # terminal 2: Hexi on :5000
 ```
 
@@ -130,7 +129,7 @@ the extension need the MCP server running.
 ### With Docker
 
 ```bash
-cp .env.example .env             # edit if you want Bedrock narration on
+cp .env.example .env             # optional -- see .env.example; fine to skip
 docker compose up --build        # starts both services, ports bound to localhost
 ```
 

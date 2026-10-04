@@ -10,6 +10,10 @@ COPY src/ ./src/
 COPY web/ ./web/
 COPY .env.example ./.env.example
 
+RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
+    && mkdir -p /app/data && chown -R app:app /app
+USER app
+
 ENV PYTHONUNBUFFERED=1 \
     MCP_SERVER_PORT=8000 \
     WEB_PORT=5000

@@ -3,6 +3,12 @@ One place that builds the spoken briefing, used by both the MCP tool
 (narrate_briefing) and Hexi's "brief me". Keeping it here means the two
 interfaces can't drift apart: same analysis in, same sentence out.
 
+Narration is a deterministic template over already-computed numbers --
+friction points, time costs, root causes, anomalies -- never a language
+model call. That keeps this dependency-free and means the sentence you get
+is fully explainable from the payload it's built from, with no external
+call that can fail, cost money, or need credentials.
+
 Workflows the user has dismissed are excluded. A briefing that raised
 something they'd asked never to hear about again would contradict the one
 piece of state this project persists, so that's checked here rather than
@@ -10,7 +16,7 @@ left to each caller.
 """
 
 
-def build_briefing(friction_radar, workflow_discovery, narrator, top_k=3, exclude=()):
+def build_briefing(friction_radar, workflow_discovery, top_k=3, exclude=()):
     excluded = set(exclude)
     # Over-fetch so excluding dismissed workflows doesn't shrink the list.
     candidates = friction_radar.top_friction_points(top_k=top_k + len(excluded))
@@ -39,5 +45,4 @@ def build_briefing(friction_radar, workflow_discovery, narrator, top_k=3, exclud
             f"'{a['likely_cause_step']}'."
         )
 
-    narration = narrator.narrate(payload, fallback=" ".join(lines))
-    return {**narration, "based_on": payload}
+    return {"narration": " ".join(lines), "source": "template", "based_on": payload}

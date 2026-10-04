@@ -7,6 +7,51 @@ should be checkable there.
 
 ---
 
+## Project text description
+
+Alexa+ watches how you work, finds where the time actually goes, and tells
+you exactly what's worth automating -- you say yes, and only then does it
+act.
+
+Isse Automate Kardo is a self-hosted MCP server (spec 2025-11-25+,
+Streamable HTTP) with 13 tools exposed to Alexa+. It takes a stream of raw
+activity events -- no pre-existing workflow labels -- and:
+
+- **discovers recurring workflows** from the event stream itself, using
+  sequence-similarity clustering (LCS + union-find), not hardcoded names
+- **ranks them by total time cost** and an automation-potential tier
+- **root-causes the slow ones**, down to which specific step is eating the
+  time
+- **flags anomalous runs** (IQR-based outlier detection on duration) and
+  attributes the anomaly to a step
+- **proposes automating the low-judgment steps** -- and only the
+  low-judgment ones; steps that need human discretion are never proposed
+- **executes nothing without an explicit confirm call**, and a used
+  proposal can't be replayed
+- **remembers standing preferences** ("stop suggesting this") on disk,
+  across restarts and sessions -- not just within one conversation
+
+Everything above is deterministic Python (scikit-learn/numpy), explainable
+end to end -- no language model anywhere in the pipeline, including the
+spoken briefing (`narrate_briefing`), which composes already-computed
+results into one sentence via a fixed template.
+
+A browser demo (Hexi) sits alongside the MCP server for anyone without an
+Alexa+ developer-mode connection to try: the same functions the MCP tools
+call, reachable from a page instead of Alexa+. It can also ingest real
+data -- an ActivityWatch export, a Toggl CSV, pasted steps, a public
+GitHub repo's PR history, or a shared Google Sheet/Drive file -- and run
+the same label-free discovery against it, which is the direct answer to
+"does this only work on synthetic data."
+
+**Track:** Alexa+. **Mini challenge:** Open Source (see the Open Source
+entry below). **Built during the submission window** -- this is a from-
+scratch project; the repository's initial commit falls inside the
+hackathon's submission period, so there's no pre-existing work to
+disclose or distinguish from what changed during the window.
+
+---
+
 ## Product feedback
 
 ### Tools, APIs and SDKs used, and for what
@@ -15,9 +60,6 @@ should be checkable there.
   over Streamable HTTP. Verified with a real MCP client in
   `tests/test_mcp_protocol.py` (negotiates protocol `2025-11-25`, lists the
   tools, executes a call).
-- **Amazon Bedrock (Converse API via boto3)** -- one optional tool,
-  `narrate_briefing`. **Written and reviewed but never run against a live AWS
-  account** (see friction log); the template fallback path is what's tested.
 - **GitHub REST API** -- read-only PR-history import for the Hexi demo. Not
   an Amazon tool; listed for completeness.
 
@@ -64,25 +106,13 @@ should be checkable there.
 
 ### Onboarding experience (zero to hello world)
 
-MCP: fast. A working server with one tool is a few lines, and the SDK's own
-client made the first end-to-end check easy. AWS/Bedrock: never reached hello
-world, for the reason in the friction log below.
+Fast. A working MCP server with one tool is a few lines, and the SDK's own
+client made the first end-to-end check easy.
 
 ### Would we build with these again?
 
-**MCP: yes, without hesitation** -- the abstraction is good and the open
-standard means the work isn't locked to one assistant. **AWS: yes in
-principle, but only once trying it doesn't require a payment card and
-navigating a recently changed billing model as a student.**
-
-### AWS services
-
-Amazon Bedrock (Converse API), used by `narrate_briefing` to phrase
-already-computed analysis into a spoken-ready summary, gated behind
-`ENABLE_BEDROCK_NARRATION`. Bedrock never scores, ranks or touches raw data.
-**Honest status: implemented with a tested deterministic fallback; not
-exercised against live AWS.** The AWS Builder mini-challenge entry should be
-read with that in mind.
+**Yes, without hesitation** -- the abstraction is good and the open
+standard means the work isn't locked to one assistant.
 
 ---
 
@@ -90,8 +120,9 @@ read with that in mind.
 
 ### 1. Could not test Bedrock/SES without adding a payment card
 
-- **Task attempted:** set up an AWS account to test Bedrock narration and an
-  SES-backed "confirm automation" action.
+- **Task attempted:** set up an AWS account to try Bedrock narration and an
+  SES-backed "confirm automation" action, for the AWS Builder mini
+  challenge.
 - **Steps taken:** reviewed the Free Tier signup flow and current SES/Bedrock
   free-tier terms.
 - **Expected:** a low-risk way to test one or two services for pennies of
@@ -105,10 +136,16 @@ read with that in mind.
 - **Severity:** medium. Not a platform defect, but it keeps a segment of
   participants out of the AWS Builder mini-challenge despite negligible real
   cost.
-- **Workaround:** built Bedrock narration with an honest, tested template
-  fallback (off by default); deferred live testing.
+- **Workaround:** none that felt honest. An untested Bedrock integration,
+  even gated behind a flag, is still a claim of AWS usage this project
+  couldn't back up with anything run against live AWS -- so rather than
+  submit that, Bedrock and the AWS Builder mini-challenge entry were
+  dropped from this submission entirely. `narrate_briefing` is now a plain
+  deterministic template, no AWS dependency anywhere in the repo.
 - **Suggestion:** surface a card-free path in the hackathon's own AWS
-  materials (e.g. a temporary sandbox with hackathon-scoped credentials).
+  materials (e.g. a temporary sandbox with hackathon-scoped credentials) --
+  this is exactly the kind of friction that pushes a cost-conscious student
+  out of a mini challenge they'd otherwise have a real entry for.
 
 ### 2. No Alexa+ test surface for an MCP server
 
@@ -138,9 +175,26 @@ read with that in mind.
 
 ---
 
+## Open Source mini challenge
+
+- **Contribution URL:** `<fill in the actual PR URL for ActivityWatch/aw-client
+  PR #122 -- not drafted here since it wasn't available to check>`
+- **Project repository URL:** https://github.com/aashnology/Isse-Automate-Kardo
+- **GitHub username:** aashnology
+- **Description:** A fix to an example script in
+  [ActivityWatch/aw-client](https://github.com/ActivityWatch/aw-client)
+  (PR #122), reviewed and corrected after real maintainer feedback.
+  ActivityWatch is one of this project's own data adapters
+  (`data_adapters.py`'s `from_activitywatch_events`), so this wasn't a
+  drive-by contribution picked for the mini challenge -- it's the same
+  project this submission already depends on and imports real exports
+  from.
+
+---
+
 ## Feature requests
 
 - **Alexa+ developer-mode connection for self-hosted MCP servers** --
   *critical* for this track (see friction log #2).
 - **Card-free hackathon sandbox for AWS services** -- *important* for
-  student participation.
+  student participation (see friction log #1).

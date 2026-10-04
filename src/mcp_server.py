@@ -25,14 +25,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 from synthetic_data import generate_information_stream, generate_activity_events
 from friction_radar import FrictionRadar
 from actions import propose_action, confirm_action
 from workflow_discovery import WorkflowDiscovery
-from bedrock_narrator import BedrockNarrator
 from briefing import build_briefing
 from data_adapters import from_activitywatch_events, from_toggl_csv
+from safe_import import resolve_import_path, UnsafeImportPath
 import user_memory
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
@@ -52,21 +53,48 @@ with open(events_path) as f:
 
 friction_radar = FrictionRadar(ACTIVITY_EVENTS)
 workflow_discovery = WorkflowDiscovery(ACTIVITY_EVENTS, similarity_threshold=0.75)
-narrator = BedrockNarrator()
 
-# host 0.0.0.0 so this is reachable from outside the container when run via
-# Docker; port configurable so it doesn't collide with anything else the
-# judge already has running locally.
+# FastMCP only auto-enables DNS-rebinding/Origin protection when host is
+# exactly "127.0.0.1", "localhost", or "::1" (see mcp/server/transport_security.py
+# in the installed 1.30.0 SDK) -- for any other host, including "0.0.0.0",
+# protection defaults OFF unless explicitly configured. So: default to the
+# loopback bind (safe, and it's what a judge running this locally needs
+# anyway); binding wider is an explicit opt-in via MCP_BIND_HOST, and when
+# that's not a loopback address we build TransportSecuritySettings
+# ourselves from MCP_ALLOWED_HOSTS/MCP_ALLOWED_ORIGINS so it doesn't fall
+# back to silently unprotected.
+_bind_host = os.environ.get("MCP_BIND_HOST", "127.0.0.1")
+_transport_security = None
+if _bind_host not in ("127.0.0.1", "localhost", "::1"):
+    from mcp.server.transport_security import TransportSecuritySettings
+
+    allowed_hosts = [h.strip() for h in os.environ.get("MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+    allowed_origins = [o.strip() for o in os.environ.get("MCP_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+    if not allowed_hosts or not allowed_origins:
+        raise RuntimeError(
+            "MCP_BIND_HOST is set to a non-loopback address, which disables FastMCP's "
+            "automatic DNS-rebinding protection. Set MCP_ALLOWED_HOSTS and "
+            "MCP_ALLOWED_ORIGINS (comma-separated) to run this way -- e.g. inside Docker, "
+            "where MCP_ALLOWED_HOSTS=localhost:8000 and MCP_ALLOWED_ORIGINS=http://localhost:8000 "
+            "if the container is only ever reached via a mapped localhost port on the host."
+        )
+    _transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+
 mcp = FastMCP(
     "friction-radar",
-    host="0.0.0.0",
+    host=_bind_host,
     port=int(os.environ.get("MCP_SERVER_PORT", "8000")),
+    transport_security=_transport_security,
 )
 
 
 # ---------------------------- Discovery tools -------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def discover_workflows() -> dict:
     """Discover recurring workflows directly from the raw activity event
     sequences, using sequence-similarity clustering -- not from any
@@ -76,24 +104,39 @@ def discover_workflows() -> dict:
     return {"discovered_workflows": clusters}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def discover_workflows_from_import(source: str, file_path: str) -> dict:
     """Run the same label-free discovery pipeline against real, imported
     activity data instead of this project's synthetic dataset -- proof the
     pipeline isn't tied to synthetic data. `source` is "activitywatch" (a
     JSON export of ActivityWatch events, github.com/ActivityWatch) or
-    "toggl" (a Toggl Track CSV export). `file_path` is a path to that file,
-    readable from wherever this server is running. Imported data has no
-    outcome/rework labels, so only the unsupervised half of this project
-    (segmentation, clustering, anomaly detection) runs on it -- see
-    data_adapters.py for exactly what that trade-off is and why."""
-    if source == "activitywatch":
-        with open(file_path) as f:
-            raw = from_activitywatch_events(json.load(f))
-    elif source == "toggl":
-        raw = from_toggl_csv(file_path)
-    else:
+    "toggl" (a Toggl Track CSV export). `file_path` names a file that has
+    been placed in this server's import directory (IMPORT_DIR, default
+    data/imports/) -- it is never opened relative to the server's working
+    directory or the filesystem root, so it can't be used to read files
+    outside that directory. Imported data has no outcome/rework labels, so
+    only the unsupervised half of this project (segmentation, clustering,
+    anomaly detection) runs on it -- see data_adapters.py for exactly what
+    that trade-off is and why."""
+    extensions = {"activitywatch": {".json"}, "toggl": {".csv"}}.get(source)
+    if extensions is None:
         return {"error": f"Unknown source '{source}'. Use 'activitywatch' or 'toggl'."}
+
+    try:
+        safe_path = resolve_import_path(file_path, extensions)
+    except UnsafeImportPath as exc:
+        return {"error": str(exc)}
+
+    try:
+        if source == "activitywatch":
+            with open(safe_path) as f:
+                raw = from_activitywatch_events(json.load(f))
+        else:
+            raw = from_toggl_csv(safe_path)
+    except Exception:
+        # Never echo the parse exception: for a JSON/CSV parse failure it
+        # can include a fragment of the file's own content.
+        return {"error": f"Couldn't parse '{os.path.basename(file_path)}' as {source} data."}
 
     wd = WorkflowDiscovery.from_raw_events(raw)
     return {"source": source, "events_imported": len(raw), "discovered_workflows": wd.discover()}
@@ -101,7 +144,7 @@ def discover_workflows_from_import(source: str, file_path: str) -> dict:
 
 # ---------------------------- Friction Radar tools --------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> dict:
     """Return the workflows costing the user the most time, ranked by total
     time cost, with an automation-potential score for each. Use this when the
@@ -115,14 +158,14 @@ def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> 
     return {"friction_points": points[:top_k]}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def explain_friction(workflow_name: str) -> dict:
     """Explain in plain terms why a given workflow is or isn't a good
     automation candidate."""
     return {"workflow_name": workflow_name, "explanation": friction_radar.explain(workflow_name)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def estimate_time_cost(workflow_name: str) -> dict:
     """Return the total and average time cost for a named recurring
     workflow."""
@@ -132,7 +175,7 @@ def estimate_time_cost(workflow_name: str) -> dict:
     return result
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def debug_workflow(workflow_name: str) -> dict:
     """Root-cause a slow workflow: break down which specific steps actually
     consume the time, not just the total. Use this when the user asks why
@@ -140,7 +183,7 @@ def debug_workflow(workflow_name: str) -> dict:
     return friction_radar.debug_workflow(workflow_name)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
     """Find specific occurrences of a workflow that took unusually long
     compared to that workflow's own typical pattern, and identify which
@@ -150,26 +193,24 @@ def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
     return workflow_discovery.detect_anomalous_runs(workflow_name, top_k=top_k)
 
 
-# ---------------------------- Narration tool (AWS Bedrock) ------------------
+# ---------------------------- Narration tool ---------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def narrate_briefing(top_k: int = 3) -> dict:
     """Compose one short, spoken-ready briefing covering the top friction
-    points and any anomalous runs, using Amazon Bedrock to phrase the
-    already-computed analysis (Bedrock never sees raw data and never scores
-    anything -- it only turns finished numbers into sentences). Falls back
-    to a plain templated summary if Bedrock isn't configured. Use this when
-    the user wants one pulled-together update rather than calling several
-    tools themselves."""
+    points and any anomalous runs -- a deterministic template over the
+    already-computed analysis, not a language-model call. Use this when the
+    user wants one pulled-together update rather than calling several tools
+    themselves."""
     return build_briefing(
-        friction_radar, workflow_discovery, narrator, top_k=top_k,
+        friction_radar, workflow_discovery, top_k=top_k,
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     )
 
 
 # ---------------------------- Action tools ----------------------------------
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
 def propose_automation(workflow_name: str) -> dict:
     """Propose automating the low-judgment steps of a workflow, based on its
     debug_workflow breakdown. This NEVER executes anything -- it only returns
@@ -191,11 +232,13 @@ def propose_automation(workflow_name: str) -> dict:
     return propose_action(workflow_name, debug_result)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=False, openWorldHint=False))
 def confirm_automation(proposal_id: str) -> dict:
     """Execute a previously proposed automation. Only call this after the
     user has explicitly said yes to a specific proposal_id returned by
-    propose_automation -- never call it speculatively."""
+    propose_automation -- never call it speculatively. A proposal is only
+    valid for an hour after it was made; call propose_automation again for
+    a fresh one if confirming fails with an 'expired' error."""
     return confirm_action(proposal_id)
 
 
@@ -204,7 +247,7 @@ def confirm_automation(proposal_id: str) -> dict:
 # see user_memory.py's docstring for why this, specifically, is the thing
 # backed by a file rather than kept in memory like everything else.
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def dismiss_workflow_suggestions(workflow_name: str, reason: str = "") -> dict:
     """Stop suggesting automation for this workflow, from now on, across
     future conversations -- not just for the rest of this one. Use this when
@@ -214,7 +257,7 @@ def dismiss_workflow_suggestions(workflow_name: str, reason: str = "") -> dict:
     return user_memory.dismiss_workflow(workflow_name, reason=reason)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=True, openWorldHint=False))
 def restore_workflow_suggestions(workflow_name: str) -> dict:
     """Undo a previous dismissal -- resume offering automation suggestions
     for this workflow. Use this when the user says they've changed their
@@ -222,7 +265,7 @@ def restore_workflow_suggestions(workflow_name: str) -> dict:
     return user_memory.restore_workflow(workflow_name)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def list_dismissed_workflow_suggestions() -> dict:
     """List every workflow the user has asked not to be offered automation
     for, with why (if given) and when. Use this if the user asks what
