@@ -40,6 +40,13 @@
   .chat-msg.you { align-self: flex-end; background: #FAC775; color: #412402; }
   .chat-msg.hexi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
 
+  .echo { display:flex; align-items:center; gap:10px; padding:8px 16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
+  #echoRing { width:18px; height:18px; border-radius:50%; border:3px solid #d8d6cf; flex:none; }
+  #echoRing[data-mode="listening"] { border-color:#2bb3d9; }
+  #echoRing[data-mode="followup"] { border-color:#2bb3d9; opacity:.55; }
+  #echoRing[data-mode="thinking"] { border-color:#2bb3d9; border-top-color:transparent; animation:spinRing .9s linear infinite; }
+  #echoRing[data-mode="speaking"] { border-color:#2bb3d9; animation:pulseSlow 1s ease-in-out infinite; }
+  @keyframes spinRing { to { transform:rotate(360deg); } }
   .hexi-dock { position: relative; height: 60px; margin: 0 16px; }
   .hexi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
   .bubble { display:none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; max-width: 230px; font-size: 13px; }
@@ -104,10 +111,13 @@
   <div class="status-bar">
     <span class="status" id="statusText">Connecting to Hexi...</span>
     <span style="display:flex; gap:6px;">
+      <button class="btn" id="handsFreeBtn" title="Simulated Alexa+: the laptop mic acts as an Echo. Say 'Alexa, ask Hexi ...'. In Chrome and Edge the audio is transcribed by the browser vendor's cloud service.">Hey Alexa: off</button>
       <button class="btn" id="voiceBtn" title="Hexi reads its replies aloud">Voice: on</button>
       <button class="btn" id="resetBtn">Reset demo</button>
     </span>
   </div>
+
+  <div class="echo"><div id="echoRing" data-mode="off"></div><span id="heardLine">Simulated Echo (laptop mic). Turn on "Hey Alexa" and say: Alexa, ask Hexi what's costing me time.</span></div>
 
   <div style="border-top: 1px solid var(--border); padding: 14px 16px;">
     <div id="chatLog" style="max-height:170px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
@@ -129,6 +139,7 @@
 
 <script src="/speech.js"></script>
 <script src="/intents.js"></script>
+<script src="/alexa.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

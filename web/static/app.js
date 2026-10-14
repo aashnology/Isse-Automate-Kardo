@@ -316,6 +316,8 @@ function speak(text) {
   const english = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
   if (english) utterance.voice = english;
   utterance.rate = 1.02;
+  utterance.onstart = () => { if (window.onHexiSpeech) window.onHexiSpeech(true); };
+  utterance.onend = utterance.onerror = () => { if (window.onHexiSpeech) window.onHexiSpeech(false); };
   window.speechSynthesis.speak(utterance);
 }
 
@@ -620,3 +622,101 @@ document.getElementById("chatSend").addEventListener("click", () => {
 document.getElementById("chatInput").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("chatSend").click();
 });
+
+// ---------------------------- Hands-free (simulated Alexa+) -----------------
+// The laptop microphone plays the Echo. Continuous recognition hears everything;
+// HexiAlexa.route() decides whether it was addressed to Hexi. Recognition is
+// paused while Hexi speaks so she never transcribes herself, and a short
+// follow-up window lets "yes" confirm a proposal without repeating the wake word.
+let handsFree = false;
+let handsFreeRec = null;
+let alexaState = HexiAlexa.initialState();
+let hexiSpeaking = false;
+
+function setRing(mode) {
+  const ring = document.getElementById("echoRing");
+  if (ring) ring.dataset.mode = mode;   // off | listening | thinking | speaking | followup
+}
+
+function chime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.frequency.value = 880; gain.gain.value = 0.04;
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.12);
+    osc.onended = () => ctx.close();
+  } catch (e) {}
+}
+
+function heardLine(text, via) {
+  const el = document.getElementById("heardLine");
+  if (el) el.textContent = text ? `Heard (${via || "ambient"}): "${text}"` : "";
+}
+
+async function runHandsFreeCommand(utterance) {
+  setRing("thinking");
+  chime();
+  await handleVoice(utterance);
+  // handleVoice has appended Hexi's reply; the speech hook reopens the window.
+  if (!voiceOn || !speechSupported) alexaState = HexiAlexa.openWindow(alexaState, Date.now(), !!pendingProposal);
+  setRing(hexiSpeaking ? "speaking" : "followup");
+}
+
+window.onHexiSpeech = (speaking) => {
+  hexiSpeaking = speaking;
+  if (!handsFree) return;
+  if (speaking) { setRing("speaking"); try { handsFreeRec && handsFreeRec.abort(); } catch (e) {} }
+  else {
+    alexaState = HexiAlexa.openWindow(alexaState, Date.now(), !!pendingProposal);
+    setRing("followup");
+    startHandsFree();
+  }
+};
+
+function startHandsFree() {
+  if (!handsFree || handsFreeRec || hexiSpeaking || !Recognition) return;
+  const rec = new Recognition();
+  rec.lang = "en-US"; rec.continuous = true; rec.interimResults = false;
+  rec.onresult = (e) => {
+    const said = e.results[e.results.length - 1][0].transcript;
+    const r = HexiAlexa.route(said, alexaState, Date.now());
+    if (r.action === "ignore") return;       // room chatter is dropped, not stored
+    heardLine(said.trim(), r.via);
+    if (r.action === "wake_only") {
+      chime(); setMood("watching"); setRing("listening");
+      alexaState = HexiAlexa.openWindow(alexaState, Date.now(), false);
+      return;
+    }
+    runHandsFreeCommand(r.utterance);
+  };
+  rec.onerror = (e) => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+      handsFree = false; refreshHandsFree();
+      setStatus("Microphone access was blocked — allow it in the address bar to use hands-free mode.");
+    }
+  };
+  rec.onend = () => { handsFreeRec = null; if (handsFree && !hexiSpeaking) setTimeout(startHandsFree, 250); };
+  handsFreeRec = rec;
+  try { rec.start(); setRing(Date.now() < alexaState.awakeUntil ? "followup" : "listening"); }
+  catch (err) { handsFreeRec = null; }
+}
+
+function refreshHandsFree() {
+  const btn = document.getElementById("handsFreeBtn");
+  btn.textContent = handsFree ? "Hey Alexa: on" : "Hey Alexa: off";
+  if (!handsFree) { setRing("off"); heardLine("", null); }
+}
+
+if (!Recognition) {
+  document.getElementById("handsFreeBtn").style.display = "none";
+} else {
+  document.getElementById("handsFreeBtn").addEventListener("click", () => {
+    handsFree = !handsFree;
+    refreshHandsFree();
+    if (handsFree) {
+      setStatus('Hands-free is on. Say: "Alexa, ask Hexi what\'s costing me time".');
+      startHandsFree();
+    } else if (handsFreeRec) { handsFreeRec.abort(); handsFreeRec = null; }
+  });
+}
