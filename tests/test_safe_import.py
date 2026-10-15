@@ -41,7 +41,10 @@ def test_rejects_symlink_that_escapes_the_import_directory(import_dir, tmp_path_
     outside = tmp_path_factory.mktemp("outside") / "secret.json"
     outside.write_text('{"leak": true}')
     link = import_dir / "innocuous.json"
-    os.symlink(outside, link)
+    try:
+        os.symlink(outside, link)
+    except OSError:
+        pytest.skip("creating symlinks needs elevated rights or Developer Mode on Windows")
     with pytest.raises(UnsafeImportPath):
         resolve_import_path("innocuous.json", {".json"})
 
