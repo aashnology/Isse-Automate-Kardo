@@ -207,6 +207,15 @@ Voice input uses the browser's speech recognition (Chrome, Edge, Safari).
 In Chrome and Edge the audio is sent to the browser vendor's cloud service
 for transcription; Hexi's spoken replies are generated on your device.
 
+**Hands-free mode (simulated Alexa+).** The "Hey Alexa" toggle turns the laptop
+microphone into a stand-in for an Echo. Say "Alexa, ask Hexi what's costing me
+time"; Hexi answers aloud through the same MCP path as typed input. Speech
+without the wake word is dropped, and for a few seconds after Hexi speaks you
+can reply ("yes") without repeating it. Wake-word matching is text matching on
+the browser's transcript, not acoustic detection, and this has not been run on
+a real Echo device. The wake logic is in `web/static/alexa.js` and is covered by
+`tests/test_alexa_wake.py` (needs node).
+
 **Bring your own data**, from the "My data" tab: an ActivityWatch or Toggl
 export, a pasted list of steps, a public GitHub repo, or a public Google
 Sheet/Drive link. Every path only ever reads and parses — nothing pasted
