@@ -98,6 +98,8 @@
   // Order matters: more specific intents come first. "restore" and
   // "dismissed list" must beat "dismiss"; "dismiss" must beat "friction".
   var RULES = [
+    ["aspen_away", /\b(send|let|put) aspen (away|out|back)\b|\b(stop|dismiss|no more) aspen\b/],
+    ["aspen", /\baspen\b|\b(take|need|time for) a break\b|\bwalk the dog\b/],
     ["brief", /\b(brief|briefing|summary|summarize|rundown|catch me up|update me)\b/],
     ["dismissed_list", /\b(what|which|list|show)\b.*\bdismissed\b/],
     ["restore", /\b(restore|bring back|undo|resume)\b/],

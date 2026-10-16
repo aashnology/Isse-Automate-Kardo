@@ -207,6 +207,14 @@ Voice input uses the browser's speech recognition (Chrome, Edge, Safari).
 In Chrome and Edge the audio is sent to the browser vendor's cloud service
 for transcription; Hexi's spoken replies are generated on your device.
 
+**Aspen (optional).** Aspen is a separate desktop companion with his own
+repository, [My-Woofie](https://github.com/aashnology/Woof); nothing of his is
+in this repo. After a confirmed automation Hexi asks whether to call him in.
+Yes starts a local copy (set `ASPEN_HOME` in `.env`); no, or no reply, leaves him
+out, and with `ASPEN_HOME` unset Hexi says he isn't set up and carries on.
+Hexi only starts and stops him. Break length, quiet behaviour and barking are
+Aspen's own settings. "Send Aspen away" stops him.
+
 **Hands-free mode (simulated Alexa+).** The "Hey Alexa" toggle turns the laptop
 microphone into a stand-in for an Echo. Say "Alexa, ask Hexi what's costing me
 time"; Hexi answers aloud through the same MCP path as typed input. Speech

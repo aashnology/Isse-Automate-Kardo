@@ -55,6 +55,7 @@ from data_adapters import (
 from briefing import build_briefing
 import user_memory
 import mcp_bridge
+import aspen_bridge
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -330,6 +331,28 @@ def _clean(value, pattern):
 def _agent_error(reply, status):
     return jsonify({"reply": reply, "mood": "idle", "tools": [], "protocol": None,
                     "pending_proposal_id": None, "error": reply}), status
+
+
+_ASPEN_REPLIES = {
+    "started": "Aspen is on his way. He'll keep you company and nudge you when it's time for a break.",
+    "already_running": "Aspen is already with you.",
+    "stopped": "Aspen has gone back out. Call him whenever you like.",
+    "not_installed": "Aspen isn't set up on this machine, so I'll carry on without him. He lives at github.com/aashnology/Woof.",
+    "error": "I couldn't reach Aspen just now, so we'll carry on without him.",
+}
+
+
+@app.route("/api/aspen", methods=["GET", "POST"])
+def aspen():
+    """Calls Aspen in or sends him away. Only an explicit {action: call|stop} does anything."""
+    if request.method == "GET":
+        return jsonify({"installed": aspen_bridge.installed()})
+    body = request.get_json(silent=True)
+    action = body.get("action") if isinstance(body, dict) else None
+    if action not in ("call", "stop"):
+        return jsonify({"state": "ignored", "reply": "Aspen stays out unless you ask for him."}), 400
+    state = aspen_bridge.call() if action == "call" else aspen_bridge.stop()
+    return jsonify({"state": state, "reply": _ASPEN_REPLIES[state]})
 
 
 @app.route("/api/agent", methods=["POST"])

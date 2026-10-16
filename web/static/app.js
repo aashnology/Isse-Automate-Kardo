@@ -513,6 +513,7 @@ async function handleChatMessageInner(raw) {
 // Nothing a user types or says should surface as an uncaught error.
 async function handleChatMessage(raw) {
   try {
+    if (await tryAspen(raw)) return;
     await handleChatMessageInner(raw);
   } catch (e) {
     appendChat("hexi", "Something went wrong reaching the backend. " + HELP_TEXT);
@@ -526,10 +527,12 @@ async function handleChatMessage(raw) {
 let pendingProposal = null;
 
 async function handleVoice(said) {
+  if (await tryAspen(said)) return;
   const { intent, workflow } = HexiIntents.classifyIntent(said);
   const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "dismiss", "restore", "dismissed_list"];
   if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
   appendChat("you", said);
+  const confirming = intent === "automate" && !!pendingProposal;
   const name = workflow || currentTarget;
   let res = null;
   try { res = await fetch(API + "/api/agent", {
@@ -550,6 +553,7 @@ async function handleVoice(said) {
   setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}).`);
   appendChat("hexi", data.reply);
   if ((data.tools || []).some(t => CARD_TOOLS.includes(t))) await showWorkflowCards();
+  maybeOfferAspen(confirming);
 }
 
 // ---------------------------- Voice input -----------------------------------
@@ -719,4 +723,71 @@ if (!Recognition) {
       startHandsFree();
     } else if (handsFreeRec) { handsFreeRec.abort(); handsFreeRec = null; }
   });
+}
+
+// ---------------------------- Aspen (optional companion) --------------------
+// Aspen is a separate desktop app. Hexi offers him once per session, after the
+// first answer, and only starts him on an explicit yes. A no leaves him out.
+let aspenOffered = false;
+let aspenOfferOpen = false;
+
+function offerAspen() {
+  aspenOfferOpen = true;
+  appendChat("hexi", "You've been at this a while. Want me to call in Aspen? He keeps you company and nudges you to take a break. He stays out unless you say yes.");
+  const log = document.getElementById("chatLog");
+  const row = document.createElement("div");
+  row.className = "chips";
+  [["Yes, call Aspen", "yes"], ["No thanks", "no"]].forEach(([label, answer]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = label;
+    b.addEventListener("click", () => { row.remove(); answerAspen(answer); });
+    row.appendChild(b);
+  });
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+// Offered once, right after a confirmed automation (a natural pause), or after
+// a few answers if the user never automates. Never while a proposal awaits "yes".
+let answersSeen = 0;
+function maybeOfferAspen(justAutomated) {
+  answersSeen += 1;
+  if (aspenOffered || pendingProposal) return;
+  if (justAutomated || answersSeen >= 4) { aspenOffered = true; offerAspen(); }
+}
+
+function closeAspenOffer() {
+  aspenOfferOpen = false;
+  document.querySelectorAll("#chatLog .chips").forEach(el => el.remove());
+}
+
+async function aspenAction(action) {
+  let data = {};
+  try {
+    const res = await fetch(API + "/api/aspen", {
+      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action}),
+    });
+    data = await res.json().catch(() => ({}));
+  } catch (e) {}
+  return data.reply || "I couldn't reach Aspen just now, so we'll carry on without him.";
+}
+
+async function answerAspen(answer) {
+  aspenOfferOpen = false;
+  if (answer === "yes") appendChat("hexi", await aspenAction("call"));
+  else appendChat("hexi", "No problem, Aspen stays out. Say \"call Aspen\" if you change your mind.");
+}
+
+async function tryAspen(said) {
+  const text = String(said || "").toLowerCase();
+  if (aspenOfferOpen && pendingProposal) closeAspenOffer();   // a waiting "yes" belongs to the automation
+  if (aspenOfferOpen) {
+    if (/\b(yes|yeah|sure|please|call him)\b/.test(text)) { appendChat("you", said); await answerAspen("yes"); return true; }
+    if (/\b(no|nope|not now|no thanks)\b/.test(text)) { appendChat("you", said); await answerAspen("no"); return true; }
+  }
+  const { intent } = HexiIntents.classifyIntent(said);
+  if (aspenOfferOpen && intent !== "aspen" && intent !== "aspen_away") closeAspenOffer();   // moving on counts as no
+  if (intent === "aspen") { appendChat("you", said); aspenOffered = true; offerAspen(); return true; }
+  if (intent === "aspen_away") { appendChat("you", said); appendChat("hexi", await aspenAction("stop")); return true; }
+  return false;
 }
