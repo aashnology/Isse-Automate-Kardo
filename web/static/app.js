@@ -1,3 +1,44 @@
+// Hexi is always a female voice. Voices load asynchronously, so the choice is
+// made once they exist and then remembered; a male voice is never used.
+const FEMALE_HINTS = /(zira|aria|jenny|samantha|hazel|susan|heera|neerja|libby|sonia|female|victoria|karen|tessa|moira|fiona|catherine|emma|natasha|clara)/i;
+const MALE_HINTS = /(david|mark|george|ravi|james|richard|guy|ryan|daniel|alex|fred|thomas|male|rishi|prabhat|liam|brian|eric|christopher)/i;
+let hexiVoice = null;
+
+function pickHexiVoice() {
+  const voices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+  if (!voices.length) return null;
+  let saved = null;
+  try { saved = localStorage.getItem("hexiVoiceName"); } catch (e) {}
+  const female = voices.filter(v => FEMALE_HINTS.test(v.name) && !/\bmale\b/i.test(v.name.replace(/female/i, "")));
+  const order = [v => v.name === saved && female.includes(v), v => /india|en-in/i.test(v.name + v.lang) && female.includes(v),
+                 v => female.includes(v), v => !MALE_HINTS.test(v.name)];
+  for (const test of order) { const hit = voices.find(test); if (hit) { try { localStorage.setItem("hexiVoiceName", hit.name); } catch (e) {} return hit; } }
+  return null;
+}
+
+if (speechSupported) {
+  hexiVoice = pickHexiVoice();
+  window.speechSynthesis.addEventListener("voiceschanged", () => { hexiVoice = pickHexiVoice() || hexiVoice; });
+}
+
+function speak(text) {
+  if (!speechSupported || !voiceOn) return;
+  hexiVoice = hexiVoice || pickHexiVoice();
+  if (!hexiVoice) {   // no suitable voice installed: stay silent rather than speak in a male voice
+    setStatus("No female English voice is installed in this browser, so Hexi is text-only. Install one in Windows Speech settings.");
+    return;
+  }
+  window.speechSynthesis.cancel();  // never queue up stale replies
+  const utterance = new SpeechSynthesisUtterance(HexiSpeech.speakable(text));
+  utterance.voice = hexiVoice;
+  utterance.lang = hexiVoice.lang;
+  utterance.rate = 1.02;
+  utterance.pitch = 1.05;
+  utterance.onstart = () => { if (window.onHexiSpeech) window.onHexiSpeech(true); };
+  utterance.onend = utterance.onerror = () => { if (window.onHexiSpeech) window.onHexiSpeech(false); };
+  window.speechSynthesis.speak(utterance);
+}
+
 const API = "";
 const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
 let visited = new Set();
@@ -222,6 +263,8 @@ async function runImport() {
       }
     }
     results.innerHTML = html;
+    dataSource = "mine"; dataGateOpen = false;
+    appendChat("hexi", `I've read your data: ${data.events_imported} events, ${data.discovered_workflows.length} pattern(s). Ask me what's costing you time and I'll answer from it.`);
   } catch (e) {
     results.innerHTML = '<p class="status">Something went wrong reaching the backend.</p>';
     setMood("idle");
@@ -514,6 +557,7 @@ async function handleChatMessageInner(raw) {
 async function handleChatMessage(raw) {
   try {
     if (await tryAspen(raw)) return;
+    if (await dataGate(raw)) return;
     await handleChatMessageInner(raw);
   } catch (e) {
     appendChat("hexi", "Something went wrong reaching the backend. " + HELP_TEXT);
@@ -528,6 +572,7 @@ let pendingProposal = null;
 
 async function handleVoice(said) {
   if (await tryAspen(said)) return;
+  if (await dataGate(said)) return;
   const { intent, workflow } = HexiIntents.classifyIntent(said);
   const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "dismiss", "restore", "dismissed_list"];
   if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
@@ -550,7 +595,7 @@ async function handleVoice(said) {
   if (name) currentTarget = name;
   pendingProposal = data.pending_proposal_id || null;
   setMood(data.mood);
-  setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}).`);
+  setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}) on the built-in sample data.`);
   appendChat("hexi", data.reply);
   if ((data.tools || []).some(t => CARD_TOOLS.includes(t))) await showWorkflowCards();
   maybeOfferAspen(confirming);
@@ -789,5 +834,73 @@ async function tryAspen(said) {
   if (aspenOfferOpen && intent !== "aspen" && intent !== "aspen_away") closeAspenOffer();   // moving on counts as no
   if (intent === "aspen") { appendChat("you", said); aspenOffered = true; offerAspen(); return true; }
   if (intent === "aspen_away") { appendChat("you", said); appendChat("hexi", await aspenAction("stop")); return true; }
+  return false;
+}
+
+// ---------------------------- Ask first, then analyse ------------------------
+// Hexi never answers about "your" time from data you haven't given her. Before
+// the first analysis she asks: built-in sample, or your own import. Answers on
+// the sample are labelled as such; imported data is answered from the import.
+let dataSource = null;          // null (not asked) | "sample" | "mine"
+let dataGateOpen = false;
+const ANALYTIC = ["brief", "friction", "why", "anomalies", "automate"];
+
+function openMyDataTab() {
+  const btn = document.querySelector('.tab[data-workflow="import"]');
+  if (btn) btn.click();
+}
+
+function askForData() {
+  dataGateOpen = true;
+  appendChat("hexi", "I don't have any of your data yet, so I won't guess. You can import your own (an ActivityWatch or Toggl export, pasted steps, a GitHub repo or a shared Sheet) or I can walk through the built-in sample. Which one?");
+  const log = document.getElementById("chatLog");
+  const row = document.createElement("div");
+  row.className = "chips";
+  [["Import my data", "mine"], ["Use the sample", "sample"]].forEach(([label, choice]) => {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = label;
+    b.addEventListener("click", () => { row.remove(); chooseData(choice); });
+    row.appendChild(b);
+  });
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+}
+
+function chooseData(choice) {
+  dataGateOpen = false;
+  document.querySelectorAll("#chatLog .chips").forEach(el => el.remove());
+  if (choice === "sample") {
+    dataSource = "sample";
+    appendChat("hexi", "Okay, I'll use the built-in sample data. Everything I say is about that sample, not about you. Ask me again.");
+  } else {
+    appendChat("hexi", "Good. Add your data in the My data tab and press Analyze this. I'll tell you when I've read it.");
+    openMyDataTab();
+  }
+}
+
+async function dataGate(said) {
+  const text = String(said || "").toLowerCase();
+  if (dataGateOpen) {
+    if (/\b(sample|built.?in|demo|example)\b/.test(text)) { appendChat("you", said); chooseData("sample"); return true; }
+    if (/\b(import|mine|my (own )?data|own)\b/.test(text)) { appendChat("you", said); chooseData("mine"); return true; }
+  }
+  const { intent } = HexiIntents.classifyIntent(said);
+  if (!ANALYTIC.includes(intent)) return false;
+  if (dataSource === null) { appendChat("you", said); askForData(); return true; }
+  if (dataSource === "mine") {
+    appendChat("you", said);
+    if (intent === "automate") {
+      appendChat("hexi", "I can analyse your data, but proposing and confirming automations only works on the built-in sample for now.");
+      return true;
+    }
+    let reply = "I couldn't read your analysis just now.";
+    try {
+      const res = await fetch(API + "/api/import/answer?intent=" + encodeURIComponent(intent));
+      reply = (await res.json()).reply || reply;
+    } catch (e) {}
+    appendChat("hexi", reply);
+    setStatus("Answered from your imported data.");
+    return true;
+  }
   return false;
 }

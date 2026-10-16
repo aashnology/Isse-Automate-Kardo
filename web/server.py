@@ -379,6 +379,55 @@ def agent():
         return _agent_error("Something went wrong handling that. Try rephrasing.", 500)
 
 
+_IMPORTED = {"analysis": None}   # the last import, for this local single-user demo
+
+
+def _summarise_import(wd, clusters):
+    """Per discovered workflow: runs, total minutes, the step taking the most time, and anomalies."""
+    out = []
+    for c in clusters:
+        step_minutes = defaultdict(float)
+        for rid in c["run_ids"]:
+            for ev in wd.runs.get(rid, []):
+                step_minutes[ev["activity"]] += float(ev.get("duration_minutes") or 0)
+        total = sum(step_minutes.values())
+        top = max(step_minutes, key=step_minutes.get) if step_minutes else None
+        anomalies = wd.detect_anomalous_runs(c["matched_label"]).get("anomalies", [])
+        out.append({"label": c["matched_label"], "runs": c["run_count"], "sequence": c["canonical_sequence"],
+                    "total_minutes": round(total, 1), "top_step": top,
+                    "top_share": round(100 * step_minutes[top] / total) if top and total else 0,
+                    "anomalies": anomalies})
+    return sorted(out, key=lambda w: -w["total_minutes"])
+
+
+def _answer_from_import(intent, a):
+    top = a[0]
+    hrs = lambda m: f"{m / 60:.1f} hours" if m >= 90 else f"{m:.0f} minutes"
+    if intent == "anomalies":
+        hits = [(w, w["anomalies"][0]) for w in a if w["anomalies"]]
+        if not hits:
+            return "I found no unusual runs in your data. With only a few runs I can't rule outliers in or out."
+        w, x = hits[0]
+        return f"One run in your data took {round(x['total_minutes'])} minutes, mainly at '{x['likely_cause_step']}'."
+    if intent == "why":
+        return (f"In your biggest pattern ({' > '.join(top['sequence'])}), '{top['top_step']}' takes "
+                f"{top['top_share']}% of the time, across {top['runs']} runs.")
+    return (f"In your data, the biggest time cost is the pattern {' > '.join(top['sequence'])}: "
+            f"{hrs(top['total_minutes'])} over {top['runs']} runs, mostly '{top['top_step']}'.")
+
+
+@app.route("/api/import/answer")
+def import_answer():
+    """Answers from the user's own imported data, never from the built-in sample."""
+    analysis = _IMPORTED["analysis"]
+    if not analysis:
+        return jsonify({"has_data": False, "reply": "You haven't imported any data yet."})
+    intent = request.args.get("intent", "friction")
+    if intent not in ("friction", "brief", "why", "anomalies"):
+        return jsonify({"has_data": True, "reply": "On your own data I can tell you what costs the most time, why, and any unusual runs."})
+    return jsonify({"has_data": True, "reply": _answer_from_import(intent, analysis)})
+
+
 @app.route("/api/import", methods=["POST"])
 def import_data():
     """Bring-your-own-data: an ActivityWatch/Toggl export file, a pasted
@@ -471,6 +520,7 @@ def import_data():
         return jsonify({"error": "No events could be parsed from that input."}), 400
 
     clusters = wd.discover()
+    _IMPORTED["analysis"] = _summarise_import(wd, clusters)
     anomalies_by_cluster = {
         c["matched_label"]: wd.detect_anomalous_runs(c["matched_label"]).get("anomalies", [])
         for c in clusters
