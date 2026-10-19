@@ -1,44 +1,3 @@
-// Hexi is always a female voice. Voices load asynchronously, so the choice is
-// made once they exist and then remembered; a male voice is never used.
-const FEMALE_HINTS = /(zira|aria|jenny|samantha|hazel|susan|heera|neerja|libby|sonia|female|victoria|karen|tessa|moira|fiona|catherine|emma|natasha|clara)/i;
-const MALE_HINTS = /(david|mark|george|ravi|james|richard|guy|ryan|daniel|alex|fred|thomas|male|rishi|prabhat|liam|brian|eric|christopher)/i;
-let hexiVoice = null;
-
-function pickHexiVoice() {
-  const voices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
-  if (!voices.length) return null;
-  let saved = null;
-  try { saved = localStorage.getItem("hexiVoiceName"); } catch (e) {}
-  const female = voices.filter(v => FEMALE_HINTS.test(v.name) && !/\bmale\b/i.test(v.name.replace(/female/i, "")));
-  const order = [v => v.name === saved && female.includes(v), v => /india|en-in/i.test(v.name + v.lang) && female.includes(v),
-                 v => female.includes(v), v => !MALE_HINTS.test(v.name)];
-  for (const test of order) { const hit = voices.find(test); if (hit) { try { localStorage.setItem("hexiVoiceName", hit.name); } catch (e) {} return hit; } }
-  return null;
-}
-
-if (speechSupported) {
-  hexiVoice = pickHexiVoice();
-  window.speechSynthesis.addEventListener("voiceschanged", () => { hexiVoice = pickHexiVoice() || hexiVoice; });
-}
-
-function speak(text) {
-  if (!speechSupported || !voiceOn) return;
-  hexiVoice = hexiVoice || pickHexiVoice();
-  if (!hexiVoice) {   // no suitable voice installed: stay silent rather than speak in a male voice
-    setStatus("No female English voice is installed in this browser, so Hexi is text-only. Install one in Windows Speech settings.");
-    return;
-  }
-  window.speechSynthesis.cancel();  // never queue up stale replies
-  const utterance = new SpeechSynthesisUtterance(HexiSpeech.speakable(text));
-  utterance.voice = hexiVoice;
-  utterance.lang = hexiVoice.lang;
-  utterance.rate = 1.02;
-  utterance.pitch = 1.05;
-  utterance.onstart = () => { if (window.onHexiSpeech) window.onHexiSpeech(true); };
-  utterance.onend = utterance.onerror = () => { if (window.onHexiSpeech) window.onHexiSpeech(false); };
-  window.speechSynthesis.speak(utterance);
-}
-
 const API = "";
 const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
 let visited = new Set();
@@ -352,13 +311,42 @@ function refreshVoiceButton() {
   btn.textContent = voiceOn ? "Voice: on" : "Voice: off";
 }
 
+// Hexi is always a female voice. Voices load asynchronously, so the choice is
+// made once they exist and then remembered; a male voice is never used.
+const FEMALE_HINTS = /(zira|aria|jenny|samantha|hazel|susan|heera|neerja|libby|sonia|female|victoria|karen|tessa|moira|fiona|catherine|emma|natasha|clara)/i;
+const MALE_HINTS = /(david|mark|george|ravi|james|richard|guy|ryan|daniel|alex|fred|thomas|male|rishi|prabhat|liam|brian|eric|christopher)/i;
+let hexiVoice = null;
+
+function pickHexiVoice() {
+  const voices = window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+  if (!voices.length) return null;
+  let saved = null;
+  try { saved = localStorage.getItem("hexiVoiceName"); } catch (e) {}
+  const female = voices.filter(v => FEMALE_HINTS.test(v.name) && !/\bmale\b/i.test(v.name.replace(/female/i, "")));
+  const order = [v => v.name === saved && female.includes(v), v => /india|en-in/i.test(v.name + v.lang) && female.includes(v),
+                 v => female.includes(v), v => !MALE_HINTS.test(v.name)];
+  for (const test of order) { const hit = voices.find(test); if (hit) { try { localStorage.setItem("hexiVoiceName", hit.name); } catch (e) {} return hit; } }
+  return null;
+}
+
+if (speechSupported) {
+  hexiVoice = pickHexiVoice();
+  window.speechSynthesis.addEventListener("voiceschanged", () => { hexiVoice = pickHexiVoice() || hexiVoice; });
+}
+
 function speak(text) {
   if (!speechSupported || !voiceOn) return;
+  hexiVoice = hexiVoice || pickHexiVoice();
+  if (!hexiVoice) {   // no suitable voice installed: stay silent rather than speak in a male voice
+    setStatus("No female English voice is installed in this browser, so Hexi is text-only. Install one in Windows Speech settings.");
+    return;
+  }
   window.speechSynthesis.cancel();  // never queue up stale replies
   const utterance = new SpeechSynthesisUtterance(HexiSpeech.speakable(text));
-  const english = window.speechSynthesis.getVoices().find(v => v.lang && v.lang.startsWith("en"));
-  if (english) utterance.voice = english;
+  utterance.voice = hexiVoice;
+  utterance.lang = hexiVoice.lang;
   utterance.rate = 1.02;
+  utterance.pitch = 1.05;
   utterance.onstart = () => { if (window.onHexiSpeech) window.onHexiSpeech(true); };
   utterance.onend = utterance.onerror = () => { if (window.onHexiSpeech) window.onHexiSpeech(false); };
   window.speechSynthesis.speak(utterance);
