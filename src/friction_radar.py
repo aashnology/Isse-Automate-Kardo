@@ -5,7 +5,8 @@ sequence aggregation over the event log.
 """
 
 from collections import defaultdict
-from synthetic_data import STEP_JUDGMENT_COST
+import statistics
+from automation_model import prior_judgment_cost
 
 
 class FrictionRadar:
@@ -41,7 +42,7 @@ class FrictionRadar:
                 1, sum(len(run) for run in runs)
             )
             steps = [e["activity"] for e in runs[0]]
-            avg_judgment_cost = sum(STEP_JUDGMENT_COST.get(s, 0.5) for s in steps) / len(steps)
+            avg_judgment_cost = sum(prior_judgment_cost(s) for s in steps) / len(steps)
             automation_potential = self._automation_score(
                 frequency, avg_judgment_cost, total_minutes, rework_rate
             )
@@ -104,8 +105,10 @@ class FrictionRadar:
 
         step_totals = defaultdict(list)
         rework_steps = defaultdict(int)
-        for run in runs:
+        runs_with_step = defaultdict(set)
+        for ri, run in enumerate(runs):
             for e in run:
+                runs_with_step[e["activity"]].add(ri)
                 step_totals[e["activity"]].append(e["duration_minutes"])
                 if e["outcome"] == "rework":
                     rework_steps[e["activity"]] += 1
@@ -119,6 +122,8 @@ class FrictionRadar:
                 "avg_minutes": round(avg, 1),
                 "share_of_total": round(avg / total_avg, 3) if total_avg else 0,
                 "rework_occurrences": rework_steps.get(step, 0),
+                "runs_with_step": len(runs_with_step[step]),
+                "cv": round(statistics.pstdev(durations) / avg, 3) if len(durations) > 1 and avg else 0.0,
             })
         step_stats.sort(key=lambda s: -s["avg_minutes"])
 
@@ -128,6 +133,7 @@ class FrictionRadar:
 
         return {
             "workflow_name": workflow_name,
+            "total_runs": len(runs),
             "step_breakdown": step_stats,
             "bottleneck_steps": [b["step"] for b in bottlenecks],
             "narrative": (
