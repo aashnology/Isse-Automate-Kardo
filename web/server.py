@@ -53,6 +53,9 @@ from data_adapters import (
     from_github_pull_requests, from_csv_text, fetch_google_file,
 )
 from briefing import build_briefing
+from workspace import get_workspace, build_workspace, UnknownDataset, SAMPLE_ID
+from diagnosis import diagnose
+import llm_advisor
 import user_memory
 import mcp_bridge
 import aspen_bridge
@@ -186,6 +189,22 @@ def _clamped_top_k(raw, default=3, minimum=1, maximum=20):
     return max(minimum, min(value, maximum))
 
 
+def _dataset():
+    """The workspace the request is about (sample unless dataset_id says otherwise)."""
+    raw = request.args.get("dataset_id")
+    if raw is None and request.method == "POST":
+        body = request.get_json(silent=True)
+        raw = body.get("dataset_id") if isinstance(body, dict) else None
+    try:
+        return get_workspace(raw or SAMPLE_ID)
+    except UnknownDataset as exc:
+        raise BadRequest(str(exc.args[0]))
+
+
+def _scoped(ws, args):
+    return args if ws.id == SAMPLE_ID else {**args, "dataset_id": ws.id}
+
+
 # --- MCP-first routing --------------------------------------------------
 # Every analysis endpoint below asks the MCP server first, the same way
 # Alexa+ would, and only computes locally if the server can't be reached.
@@ -226,37 +245,56 @@ def index():
 def friction_points():
     top_k = _clamped_top_k(request.args.get("top_k"))
     include_dismissed = request.args.get("include_dismissed", "false").lower() == "true"
+    ws = _dataset()
 
     def direct():
-        points = friction_radar.top_friction_points(top_k=top_k + len(user_memory.list_dismissed()))
+        points = ws.radar.top_friction_points(top_k=top_k + len(user_memory.list_dismissed()))
         if not include_dismissed:
             points = [p for p in points if not user_memory.is_dismissed(p["workflow_name"])]
         return {"friction_points": points[:top_k]}
 
     return _mcp_first("get_top_friction_points",
-                      {"top_k": top_k, "include_dismissed": include_dismissed}, direct)
+                      _scoped(ws, {"top_k": top_k, "include_dismissed": include_dismissed}), direct)
 
 
 @app.route("/api/debug/<workflow_name>")
 def debug_workflow(workflow_name):
     if len(workflow_name) > MAX_WORKFLOW_NAME_LEN:
         raise BadRequest("'workflow_name' is too long.")
-    return _mcp_first("debug_workflow", {"workflow_name": workflow_name},
-                      lambda: friction_radar.debug_workflow(workflow_name))
+    ws = _dataset()
+    return _mcp_first("debug_workflow", _scoped(ws, {"workflow_name": workflow_name}),
+                      lambda: ws.radar.debug_workflow(workflow_name))
 
 
 @app.route("/api/anomalies/<workflow_name>")
 def anomalies(workflow_name):
     if len(workflow_name) > MAX_WORKFLOW_NAME_LEN:
         raise BadRequest("'workflow_name' is too long.")
-    return _mcp_first("detect_anomalous_runs", {"workflow_name": workflow_name},
-                      lambda: workflow_discovery.detect_anomalous_runs(workflow_name))
+    ws = _dataset()
+    return _mcp_first("detect_anomalous_runs", _scoped(ws, {"workflow_name": workflow_name}),
+                      lambda: ws.discovery.detect_anomalous_runs(workflow_name))
+
+
+@app.route("/api/diagnose/<workflow_name>")
+def diagnose_route(workflow_name):
+    """Findings, prescriptions, shadow-mode time saved and reliability for one
+    workflow, with advice from the configured model (or the template)."""
+    if len(workflow_name) > MAX_WORKFLOW_NAME_LEN:
+        raise BadRequest("'workflow_name' is too long.")
+    ws = _dataset()
+
+    def direct():
+        report = diagnose(ws, workflow_name)
+        return report if "error" in report else {"report": report, "advice": llm_advisor.advise(report)}
+
+    return _mcp_first("diagnose_workflow", _scoped(ws, {"workflow_name": workflow_name}), direct)
 
 
 @app.route("/api/propose", methods=["POST"])
 def propose():
     body = _json_body()
     workflow_name = _required_str(body, "workflow_name", MAX_WORKFLOW_NAME_LEN)
+    ws = _dataset()
 
     def direct():
         if user_memory.is_dismissed(workflow_name):
@@ -265,9 +303,9 @@ def propose():
                 "workflow_name": workflow_name,
                 "summary": f"You previously asked not to be offered automation for '{workflow_name}'.",
             }
-        return propose_action(workflow_name, friction_radar.debug_workflow(workflow_name))
+        return propose_action(workflow_name, ws.radar.debug_workflow(workflow_name), workspace=ws)
 
-    return _mcp_first("propose_automation", {"workflow_name": workflow_name}, direct)
+    return _mcp_first("propose_automation", _scoped(ws, {"workflow_name": workflow_name}), direct)
 
 
 @app.route("/api/confirm", methods=["POST"])
@@ -310,8 +348,9 @@ def brief():
     briefing.build_briefing, so Hexi's "brief me" and the MCP tool can't
     drift apart."""
     top_k = _clamped_top_k(request.args.get("top_k"))
-    return _mcp_first("narrate_briefing", {"top_k": top_k}, lambda: build_briefing(
-        friction_radar, workflow_discovery, top_k=top_k,
+    ws = _dataset()
+    return _mcp_first("narrate_briefing", _scoped(ws, {"top_k": top_k}), lambda: build_briefing(
+        ws.radar, ws.discovery, top_k=top_k,
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     ))
 
@@ -371,7 +410,8 @@ def agent():
         return jsonify(mcp_bridge.run_intent(
             _clean(body.get("intent"), _INTENT_RE),
             _clean(body.get("workflow"), _WORKFLOW_RE),
-            _clean(body.get("proposal_id"), _PROPOSAL_RE)))
+            _clean(body.get("proposal_id"), _PROPOSAL_RE),
+            dataset_id=_dataset().id))
     except mcp_bridge.McpUnavailable as exc:
         return _agent_error(f"The MCP server isn't reachable ({exc}). Start src/mcp_server.py.", 503)
     except Exception:  # noqa: BLE001 -- a judge's odd input must not become a stack trace
@@ -416,11 +456,11 @@ def import_data():
                 os.remove(tmp_path)
         else:
             return jsonify({"error": "Use a .json (ActivityWatch) or .csv (Toggl) file."}), 400
-        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6)
+        label, source, run_field = f.filename or "uploaded file", "file", None
 
     elif request.is_json and request.json.get("pasted_text"):
         raw = from_pasted_steps(request.json["pasted_text"])
-        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6)
+        label, source, run_field = "pasted steps", "pasted", None
 
     elif request.is_json and request.json.get("google_link"):
         try:
@@ -435,7 +475,7 @@ def import_data():
         except Exception:  # noqa: BLE001 -- network/parse failure, not a 500
             app.logger.exception("Google file import failed")
             return jsonify({"error": "Couldn't read that file. Check the link is shared as 'anyone with the link'."}), 400
-        wd = WorkflowDiscovery.from_raw_events(raw, similarity_threshold=0.6) if raw else None
+        label, source, run_field = "Google file", "file", None
 
     elif request.is_json and request.json.get("github_repo"):
         repo_spec = request.json["github_repo"].strip().strip("/")
@@ -462,7 +502,7 @@ def import_data():
             return jsonify({"error": "No closed pull requests found to analyze."}), 400
         # PRs can be open concurrently, so run boundaries are the PR itself,
         # not a time-gap guess -- see from_github_pull_requests' docstring.
-        wd = WorkflowDiscovery(raw, similarity_threshold=0.6, run_id_field="workflow_run_id")
+        label, source, run_field = f"{owner}/{repo} pull requests", "github", "workflow_run_id"
 
     else:
         return jsonify({"error": "Provide a file, pasted_text, github_repo, or google_link."}), 400
@@ -470,15 +510,21 @@ def import_data():
     if not raw:
         return jsonify({"error": "No events could be parsed from that input."}), 400
 
-    clusters = wd.discover()
+    try:
+        ws = build_workspace(raw, label, source, run_id_field=run_field)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    clusters = ws.discovery.discover()
     anomalies_by_cluster = {
-        c["matched_label"]: wd.detect_anomalous_runs(c["matched_label"]).get("anomalies", [])
+        c["matched_label"]: ws.discovery.detect_anomalous_runs(c["matched_label"]).get("anomalies", [])
         for c in clusters
     }
     return jsonify({
         "events_imported": len(raw),
         "discovered_workflows": clusters,
         "anomalies_by_cluster": anomalies_by_cluster,
+        "dataset": ws.summary(),
+        "dataset_id": ws.id,
     })
 
 

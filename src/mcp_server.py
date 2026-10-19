@@ -35,6 +35,9 @@ from briefing import build_briefing
 from data_adapters import from_activitywatch_events, from_toggl_csv
 from safe_import import resolve_import_path, UnsafeImportPath
 import user_memory
+from workspace import get_workspace, UnknownDataset, SAMPLE_ID
+from diagnosis import diagnose
+import llm_advisor
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 
@@ -92,16 +95,27 @@ mcp = FastMCP(
 )
 
 
+
+def _ws(dataset_id):
+    """(workspace, None) or (None, error dict). dataset_id 'sample' is the built-in data."""
+    try:
+        return get_workspace(dataset_id or SAMPLE_ID), None
+    except UnknownDataset as exc:
+        return None, {"error": str(exc.args[0])}
+
+
 # ---------------------------- Discovery tools -------------------------------
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def discover_workflows() -> dict:
+def discover_workflows(dataset_id: str = "sample") -> dict:
     """Discover recurring workflows directly from the raw activity event
     sequences, using sequence-similarity clustering -- not from any
     pre-existing workflow label. Use this to show how workflows were found,
     or when the user asks what patterns exist in their activity."""
-    clusters = workflow_discovery.discover()
-    return {"discovered_workflows": clusters}
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return {"discovered_workflows": ws.discovery.discover()}
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
@@ -145,73 +159,122 @@ def discover_workflows_from_import(source: str, file_path: str) -> dict:
 # ---------------------------- Friction Radar tools --------------------------
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False) -> dict:
+def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False, dataset_id: str = "sample") -> dict:
     """Return the workflows costing the user the most time, ranked by total
     time cost, with an automation-potential score for each. Use this when the
     user asks where they're wasting time or what's inefficient. Workflows the
     user has previously dismissed (see dismiss_workflow_suggestions) are left
     out by default -- pass include_dismissed=True only if the user explicitly
     asks to see everything regardless of past dismissals."""
-    points = friction_radar.top_friction_points(top_k=top_k + len(user_memory.list_dismissed()))
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    points = ws.radar.top_friction_points(top_k=top_k + len(user_memory.list_dismissed()))
     if not include_dismissed:
         points = [p for p in points if not user_memory.is_dismissed(p["workflow_name"])]
     return {"friction_points": points[:top_k]}
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def explain_friction(workflow_name: str) -> dict:
+def explain_friction(workflow_name: str, dataset_id: str = "sample") -> dict:
     """Explain in plain terms why a given workflow is or isn't a good
     automation candidate."""
-    return {"workflow_name": workflow_name, "explanation": friction_radar.explain(workflow_name)}
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return {"workflow_name": workflow_name, "explanation": ws.radar.explain(workflow_name)}
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def estimate_time_cost(workflow_name: str) -> dict:
+def estimate_time_cost(workflow_name: str, dataset_id: str = "sample") -> dict:
     """Return the total and average time cost for a named recurring
     workflow."""
-    result = friction_radar.estimate_time_cost(workflow_name)
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    result = ws.radar.estimate_time_cost(workflow_name)
     if result is None:
         return {"error": f"No data for workflow '{workflow_name}'"}
     return result
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def debug_workflow(workflow_name: str) -> dict:
+def debug_workflow(workflow_name: str, dataset_id: str = "sample") -> dict:
     """Root-cause a slow workflow: break down which specific steps actually
     consume the time, not just the total. Use this when the user asks why
     something takes so long or where the time in a workflow actually goes."""
-    return friction_radar.debug_workflow(workflow_name)
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return ws.radar.debug_workflow(workflow_name)
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def detect_anomalous_runs(workflow_name: str, top_k: int = 3) -> dict:
+def detect_anomalous_runs(workflow_name: str, top_k: int = 3, dataset_id: str = "sample") -> dict:
     """Find specific occurrences of a workflow that took unusually long
     compared to that workflow's own typical pattern, and identify which
     step likely caused the delay. Use this when the user asks if anything
     unusual happened, or wants to know about a specific bad instance rather
     than the average."""
-    return workflow_discovery.detect_anomalous_runs(workflow_name, top_k=top_k)
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return ws.discovery.detect_anomalous_runs(workflow_name, top_k=top_k)
 
 
 # ---------------------------- Narration tool ---------------------------------
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
-def narrate_briefing(top_k: int = 3) -> dict:
+def narrate_briefing(top_k: int = 3, dataset_id: str = "sample") -> dict:
     """Compose one short, spoken-ready briefing covering the top friction
     points and any anomalous runs -- a deterministic template over the
     already-computed analysis, not a language-model call. Use this when the
     user wants one pulled-together update rather than calling several tools
     themselves."""
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
     return build_briefing(
-        friction_radar, workflow_discovery, top_k=top_k,
+        ws.radar, ws.discovery, top_k=top_k,
         exclude={d["workflow_name"] for d in user_memory.list_dismissed()},
     )
+
+
+# ---------------------------- Diagnosis tools --------------------------------
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=True))
+def diagnose_workflow(workflow_name: str, dataset_id: str = "sample") -> dict:
+    """Diagnose a workflow and prescribe what to do about it: findings (the
+    bottleneck, unstable steps, outliers), ranked actions with expected effect,
+    a shadow-mode estimate of time saved with an interval, and a 0-100
+    reliability score with its caveats. Use this when the user asks whether
+    automating something is worth it, how reliable the result would be, or
+    what to do next. `advice` is written by a language model when one is
+    configured (and checked so every figure comes from the report); otherwise
+    from a template. `advice.source` says which."""
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    report = diagnose(ws, workflow_name)
+    if "error" in report:
+        return report
+    return {"report": report, "advice": llm_advisor.advise(report)}
+
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
+def list_datasets(dataset_id: str = "sample") -> dict:
+    """Describe a dataset: its label, how many events and runs, and which
+    workflows were discovered in it. Use this to see what a dataset_id holds."""
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return ws.summary()
 
 
 # ---------------------------- Action tools ----------------------------------
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False, openWorldHint=False))
-def propose_automation(workflow_name: str) -> dict:
+def propose_automation(workflow_name: str, dataset_id: str = "sample") -> dict:
     """Propose automating the low-judgment steps of a workflow, based on its
     debug_workflow breakdown. This NEVER executes anything -- it only returns
     a proposal_id. Use confirm_automation with that id to actually execute,
@@ -228,8 +291,11 @@ def propose_automation(workflow_name: str) -> dict:
                 f"'{workflow_name}'. Say the word and I'll bring it back."
             ),
         }
-    debug_result = friction_radar.debug_workflow(workflow_name)
-    return propose_action(workflow_name, debug_result)
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    debug_result = ws.radar.debug_workflow(workflow_name)
+    return propose_action(workflow_name, debug_result, workspace=ws)
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=True, idempotentHint=False, openWorldHint=False))

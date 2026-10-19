@@ -20,7 +20,7 @@ READ_ONLY_TOOLS = {
     "discover_workflows", "discover_workflows_from_import",
     "get_top_friction_points", "explain_friction", "estimate_time_cost",
     "debug_workflow", "detect_anomalous_runs", "narrate_briefing",
-    "list_dismissed_workflow_suggestions",
+    "list_dismissed_workflow_suggestions", "diagnose_workflow", "list_datasets",
 }
 WRITE_TOOLS = {
     "propose_automation", "confirm_automation",

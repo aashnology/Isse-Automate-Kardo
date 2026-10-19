@@ -88,18 +88,18 @@ def _hours(minutes):
     return round(minutes / 60, 1)
 
 
-def run_intent(intent, workflow=None, proposal_id=None, url=None):
+def run_intent(intent, workflow=None, proposal_id=None, url=None, dataset_id=None):
     """Execute one classified voice intent through MCP tools. Returns
     {reply, mood, pending_proposal_id, tools, protocol}."""
-    if intent not in NEEDS_WORKFLOW | {"brief", "friction", "dismissed_list"}:
+    if intent not in NEEDS_WORKFLOW | {"brief", "friction", "dismissed_list", "diagnose"}:
         # Unknown, empty, help, or anything unrecognised: answer with what can
         # be asked rather than an error. No tool is called.
         return {"reply": "I didn't catch a request I can act on. Try: " + "; ".join(EXAMPLES[:4]) + ".",
                 "mood": "idle", "pending_proposal_id": proposal_id, "tools": [], "protocol": None,
                 "intent": "unknown", "examples": EXAMPLES}
 
-    if intent in NEEDS_WORKFLOW and not workflow:
-        return {"reply": "Which workflow? Try reporting, bug triage, or onboarding.",
+    if (intent in NEEDS_WORKFLOW or intent == "diagnose") and not workflow:
+        return {"reply": "Which workflow? Name one from the list on screen.",
                 "mood": "idle", "pending_proposal_id": proposal_id, "tools": [], "protocol": None}
 
     if intent == "brief":
@@ -113,12 +113,19 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None):
     elif intent == "automate":
         calls = ([("confirm_automation", {"proposal_id": proposal_id})] if proposal_id
                  else [("propose_automation", {"workflow_name": workflow})])
+    elif intent == "diagnose":
+        calls = [("diagnose_workflow", {"workflow_name": workflow})]
     elif intent == "dismiss":
         calls = [("dismiss_workflow_suggestions", {"workflow_name": workflow, "reason": "dismissed by voice"})]
     elif intent == "restore":
         calls = [("restore_workflow_suggestions", {"workflow_name": workflow})]
     elif intent == "dismissed_list":
         calls = [("list_dismissed_workflow_suggestions", {})]
+
+    if dataset_id and dataset_id != "sample":
+        scoped = {"narrate_briefing", "get_top_friction_points", "debug_workflow", "detect_anomalous_runs",
+                  "propose_automation", "diagnose_workflow"}
+        calls = [(n, {**a, "dataset_id": dataset_id} if n in scoped else a) for n, a in calls]
 
     version, (data,) = call_tools(calls, url=url)
     out = {"reply": "", "mood": "idle", "pending_proposal_id": None,
@@ -151,8 +158,16 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None):
             if "error" in data:
                 out["reply"] = data["error"]
             else:
-                out["reply"] = "Done — marked as automated (execution is simulated in this build)."
+                report = data.get("report") or {}
+                saved, rel = report.get("time_saved"), report.get("reliability")
+                if saved and rel:
+                    out["reply"] = (f"Done. Replaying your history, that saves about {saved['minutes_saved_per_run']} minutes a run, "
+                                    f"roughly {saved['hours_saved_per_week']} hours a week. Reliability {rel['score']} out of 100, "
+                                    f"grade {rel['grade']}.")
+                else:
+                    out["reply"] = "Done — marked as automated (execution is simulated in this build)."
                 out["mood"] = "confirmed"
+                out["report"] = report or None
         elif data.get("proposal_id"):
             out["pending_proposal_id"] = data["proposal_id"]
             out["reply"] = f"{data['summary']} Say yes to confirm."
@@ -160,6 +175,15 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None):
         else:
             out["reply"] = data.get("summary", "Nothing here was safe to automate.")
             out["mood"] = "watching"
+    elif intent == "diagnose":
+        if "error" in data:
+            out["reply"] = data["error"]
+        else:
+            adv = data["advice"]
+            first = adv["prescription"][0]["action"] if adv.get("prescription") else ""
+            out["reply"] = f"{adv['headline']} {first}".strip()
+            out["mood"] = "curious"
+            out["diagnosis"] = data
     elif intent == "dismiss":
         out["reply"] = f"Got it — won't suggest '{workflow}' again, even after a restart."
     elif intent == "restore":
