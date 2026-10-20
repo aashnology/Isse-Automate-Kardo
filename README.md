@@ -78,12 +78,13 @@ That is checked by a real MCP client against the running process
 that negotiates an older version (`web/mcp_bridge.py`). It has not been
 tested inside an Alexa+ surface, because none is available to developers.
 
-Clustering, scoring, and anomaly detection are all deterministic — no LLM
-involved anywhere in this pipeline, including `narrate_briefing`: it turns
-numbers this project already computed into a sentence via a fixed
-template, never a model call. It never ranks, scores, or touches the
-underlying data itself, and it has no external dependency or credential to
-configure — it returns the same complete, correct answer every time.
+Clustering, scoring, anomaly detection, time-saved and reliability figures
+are all deterministic: no model computes a number anywhere in this project.
+`narrate_briefing` turns numbers already computed into a sentence via a
+fixed template. The one optional model call is the diagnostic advisor
+(below), which only words a report the deterministic code has already
+produced, and is checked against it. With no credential configured,
+everything still works and returns the same answer every time.
 
 The pipeline isn't tied to synthetic data, either. `data_adapters.py` reads
 real [ActivityWatch](https://github.com/ActivityWatch/activitywatch) and
@@ -96,6 +97,58 @@ one piece of state in this project backed by a file on disk rather than
 kept only for the length of a conversation. Tell it to stop suggesting a
 workflow, and it stays stopped — restart the server entirely, and it's
 still true.
+
+## Any data, then a diagnosis
+
+**Imports are first-class datasets.** An import (ActivityWatch, Toggl, a
+pasted step list, a GitHub repo's PR history, a Google Sheet) is clustered
+into workflows and saved under a content-hash id (`src/workspace.py`). Every
+MCP tool and web route takes an optional `dataset_id`, so propose, confirm
+and diagnose run on whatever you brought, not only the built-in sample. State
+lives on disk rather than in a process global, so the web server and the MCP
+server (separate processes) see the same datasets and concurrent users do not
+overwrite each other. An earlier version analysed an import and then threw it
+away while propose and confirm kept reading the sample; that is the bug this
+layer removes.
+
+**Which steps are safe to automate is decided per step**
+(`src/automation_model.py`), from the verbs in the step name (download,
+export and rename are mechanical; review, approve and debug are not) and from
+the data: how consistently the step appears, how much its duration varies, and
+how often it needed rework. Steps the synthetic catalogue already defines keep
+their original verdicts. The per-workflow tier agrees with these verdicts, so
+a frequent, long workflow made of judgment steps is not called automatable.
+
+**Time saved is measured in shadow mode** (`src/diagnosis.py`). The approved
+steps are replayed against the recorded history, keeping 10% of their time for
+supervision, and the estimate is checked on a chronological holdout: fitted on
+the earlier runs, scored on the later ones. Weekly figures come with an 80%
+bootstrap interval. Nothing runs against live applications, and the report
+says so.
+
+**Reliability is a 0 to 100 score with named parts**: runs observed, how steady
+the step durations are, how many runs contain every proposed step, how alike
+the runs are, the holdout error, and whether the data carries outcomes. Data
+with no success or rework signal cannot score above 79, because the quality of
+an automated result cannot be verified from timings alone. Every caveat that
+applies is listed next to the grade.
+
+**Hexi's advisor** (`src/llm_advisor.py`) writes the diagnosis (what is wrong
+and why) and the prescription (what to do, in order) from that report. It
+works with Anthropic or any OpenAI-compatible endpoint, and otherwise uses a
+built-in template; the response says which wrote it. Three guards apply: step
+names are reduced to `[a-z0-9_]` and passed as data, the reply must match a
+fixed JSON shape, and every figure in it must trace to the report or the whole
+reply is discarded for the template.
+
+## Retro UI
+
+The web demo is a pixel-art interface in the spirit of the My-Woofie
+companion: navy panels, amber borders, Press Start 2P (SIL OFL, bundled in
+`web/static/fonts`), an XP bar, six trophies, 8-bit sound effects (toggle
+with SFX), a battle report and a diagnosis panel after each automation. XP and
+trophies are cosmetic and stored in your browser; the hours shown are the
+shadow-mode estimates, labelled as estimates. Hexi herself is unchanged.
 
 The full research citations behind the clustering and ranking methods,
 the complete MCP tool list, and an honest list of what hasn't been tested
@@ -122,6 +175,33 @@ limitations are in [docs/RESEARCH_AND_NOTES.md](docs/RESEARCH_AND_NOTES.md).
   tool). Carbonell & Goldstein,
   [The Use of MMR, Diversity-Based Reranking](https://blog.langchain.com/content/files/~jgc/publication/the_use_mmr_diversity_based_ltmir_1998.pdf)
   (SIGIR, 1998), keeps a top-k list from repeating one story.
+- **Which steps to automate, and how to specify them**, in
+  `src/automation_model.py` and `src/diagnosis.py`. Bosco, Augusto, Dumas,
+  La Rosa & Fortino, [Discovering Automatable Routines from User Interaction
+  Logs](https://kodu.ut.ee/~dumas/pubs/rpadiscovery.pdf) (BPM Forum, 2019),
+  separates discovering routines from deciding which are automatable; we take
+  the same split and decide automatability per step from determinism, presence
+  and rework. Leno et al., [Discovering executable routine specifications from
+  user interaction logs](https://arxiv.org/abs/2106.13446) (2021), turns an
+  automatable routine into an executable specification; our `automation_spec`
+  is the same idea at a lighter weight (a plan, not a script). Wewerka &
+  Reichert, [Robotic Process Automation: a systematic literature review and
+  assessment framework](https://arxiv.org/abs/2012.11951) (2020), is where the
+  suitability criteria we use (repetition, rule-based steps, error rate)
+  come from.
+- **Uncertainty on time saved**, in `src/diagnosis.py`. Efron, [Bootstrap
+  Methods: Another Look at the Jackknife](https://doi.org/10.1214/aos/1176344552)
+  (Annals of Statistics, 1979): a percentile bootstrap gives the 80% interval,
+  because per-run savings are few and skewed and a normal approximation
+  would overstate our certainty. The holdout is chronological, fit on earlier
+  runs and scored on later ones, so it cannot leak the future.
+- **Treating imported text as untrusted input to a model**, in
+  `src/llm_advisor.py`. Greshake et al., [Not what you've signed up for:
+  Compromising Real-World LLM-Integrated Applications with Indirect Prompt
+  Injection](https://arxiv.org/abs/2302.12173) (2023), shows that data an
+  application retrieves can act as instructions. Step names come from the
+  user's files, so they are normalised to a safe character set, passed as a
+  data block, and the model's reply is validated and numerically grounded.
 - **Anomalous runs**, in `src/workflow_discovery.py`. Tukey's IQR fence
   (*Exploratory Data Analysis*, 1977) rather than a z-score, because run
   durations are right-skewed.
@@ -255,6 +335,14 @@ this one page, not your real tabs, and the extension does not read page
 content either. Real cross-tab visibility would need broad permissions and
 a real consent design, which is a different, bigger product than this
 hackathon build attempts.
+
+### Hexi's advisor (optional)
+
+Diagnoses come from a built-in template unless a model is configured. Set
+`ANTHROPIC_API_KEY`, or `LLM_BASE_URL` and `LLM_API_KEY` for an
+OpenAI-compatible endpoint, in `.env` (see `.env.example`). The MCP server
+makes the call, so put the variables where it can read them; with Docker
+Compose both services read the same `.env`.
 
 ### Tests
 

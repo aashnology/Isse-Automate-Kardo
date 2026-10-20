@@ -14,7 +14,7 @@ you exactly what's worth automating -- you say yes, and only then does it
 act.
 
 Isse Automate Kardo is a self-hosted MCP server (spec 2025-11-25+,
-Streamable HTTP) with 13 tools exposed to Alexa+. It takes a stream of raw
+Streamable HTTP) with 15 tools exposed to Alexa+. It takes a stream of raw
 activity events -- no pre-existing workflow labels -- and:
 
 - **discovers recurring workflows** from the event stream itself, using
@@ -28,6 +28,16 @@ activity events -- no pre-existing workflow labels -- and:
   low-judgment ones; steps that need human discretion are never proposed
 - **executes nothing without an explicit confirm call**, and a used
   proposal can't be replayed
+- **works on any data, not just the sample**: an import (ActivityWatch,
+  Toggl, pasted steps, a GitHub repo's PRs, a Google Sheet) becomes a saved
+  dataset, and every tool takes a `dataset_id`
+- **reports what an automation would have saved**, by replaying your recorded
+  history in shadow mode with a chronological holdout and an 80% bootstrap
+  interval, plus a 0 to 100 reliability score whose parts and caveats are
+  shown
+- **diagnoses and prescribes** (`diagnose_workflow`): findings, ranked
+  actions with expected effect, written by a model when one is configured and
+  by a template otherwise, with every figure checked against the report
 - **remembers standing preferences** ("stop suggesting this") on disk,
   across restarts and sessions -- not just within one conversation
 
@@ -56,7 +66,7 @@ disclose or distinguish from what changed during the window.
 
 ### Tools, APIs and SDKs used, and for what
 
-- **MCP Python SDK (`mcp==1.30.0`, FastMCP)** -- the server itself: 13 tools
+- **MCP Python SDK (`mcp==1.30.0`, FastMCP)** -- the server itself: 15 tools
   over Streamable HTTP. Verified with a real MCP client in
   `tests/test_mcp_protocol.py` (negotiates protocol `2025-11-25`, lists the
   tools, executes a call).
@@ -67,7 +77,7 @@ disclose or distinguish from what changed during the window.
 
 - **FastMCP's developer experience.** Decorating a typed function with
   `@mcp.tool()` and letting the docstring become the tool description is the
-  right abstraction: 13 tools with almost no protocol boilerplate. Writing
+  right abstraction: 15 tools with almost no protocol boilerplate. Writing
   docstrings as instructions to the calling model ("use this when the user
   asks...") turned out to be a genuinely useful design discipline, because
   the docstring *is* the interface an assistant reasons over.

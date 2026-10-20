@@ -573,7 +573,7 @@ running server before being written up as tests.
   unprotected. Verified live, not just read: confirmed the server starts
   fine on the loopback default, refuses to start on `0.0.0.0` without the
   allowlist, and starts and answers correctly once it's set.
-- **MCP tool annotations:** all 13 tools now declare `readOnlyHint`/
+- **MCP tool annotations:** all tools (13 at the time; 15 now) now declare `readOnlyHint`/
   `destructiveHint`/`idempotentHint` (e.g. `confirm_automation` is the one
   `destructiveHint=True` tool -- it's this project's actual point of no
   return, even as a stub). A client that trusts these can skip confirming
@@ -661,3 +661,71 @@ servers.
 input with a structured reply. A wrong port in the extension request is the
 likely first-run failure: `/api/agent` lives on the Hexi server (:5000), not
 the MCP endpoint (:8000).
+
+---
+
+## 16. The final pass: any data, diagnosis, time saved, the advisor, the retro UI
+
+### 16.1 The bug, and why it was structural
+
+**Symptom.** Import a pasted step list, ask Hexi to "automate it", and it answered that proposing and confirming only worked on the built-in sample.
+
+**Root cause (three separate things, all had to go).**
+1. `/api/import` analysed a file and discarded the result. `propose`, `debug` and `confirm` read module-level objects built from the sample at start-up. An import could never become the thing you acted on.
+2. The "safe to automate" set was a hard-coded list of six step names from the synthetic data. Any real step name had nothing to match.
+3. Per-workflow scoring defaulted every unknown step to a neutral judgment cost, so imported workflows scored the same regardless of content.
+
+**Fix.** `workspace.py` makes an import a persisted, content-addressed dataset. Every MCP tool and web route takes `dataset_id` (default `sample`). `automation_model.py` scores each step on the verbs in its name and on the data. Sample behaviour is unchanged: steps in the original catalogue keep exactly their original verdicts, which is why the existing 219 tests passed untouched.
+
+**Why files on disk, not a global.** The web server and the MCP server are separate processes (and separate containers). A global in one is invisible to the other. A content-hash id means the same data imported twice is the same dataset, and two users cannot overwrite each other. The id is validated against `^[a-f0-9]{16}$` before it touches a path.
+
+**Judge question: "Isn't a verb lexicon just a hack?"** It is a prior, and the guide should say so. It is blended with data (presence across runs, duration variance, rework) and only the mechanical-and-consistent combination passes. It is English-only, and it errs toward "needs a person". The failure we accept is a missed opportunity; the one we avoid is automating something that needed judgment. Real log data (live PR history from `psf/requests`) produced no automatable steps, correctly: `pr_opened` and `pr_closed` are decisions.
+
+### 16.2 Time saved: shadow mode, with a holdout
+
+**What it does.** Replays the recorded runs with the approved steps automated, keeping 10% of their time for supervision. Per-run saving is `sum(duration of approved steps) x 0.9`. Weekly hours = per-run saving x runs per week, where runs per week comes from the observed span (at least one week, so a short burst cannot be extrapolated wildly).
+
+**Why not just run it?** Execution in this build is a stub; we cannot honestly claim to have executed against someone's applications. Replay answers the question that matters for a decision ("what would this have saved on my own history?") and is measurable. The report labels itself shadow mode.
+
+**Holdout.** With 6 or more runs, fit on the first 70% and score on the last 30%. The relative error feeds the reliability score. It is chronological, so it cannot leak the future into the past.
+
+**Interval.** A percentile bootstrap (1000 resamples, fixed seed, 10th to 90th percentile). Per-run savings are few and skewed; a normal approximation would look more certain than the data allows. Fixed seed means the same data gives the same interval on every run, which matters for a demo.
+
+**Judge question: "Why 10% overhead?"** It is an assumption, stated in the report and exposed as one constant (`RESIDUAL_OVERHEAD`). It is not fitted. Say that. Changing it scales every estimate linearly.
+
+### 16.3 Reliability score
+
+Weights: runs observed 0.20, steady durations 0.20, steps present in every run 0.20, runs alike 0.15, holdout 0.15, outcome data 0.10. They are judgment, not fitted, and the guide should not pretend otherwise. What is defensible is that each part is a plain, inspectable quantity and every caveat that applies is printed beside the grade.
+
+**The cap.** Data with no success or rework signal cannot score above 79, so it cannot earn an A. A first run produced an A for eight pasted runs with an unverifiable outcome; that was wrong, so the cap exists. It is a tested behaviour (`test_data_without_outcomes_cannot_reach_grade_a`).
+
+**Pasted data.** Pasted steps carry no real timestamps, so weekly and monthly figures assume the adapter's spacing. The report says so; per-run savings are the number to trust.
+
+### 16.4 The advisor (LLM), and exactly what was and was not tested
+
+**Design.** The model never produces a number. `diagnosis.py` computes a report; the model writes the diagnosis and the prescription from it. Guards: step names are normalised to `[a-z0-9_]` and sent as a data block; the reply must parse into a fixed shape; every figure in the reply must trace to the report (same number to rounding, minutes as hours, or a 0 to 1 share as a percentage), otherwise the reply is thrown away and the template is used. Failures cool down for 60 seconds so an outage does not slow every request. `advice.source` says which wrote it, and the UI shows a badge.
+
+**Honest limits to volunteer.**
+- The grounding check is numeric, not semantic. A model could still say something wrong in words using correct numbers. It reduces invented figures; it does not prove the prose is right.
+- The first version of the check was too permissive (it compared against every number in the report under several unit conversions, so an invented figure matched by chance). It was tightened and a test now pins the behaviour. Mention this as an example of testing the guard, not trusting it.
+- **The live model path was verified with a mocked provider only.** The credential supplied for this pass was a GitHub token, not a model key, so no real model call was made. The code supports Anthropic and any OpenAI-compatible endpoint; the default model name is configurable (`HEXI_LLM_MODEL`). Do not claim a live LLM run in the video unless you have run one.
+- The template path is the one exercised end to end in the browser.
+
+### 16.5 The UI
+
+Pixel theme in the My-Woofie style (navy, amber, Press Start 2P, cream speech bubbles). Hexi's SVG faces and animations are untouched; her workspace is a pixel night sky and floor. XP, level and six trophies are cosmetic and live in `localStorage`; the HUD hours are the estimates, labelled as such. Everything dynamic is inserted with `textContent`, so imported step names cannot become markup. The one test that guarded an `innerHTML` site was updated because that site now uses `textContent`; every remaining `innerHTML` use with data is escaped. The font is SIL OFL and bundled with its licence, so the strict `script-src 'self'` CSP is unaffected.
+
+**Browser verification.** The UI was driven headlessly through the exact failing flow (import pasted steps, type "Automate it."): no console errors, the biggest time sink was selected automatically, and the report and diagnosis rendered.
+
+### 16.6 Likely questions and short answers
+
+| Question | Answer |
+|---|---|
+| What exactly changed in this pass? | Datasets, per-step automation model, shadow-mode time saved, reliability score, the advisor, dataset-aware MCP tools plus `diagnose_workflow` and `list_datasets`, and the retro UI. |
+| Did sample behaviour change? | No. Catalogue steps keep their verdicts; the tier is only rescaled for workflows containing steps outside the catalogue. |
+| Is anything actually executed? | No. Execution is simulated and the report is a replay of history. Said on screen. |
+| Why not fit the reliability weights? | There is no labelled outcome data to fit them on. Fitting on nothing would be false precision. |
+| How do you know the saving is real? | You do not, in the sense of a live trial. You know what it would have been on your own history, with an interval and a holdout. A live A/B of automated against manual runs is the next step. |
+| What breaks first at scale? | Discovery is quadratic in runs; the workspace caps events at 50,000 and clusters at most 2,000 runs. Beyond that, sample or sessionise upstream. |
+| Where is the security boundary? | Imports are parsed, never executed. Dataset ids are validated. Step names are normalised before reaching a prompt. The model has no tools. |
+| Why a template fallback? | A demo that depends on a network call fails at the worst moment. The fallback is deterministic and clearly labelled. |
