@@ -35,6 +35,7 @@ SAMPLE_THRESHOLD = 0.75
 _LOCK = threading.Lock()
 _CACHE = OrderedDict()  # (id, mtime) -> Workspace
 _CACHE_MAX = 16
+_VOLATILE = OrderedDict()  # imports that could not be written to disk (this process only)
 
 
 class UnknownDataset(KeyError):
@@ -143,7 +144,16 @@ def build_workspace(raw_events, label, source, run_id_field=None, persist=True):
         separators=(",", ":")).encode()).hexdigest()[:16]
     ws = Workspace(digest, label, source, labelled, outcome_known=False, threshold=IMPORT_THRESHOLD)
     if persist:
-        _save(ws)
+        try:
+            _save(ws)
+        except OSError:
+            # Read-only or unwritable data directory: the import still works in
+            # this process. The MCP server cannot see it, and the web server
+            # falls back to calling the functions directly.
+            with _LOCK:
+                _VOLATILE[ws.id] = ws
+                while len(_VOLATILE) > _CACHE_MAX:
+                    _VOLATILE.popitem(last=False)
     return ws
 
 
@@ -183,6 +193,9 @@ def get_workspace(ws_id=None):
             return _SAMPLE
     if not isinstance(ws_id, str) or not _ID_RE.match(ws_id):
         raise UnknownDataset(f"'{str(ws_id)[:20]}' is not a valid dataset id.")
+    with _LOCK:
+        if ws_id in _VOLATILE:
+            return _VOLATILE[ws_id]
     path = os.path.join(workspace_dir(), f"{ws_id}.json")
     try:
         mtime = os.path.getmtime(path)

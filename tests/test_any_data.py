@@ -231,3 +231,12 @@ def test_tier_agrees_with_step_verdicts_for_unknown_steps():
 def test_voice_route_answers_politely_for_an_unknown_dataset(client):
     r = client.post("/api/agent", json={"intent": "brief", "dataset_id": "deadbeefdeadbeef"})
     assert r.status_code == 400 and "import again" in r.get_json()["reply"].lower()
+
+
+def test_import_survives_an_unwritable_data_directory(monkeypatch):
+    import workspace
+    monkeypatch.setattr(workspace, "_save", lambda ws: (_ for _ in ()).throw(PermissionError("read-only")))
+    raw = [{"timestamp": f"2026-01-{d:02d}T09:{m:02d}:00+00:00", "activity": a, "duration_minutes": 5}
+           for d in range(1, 5) for m, a in enumerate(["download_file", "clean_data", "export"])]
+    w = build_workspace(raw, "ro", "file")
+    assert get_workspace(w.id).workflow_names() == w.workflow_names()

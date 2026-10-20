@@ -11,7 +11,7 @@ COPY web/ ./web/
 COPY .env.example ./.env.example
 
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
-    && mkdir -p /app/data && chown -R app:app /app
+    && mkdir -p /app/data/workspaces && chown -R app:app /app
 USER app
 
 ENV PYTHONUNBUFFERED=1 \

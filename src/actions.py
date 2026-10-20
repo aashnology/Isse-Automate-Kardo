@@ -6,7 +6,7 @@ Two small pieces that turn "two separate systems" into "one product":
    workflow's step names and item topics/titles). This is intentionally
    simple: a real version would use the same TF-IDF space as the ranking
    engine, but keyword overlap is honest about what it is and easy to
-   defend in an interview -- no hidden magic.
+   audit line by line -- no hidden magic.
 
 2. A minimal human-in-the-loop action layer: propose_action never executes
    anything. It returns a proposal with an id. Only a matching

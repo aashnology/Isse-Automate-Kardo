@@ -18,6 +18,7 @@ services:
         required: false  # fine to skip entirely; nothing here needs it to run
     volumes:
       - ./data:/app/data  # shared with `hexi` so dismissals persist and both see one dataset
+      - datasets:/app/data/workspaces  # imported datasets; a named volume so the non-root user can always write
 
   hexi:
     build: .
@@ -28,8 +29,13 @@ services:
     environment:
       HEXI_MCP_URL: http://mcp:8000/mcp   # /api/agent reaches the MCP server over the compose network
     env_file:
-      - .env
+      - path: .env
+        required: false  # same as the mcp service: optional
     ports:
       - "127.0.0.1:5000:5000"   # Hexi page + /api/agent: http://localhost:5000
     volumes:
       - ./data:/app/data
+      - datasets:/app/data/workspaces
+
+volumes:
+  datasets:

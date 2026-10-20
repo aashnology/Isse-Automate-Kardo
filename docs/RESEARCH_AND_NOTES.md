@@ -39,7 +39,7 @@ lean on published methods rather than ad hoc heuristics:
 
 Each of these was chosen and implemented directly (no library did the
 clustering or the diversity trade-off for us) specifically so it stays
-inspectable and explainable in an interview, rather than being an LLM's
+inspectable and explainable, rather than being an LLM's
 best guess dressed up as analysis.
 
 ## Known limitations, said plainly
