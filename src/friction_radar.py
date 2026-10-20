@@ -6,7 +6,8 @@ sequence aggregation over the event log.
 
 from collections import defaultdict
 import statistics
-from automation_model import prior_judgment_cost
+from automation_model import prior_judgment_cost, step_verdicts
+from synthetic_data import STEP_JUDGMENT_COST
 
 
 class FrictionRadar:
@@ -46,8 +47,17 @@ class FrictionRadar:
             automation_potential = self._automation_score(
                 frequency, avg_judgment_cost, total_minutes, rework_rate
             )
+            # For steps outside the built-in catalogue the tier must agree with the
+            # per-step verdicts: a workflow whose time sits in steps that need a
+            # person cannot be "highly automatable" just because it is frequent
+            # and long. Scale by the share of time in steps judged safe.
+            breakdown = self.debug_workflow(name).get("step_breakdown", [])
+            safe_share = sum(b["share_of_total"] for b in breakdown if b.get("automatable"))
+            if any(st not in STEP_JUDGMENT_COST for st in steps):
+                automation_potential *= safe_share
             results.append({
                 "workflow_name": name,
+                "automatable_time_share": round(safe_share, 3),
                 "frequency": frequency,
                 "total_time_cost_minutes": round(total_minutes, 1),
                 "avg_duration_minutes": round(avg_minutes, 1),
@@ -131,6 +141,9 @@ class FrictionRadar:
         top_names = ", ".join(f"'{b['step']}'" for b in bottlenecks[:2]) if bottlenecks else "no single step"
         bottleneck_share = round(sum(b["share_of_total"] for b in bottlenecks[:2]) * 100)
 
+        for stat, verdict in zip(step_stats, step_verdicts(step_stats, len(runs))):
+            stat["automatable"] = verdict["automatable"]
+            stat["judgment_cost"] = verdict["judgment_cost"]
         return {
             "workflow_name": workflow_name,
             "total_runs": len(runs),

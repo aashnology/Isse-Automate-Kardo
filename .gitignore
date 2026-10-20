@@ -5,3 +5,4 @@ __pycache__/
 .DS_Store
 .env
 data/user_memory.json
+data/workspaces/

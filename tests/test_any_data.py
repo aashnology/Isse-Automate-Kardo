@@ -206,3 +206,23 @@ def test_unknown_dataset_is_a_400(client):
 
 def test_sample_still_works_without_a_dataset_id(client):
     assert client.get("/api/friction-points").get_json()["friction_points"]
+
+
+def test_data_without_outcomes_cannot_reach_grade_a(ws):
+    rel = automation_report(ws, ws.workflow_names()[0], ["clean_data"])["reliability"]
+    assert rel["score"] <= 79 and rel["grade"] != "A"
+
+
+def test_sample_with_known_outcomes_can_reach_grade_a():
+    sample = get_workspace()
+    rel = automation_report(sample, "weekly_reporting", ["column_cleanup", "export", "upload"])["reliability"]
+    assert rel["grade"] == "A"
+
+
+def test_tier_agrees_with_step_verdicts_for_unknown_steps():
+    raw = [{"timestamp": f"2026-01-{d:02d}T09:{m:02d}:00+00:00", "activity": a, "duration_minutes": 60}
+           for d in range(1, 13) for m, a in enumerate(["approve_budget", "review_contract"])]
+    w = build_workspace(raw, "judgment heavy", "file")
+    point = w.radar.top_friction_points(top_k=1)[0]
+    assert point["automatable_time_share"] == 0
+    assert point["automation_tier"] == "poor automation candidate"

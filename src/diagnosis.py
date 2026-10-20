@@ -25,6 +25,7 @@ HOLDOUT_FRACTION = 0.30
 MIN_RUNS_FOR_HOLDOUT = 6
 BOOTSTRAP_SAMPLES = 1000
 WEEKS_PER_MONTH = 4.345
+UNVERIFIED_SCORE_CAP = 79  # keeps data without outcomes out of grade A
 TARGET_RUNS = 12            # runs at which sample-size evidence is treated as full
 
 WEIGHTS = {"evidence": 0.20, "stability": 0.20, "coverage": 0.20,
@@ -117,6 +118,10 @@ def reliability(ws, workflow, steps, saved):
     comps = {"evidence": min(1.0, n / TARGET_RUNS), "stability": stability, "coverage": coverage,
              "cohesion": cohesion, "holdout": holdout, "outcome": outcome}
     score = round(100 * sum(WEIGHTS[k] * v for k, v in comps.items()))
+    if not ws.outcome_known:
+        # Without success/rework data the quality of an automated result cannot
+        # be checked, so the top grade is not available however clean the timings are.
+        score = min(score, UNVERIFIED_SCORE_CAP)
     grade, label = (("A", "High confidence") if score >= 80 else ("B", "Good confidence") if score >= 65
                     else ("C", "Moderate confidence") if score >= 50 else ("D", "Low confidence"))
 

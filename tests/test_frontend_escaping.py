@@ -50,7 +50,10 @@ def test_untrusted_render_sites_use_escape_html():
     three sites that render imported/error data via innerHTML."""
     with open(APP_JS) as f:
         js = f.read()
-    assert "escapeHtml(debug.error)" in js
+    # The tab panel is now built with DOM calls (textContent), so a server
+    # error can't be parsed as markup; it must never be interpolated into HTML.
+    assert 'el("p", "status", debug.error)' in js
+    assert "${debug.error}" not in js
     assert "escapeHtml(data.error)" in js
     assert "c.canonical_sequence.map(escapeHtml)" in js
     assert "escapeHtml(anomalies[0].likely_cause_step)" in js
