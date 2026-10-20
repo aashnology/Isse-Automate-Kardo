@@ -14,6 +14,7 @@ The server does all the analysis deterministically; this skill says how to use i
 |---|---|
 | One spoken update across everything | `narrate_briefing` |
 | Where time is going | `get_top_friction_points` |
+| What can be automated across everything, with hours saved | `find_automation_opportunities` |
 | Why one workflow is slow | `debug_workflow` |
 | Whether one bad run stands out | `detect_anomalous_runs` |
 | Whether automating is worth it, how reliable it is, what to do next | `diagnose_workflow` |

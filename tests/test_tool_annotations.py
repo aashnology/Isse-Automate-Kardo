@@ -21,6 +21,7 @@ READ_ONLY_TOOLS = {
     "get_top_friction_points", "explain_friction", "estimate_time_cost",
     "debug_workflow", "detect_anomalous_runs", "narrate_briefing",
     "list_dismissed_workflow_suggestions", "diagnose_workflow", "list_datasets",
+    "find_automation_opportunities",
 }
 WRITE_TOOLS = {
     "propose_automation", "confirm_automation",

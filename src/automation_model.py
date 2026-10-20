@@ -27,6 +27,8 @@ _LOW_JUDGMENT_STEMS = (
     "scan", "print", "refresh", "transform", "extract", "load", "import", "rout", "forward",
     "notif", "remind", "schedul", "populat", "generat", "compil", "aggregat", "collat", "pivot",
     "dedup", "validat", "label",
+    "send", "creat", "collect", "regist", "provision", "updat", "record", "log", "enter",
+    "assign", "submit", "publish", "book", "generat", "ingest", "queue", "post",
 )
 _HIGH_JUDGMENT_STEMS = (
     "review", "approv", "decid", "discuss", "meet", "call", "design", "writ", "debug",

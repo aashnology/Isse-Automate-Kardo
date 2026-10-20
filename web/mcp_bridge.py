@@ -88,10 +88,24 @@ def _hours(minutes):
     return round(minutes / 60, 1)
 
 
+def describe_opportunities(data):
+    """One spoken-length answer to "what can I automate?"."""
+    ops = data.get("opportunities") or []
+    if not ops:
+        why = (data.get("not_automatable") or [{}])[0].get("why_not") or []
+        return "Nothing here is safe to automate without a person." + (f" For example, {why[0]}." if why else "")
+    top = ops[0]
+    steps = ", ".join(s.replace("_", " ") for s in top["automate_steps"])
+    more = f" {len(ops) - 1} more worth a look." if len(ops) > 1 else ""
+    return (f"I'd start with '{top['workflow_name']}': automate {steps} and replaying your history saves about "
+            f"{top['hours_saved_per_week']} hours a week. Across all pipelines that's {data['total_hours_saved_per_week']} hours a week.{more} "
+            "Say 'automate it' to propose it.")
+
+
 def run_intent(intent, workflow=None, proposal_id=None, url=None, dataset_id=None):
     """Execute one classified voice intent through MCP tools. Returns
     {reply, mood, pending_proposal_id, tools, protocol}."""
-    if intent not in NEEDS_WORKFLOW | {"brief", "friction", "dismissed_list", "diagnose"}:
+    if intent not in NEEDS_WORKFLOW | {"brief", "friction", "dismissed_list", "diagnose", "opportunities"}:
         # Unknown, empty, help, or anything unrecognised: answer with what can
         # be asked rather than an error. No tool is called.
         return {"reply": "I didn't catch a request I can act on. Try: " + "; ".join(EXAMPLES[:4]) + ".",
@@ -106,6 +120,8 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None, dataset_id=Non
         calls = [("narrate_briefing", {})]
     elif intent == "friction":
         calls = [("get_top_friction_points", {"top_k": 1})]
+    elif intent == "opportunities":
+        calls = [("find_automation_opportunities", {})]
     elif intent == "why":
         calls = [("debug_workflow", {"workflow_name": workflow})]
     elif intent == "anomalies":
@@ -124,7 +140,7 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None, dataset_id=Non
 
     if dataset_id and dataset_id != "sample":
         scoped = {"narrate_briefing", "get_top_friction_points", "debug_workflow", "detect_anomalous_runs",
-                  "propose_automation", "diagnose_workflow"}
+                  "propose_automation", "diagnose_workflow", "find_automation_opportunities"}
         calls = [(n, {**a, "dataset_id": dataset_id} if n in scoped else a) for n, a in calls]
 
     version, (data,) = call_tools(calls, url=url)
@@ -133,6 +149,9 @@ def run_intent(intent, workflow=None, proposal_id=None, url=None, dataset_id=Non
 
     if intent == "brief":
         out["reply"], out["mood"] = data["narration"], "curious"
+    elif intent == "opportunities":
+        out["reply"], out["mood"] = describe_opportunities(data), "suggesting"
+        out["opportunities"] = data
     elif intent == "friction":
         pts = data["friction_points"]
         if not pts:

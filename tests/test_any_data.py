@@ -240,3 +240,22 @@ def test_import_survives_an_unwritable_data_directory(monkeypatch):
            for d in range(1, 5) for m, a in enumerate(["download_file", "clean_data", "export"])]
     w = build_workspace(raw, "ro", "file")
     assert get_workspace(w.id).workflow_names() == w.workflow_names()
+
+
+def test_onboarding_pipeline_is_automatable_and_ranked():
+    import diagnosis
+    from data_adapters import from_pasted_steps
+    from workspace import build_workspace
+    runs = []
+    for i in range(6):
+        runs.append(f"Collect client forms, {9 + i}\nVerify documents, {16 + i}\nCreate account, {6 + i % 2}\nSend welcome email, 2")
+    for i in range(6):
+        runs.append(f"Pull sales data, {4 + i % 2}\nClean data, {20 + i}\nBuild charts, {11 + i % 3}\nWrite summary, {8 + i % 2}\nEmail report, 3")
+    ws = build_workspace(from_pasted_steps("\n\n".join(runs)), "pasted steps", "pasted")
+    out = diagnosis.automation_opportunities(ws)
+    names = {o["workflow_name"]: o for o in out["opportunities"]}
+    onboarding = next(o for n, o in names.items() if "client" in n)
+    assert {"create_account", "send_welcome_email"} <= set(onboarding["automate_steps"])
+    assert "verify_documents" not in onboarding["automate_steps"]
+    hours = [o["hours_saved_per_week"] for o in out["opportunities"]]
+    assert hours == sorted(hours, reverse=True)

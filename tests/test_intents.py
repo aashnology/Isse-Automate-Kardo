@@ -122,3 +122,12 @@ def test_hostile_or_malformed_input_never_throws():
     out = subprocess.run(["node", "-e", script, os.path.join(STATIC, "intents.js")],
                          capture_output=True, text=True, check=True, timeout=30).stdout
     assert json.loads(out) is True
+
+
+def test_what_can_i_automate_is_an_opportunities_scan():
+    import subprocess, json, os
+    root = os.path.join(os.path.dirname(__file__), "..")
+    code = ('const {classifyIntent}=require("./web/static/intents.js");'
+            'console.log(JSON.stringify(["what can i automate oh here","what could be automated?","automate this for me","automate it"].map(t=>classifyIntent(t).intent)))')
+    out = json.loads(subprocess.check_output(["node", "-e", code], cwd=root))
+    assert out == ["opportunities", "opportunities", "automate", "automate"]

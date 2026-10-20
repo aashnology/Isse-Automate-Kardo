@@ -243,3 +243,38 @@ def diagnose(ws, workflow):
                         "reliability": reliability(ws, workflow, auto, saved)} if saved else None),
         "next_best_action": prescriptions[0]["action"] if prescriptions else "Collect more runs before automating.",
     }
+
+
+def automation_opportunities(ws, dismissed=()):
+    """Scan every discovered workflow and rank where automation pays off.
+
+    Each entry carries the steps that pass the per-step safety check and a
+    shadow-replay estimate of the time they would have saved on this dataset's
+    own history. Workflows with nothing safe to automate are listed separately
+    with the reason, so "nothing here" is an explained answer, not a blank."""
+    from automation_model import eligible_steps, step_verdicts
+    ranked, blocked = [], []
+    for point in ws.radar.top_friction_points(top_k=50):
+        name = point["workflow_name"]
+        if name in dismissed:
+            continue
+        debug = ws.radar.debug_workflow(name)
+        breakdown = debug.get("step_breakdown", [])
+        total_runs = debug.get("total_runs") or 1
+        steps = eligible_steps(breakdown, total_runs)
+        saved = time_saved(ws, name, steps) if steps else None
+        if not steps or not saved:
+            reasons = [v for v in step_verdicts(breakdown, total_runs) if not v["automatable"]][:3]
+            blocked.append({"workflow_name": name,
+                            "why_not": [f"{v['step']}: {v['reason']}" for v in reasons]})
+            continue
+        ranked.append({
+            "workflow_name": name,
+            "automate_steps": steps,
+            "minutes_saved_per_run": saved["minutes_saved_per_run"],
+            "hours_saved_per_week": saved["hours_saved_per_week"],
+            "runs_replayed": saved["runs_replayed"],
+        })
+    ranked.sort(key=lambda o: -o["hours_saved_per_week"])
+    return {"opportunities": ranked, "not_automatable": blocked,
+            "total_hours_saved_per_week": round(sum(o["hours_saved_per_week"] for o in ranked), 2)}

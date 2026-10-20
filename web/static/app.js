@@ -578,7 +578,7 @@ function appendChat(who, text) {
   if (who === "hexi") speak(text);
 }
 
-const HELP_TEXT = "Try: what's costing me time, why is it slow, is it worth automating, automate it, any unusual runs, brief me, or stop suggesting something.";
+const HELP_TEXT = "I find the pipelines eating your time, show which step is the bottleneck, flag unusual runs, and propose automating the safe steps. Nothing runs until you say yes. Try: what can I automate, what's costing me time, why is reporting slow, is it worth automating, automate it, brief me.";
 
 async function handleChatMessageInner(raw) {
   appendChat("you", raw);
@@ -601,6 +601,21 @@ async function handleChatMessageInner(raw) {
       setMood(points.length ? "curious" : "idle");
       appendChat("hexi", b.narration);
       await showWorkflowCards();
+      return;
+    }
+    case "opportunities": {
+      const o = await api(dsq("/api/opportunities"));
+      if (o.error) { appendChat("hexi", o.error); return; }
+      const ops = o.opportunities || [];
+      if (!ops.length) {
+        const why = ((o.not_automatable || [])[0] || {}).why_not || [];
+        appendChat("hexi", "Nothing here is safe to automate without a person." + (why[0] ? " For example, " + why[0] + "." : ""));
+        return;
+      }
+      currentTarget = ops[0].workflow_name;
+      setMood("suggesting");
+      const lines = ops.slice(0, 3).map(x => `'${x.workflow_name}': automate ${x.automate_steps.join(", ").replace(/_/g, " ")}, about ${x.hours_saved_per_week} h a week`);
+      appendChat("hexi", `${lines.join(". ")}. Total about ${o.total_hours_saved_per_week} h a week, from replaying your own history. Say "automate it" to start with the first.`);
       return;
     }
     case "friction": {
@@ -695,7 +710,7 @@ let pendingProposal = null;
 async function handleVoice(said) {
   if (await tryAspen(said)) return;
   const { intent, workflow } = HexiIntents.classifyIntent(said);
-  const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "diagnose", "dismiss", "restore", "dismissed_list"];
+  const agentIntents = ["brief", "friction", "opportunities", "why", "anomalies", "automate", "diagnose", "dismiss", "restore", "dismissed_list"];
   if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
   appendChat("you", said);
   const confirming = intent === "automate" && !!pendingProposal;

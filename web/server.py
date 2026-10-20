@@ -266,6 +266,17 @@ def debug_workflow(workflow_name):
                       lambda: ws.radar.debug_workflow(workflow_name))
 
 
+@app.route("/api/opportunities")
+def opportunities():
+    ws = _dataset()
+
+    def direct():
+        from diagnosis import automation_opportunities
+        return automation_opportunities(ws, dismissed={w["workflow_name"] for w in user_memory.list_dismissed()})
+
+    return _mcp_first("find_automation_opportunities", _scoped(ws, {}), direct)
+
+
 @app.route("/api/anomalies/<workflow_name>")
 def anomalies(workflow_name):
     if len(workflow_name) > MAX_WORKFLOW_NAME_LEN:

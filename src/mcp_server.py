@@ -176,6 +176,19 @@ def get_top_friction_points(top_k: int = 3, include_dismissed: bool = False, dat
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
+def find_automation_opportunities(dataset_id: str = "sample") -> dict:
+    """Scan every workflow in the dataset and rank which ones are worth
+    automating, with the safe-to-automate steps and a replay-based estimate of
+    hours saved per week for each. Use this when the user asks what they can
+    automate, without naming a workflow. Read-only: nothing is proposed or run."""
+    from diagnosis import automation_opportunities
+    ws, err = _ws(dataset_id)
+    if err:
+        return err
+    return automation_opportunities(ws, dismissed={w["workflow_name"] for w in user_memory.list_dismissed()})
+
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, idempotentHint=True, openWorldHint=False))
 def explain_friction(workflow_name: str, dataset_id: str = "sample") -> dict:
     """Explain in plain terms why a given workflow is or isn't a good
     automation candidate."""
