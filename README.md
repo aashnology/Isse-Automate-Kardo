@@ -7,6 +7,8 @@ an entry in the **Open Source** mini challenge.
 
 ## Meet Hexi
 
+![Meet Hexi](docs/assets/panels/01-meet-hexi.png)
+
 <p align="center">
   <img src="docs/assets/hexi/expression-sheet.png" width="720" alt="Hexi's six expressions: asleep, idle, watching, curious, suggesting, confirmed">
 </p>
@@ -36,6 +38,8 @@ even after the server restarts; ask "what's costing me the most time" or
 Try her yourself — see **Running it** below.
 
 ## The journey
+
+![The journey](docs/assets/panels/02-the-journey.png)
 
 ```
 "Alexa, what patterns are in my work?"
@@ -67,9 +71,7 @@ Try her yourself — see **Running it** below.
 
 ## How it's built
 
-<p align="center">
-  <img src="docs/assets/hexi/architecture.png" width="760" alt="Architecture diagram: Alexa+ and Hexi both call a shared, deterministic core">
-</p>
+![How it's built](docs/assets/panels/03-how-its-built.png)
 
 **Protocol.** The MCP server (`src/mcp_server.py`) speaks Streamable HTTP
 at `/mcp` and negotiates MCP spec **2025-11-25**, the hackathon's minimum.
@@ -128,6 +130,8 @@ limitations are in [docs/RESEARCH_AND_NOTES.md](docs/RESEARCH_AND_NOTES.md).
 
 ## Agent Skill
 
+![Agent Skill](docs/assets/panels/04-agent-skill.png)
+
 `skills/friction-radar/SKILL.md` is an Agent Skill for any model that uses this
 MCP server: which tool to use for which request, and the consent rules around
 `confirm_automation` (propose first, execute only after an explicit yes in a
@@ -136,6 +140,8 @@ running server. The skill is documentation for the client's model; nothing in
 this repo's runtime loads it.
 
 ## Running it
+
+![Running it: local and Docker](docs/assets/panels/05-running-it.png)
 
 Two services, one shared core. Start both for the full demo:
 
@@ -258,6 +264,8 @@ hackathon build attempts.
 
 ### Tests
 
+![Tests](docs/assets/panels/06-tests.png)
+
 ```bash
 pytest tests/                     # unit + integration tests
 python tests/evaluation.py        # ranking-engine quality metrics
@@ -267,5 +275,9 @@ python tests/segmentation_eval.py # segmentation quality vs. ground truth
 CI (`.github/workflows/ci.yml`) runs all three on every push to `main`.
 
 ---
+
+## License
+
+![License](docs/assets/panels/07-license.png)
 
 MIT licensed — see [`LICENSE`](LICENSE).
