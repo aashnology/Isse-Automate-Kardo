@@ -1,5 +1,67 @@
 const API = "";
-const tabPositions = { bug_triage: 0, weekly_reporting: 130, onboarding_new_partner: 260, import: 390 };
+// Which dataset the screen is analysing. "sample" is the built-in one; an
+// import switches this to the id the server returned, and every request below
+// carries it, so propose / confirm / diagnose all act on the user's own data.
+let activeDataset = "sample";
+let activeLabel = "Built-in sample";
+let workflowTabs = null; // null means the sample's three tabs
+const SAMPLE_TABS = [["bug_triage", "Ticket queue"], ["weekly_reporting", "Spreadsheet"], ["onboarding_new_partner", "Inbox"]];
+
+function dsq(path) {
+  if (activeDataset === "sample") return path;
+  return path + (path.indexOf("?") === -1 ? "?" : "&") + "dataset_id=" + encodeURIComponent(activeDataset);
+}
+function dsBody(obj) {
+  return JSON.stringify(activeDataset === "sample" ? obj : Object.assign({ dataset_id: activeDataset }, obj));
+}
+const JSON_POST = { method: "POST", headers: { "Content-Type": "application/json" } };
+
+function renderTabs() {
+  const host = document.getElementById("tabs");
+  host.innerHTML = "";
+  const list = (workflowTabs ? workflowTabs.map(n => [n, prettyName(n)]) : SAMPLE_TABS).concat([["import", "My data"]]);
+  list.forEach(([name, label]) => {
+    const b = el("button", "tab", label);
+    b.dataset.workflow = name;
+    b.title = label;
+    b.addEventListener("click", () => selectTab(name, b));
+    host.appendChild(b);
+  });
+}
+
+function moveHexiTo(btn) {
+  const dock = document.querySelector(".hexi-dock");
+  const left = btn.getBoundingClientRect().left - dock.getBoundingClientRect().left;
+  document.getElementById("hexiWrap").style.left = Math.max(0, Math.min(left, dock.clientWidth - 70)) + "px";
+}
+
+function reportArea() { return document.getElementById("reportArea"); }
+
+async function showDiagnosis(name, keep) {
+  const area = reportArea();
+  if (!keep) area.innerHTML = "";
+  const wait = HexiGame.loading(area, "Hexi is thinking...");
+  if (!keep) setMood("watching");
+  try {
+    const payload = await api(dsq("/api/diagnose/" + encodeURIComponent(name)));
+    wait.remove();
+    HexiGame.renderAdvice(area, payload);
+    if (!payload.error) HexiGame.onDiagnosed(activeDataset + ":" + name);
+    if (!keep) setMood(payload.error ? "idle" : "curious");
+    return payload;
+  } catch (e) {
+    wait.remove();
+    HexiGame.renderAdvice(area, { error: "Couldn't reach the backend for a diagnosis." });
+    setMood("idle");
+    return null;
+  }
+}
+
+function showReport(report, name) {
+  const area = reportArea();
+  area.innerHTML = "";
+  HexiGame.renderReport(area, report, name);
+}
 let visited = new Set();
 let currentTarget = null;
 let currentProposalId = null;
@@ -79,7 +141,8 @@ async function checkBackend() {
 async function selectTab(workflowName, btn) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
   btn.classList.add("active");
-  document.getElementById("hexiWrap").style.left = tabPositions[workflowName] + "px";
+  moveHexiTo(btn);
+  HexiGame.sfx("select");
 
   if (workflowName === "import") {
     renderImportPanel();
@@ -89,35 +152,63 @@ async function selectTab(workflowName, btn) {
 
   if (!backendUp) return;
 
-  const debug = await api("/api/debug/" + workflowName);
+  const debug = await api(dsq("/api/debug/" + encodeURIComponent(workflowName)));
   const panel = document.getElementById("panel");
+  panel.innerHTML = "";
   if (debug.error) {
-    panel.innerHTML = `<p class="status">${escapeHtml(debug.error)}</p>`;
+    panel.appendChild(el("p", "status", debug.error));
     return;
   }
-  panel.innerHTML = debug.step_breakdown.map(s =>
-    `<div class="row"><span>${escapeHtml(s.step)}</span><span>${Math.round(s.share_of_total * 100)}% of time</span></div>`
-  ).join("");
+  panel.appendChild(el("h3", "", prettyName(workflowName) + " - where the time goes"));
+  debug.step_breakdown.forEach(s => {
+    const row = el("div", "row");
+    const left = el("div", "grow");
+    left.appendChild(el("span", "", s.step));
+    const bar = el("div", "bar");
+    const fill = el("i");
+    fill.style.setProperty("--pct", Math.round(s.share_of_total * 100));
+    bar.appendChild(fill);
+    left.appendChild(bar);
+    row.appendChild(left);
+    row.appendChild(el("span", "", Math.round(s.share_of_total * 100) + "%"));
+    if (typeof s.automatable === "boolean") row.appendChild(el("span", "tag " + (s.automatable ? "auto" : "human"), s.automatable ? "auto" : "human"));
+    panel.appendChild(row);
+  });
 
-  const anomalyData = await api("/api/anomalies/" + workflowName);
-  const anomalyNote = document.createElement("p");
-  anomalyNote.className = "status";
+  const anomalyData = await api(dsq("/api/anomalies/" + encodeURIComponent(workflowName)));
+  const anomalyNote = el("p", "status");
   anomalyNote.style.marginTop = "10px";
   if (anomalyData.error) {
     anomalyNote.textContent = "";
   } else if (anomalyData.anomalies && anomalyData.anomalies.length) {
     const a = anomalyData.anomalies[0];
-    anomalyNote.textContent = `One run ran unusually long — mainly '${a.likely_cause_step}'.`;
+    anomalyNote.textContent = `One run ran unusually long - mainly '${a.likely_cause_step}'.`;
   } else {
     anomalyNote.textContent = anomalyData.note || "No anomalous runs in this workflow's history.";
   }
   panel.appendChild(anomalyNote);
 
+  const actions = el("div", "wf-actions");
+  actions.style.marginTop = "10px";
+  const diag = el("button", "btn", "Run diagnosis");
+  diag.addEventListener("click", () => showDiagnosis(workflowName));
+  const auto = el("button", "btn", "Automate it");
+  auto.addEventListener("click", async () => {
+    auto.disabled = true;
+    const r = await automateWorkflow(workflowName);
+    setStatus(r.message);
+    auto.disabled = false;
+  });
+  actions.appendChild(diag);
+  actions.appendChild(auto);
+  panel.appendChild(actions);
+
   const dismissedResp = await api("/api/dismissed");
   const dismissedNames = dismissedResp.dismissed_workflows.map(w => w.workflow_name);
 
-  if (visited.size >= 3 && !currentTarget) {
-    const top = await api("/api/friction-points?top_k=1");
+  const needed = Math.min(3, workflowTabs ? workflowTabs.length : 3);
+  if (visited.size >= needed && !currentTarget) {
+    const top = await api(dsq("/api/friction-points?top_k=1"));
     if (top.friction_points.length && !dismissedNames.includes(top.friction_points[0].workflow_name)) {
       const fp = top.friction_points[0];
       currentTarget = fp.workflow_name;
@@ -135,10 +226,11 @@ async function selectTab(workflowName, btn) {
         track.style.display = "none";
         fill.style.width = "0%";
         document.getElementById("bubbleText").textContent =
-          `'${fp.workflow_name}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
+          `'${prettyName(fp.workflow_name)}' costs ${Math.round(fp.total_time_cost_minutes / 60 * 10) / 10}h and is rated ${fp.automation_tier}. Want me to handle it?`;
         document.getElementById("bubble").style.display = "block";
         speak(document.getElementById("bubbleText").textContent);
         setStatus("Hexi thinks this can be automated.");
+        HexiGame.sfx("ping");
       }, 1300);
     }
   }
@@ -147,7 +239,8 @@ async function selectTab(workflowName, btn) {
 function renderImportPanel() {
   const panel = document.getElementById("panel");
   panel.innerHTML = `
-    <p class="status" style="margin-bottom:8px;">Bring your own data — nothing here is executed, only read and parsed.</p>
+    <h3>My data</h3>
+    <p class="status" style="margin-bottom:8px;">Bring your own data. Files are only read and parsed, never run. Once imported, Hexi can propose, automate and diagnose it.</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
       <div>
         <label class="status" style="display:block; margin-bottom:3px;">ActivityWatch (.json) or Toggl (.csv) export</label>
@@ -168,6 +261,28 @@ function renderImportPanel() {
     </div>`;
 
   document.getElementById("importBtn").addEventListener("click", runImport);
+
+  if (activeDataset !== "sample") {
+    const now = el("p", "status", "Now analysing: " + activeLabel + ".");
+    now.style.marginTop = "10px";
+    const back = el("button", "btn", "Back to the sample");
+    back.addEventListener("click", useSample);
+    panel.appendChild(now);
+    panel.appendChild(back);
+  }
+}
+
+function useSample() {
+  activeDataset = "sample";
+  activeLabel = "Built-in sample";
+  workflowTabs = null;
+  HexiIntents.setWorkflows(null);
+  currentTarget = null;
+  visited = new Set();
+  reportArea().innerHTML = "";
+  renderTabs();
+  document.getElementById("panel").innerHTML = '<p class="status">Back on the built-in sample. Pick a quest tab.</p>';
+  setStatus("Hexi is watching the built-in sample.");
 }
 
 async function runImport() {
@@ -209,6 +324,17 @@ async function runImport() {
     }
 
     setMood("curious");
+    if (data.dataset_id) {
+      activeDataset = data.dataset_id;
+      activeLabel = data.dataset.label;
+      workflowTabs = data.dataset.workflows;
+      HexiIntents.setWorkflows(workflowTabs);
+      currentTarget = null;
+      visited = new Set();
+      reportArea().innerHTML = "";
+      HexiGame.onImported();
+      setStatus(`Loaded ${data.dataset.runs} runs from ${activeLabel}. Pick a quest tab, or say "automate it".`);
+    }
     let html = `<p class="status" style="margin-bottom:6px;">${data.events_imported} events → ${data.discovered_workflows.length} discovered pattern(s)</p>`;
     for (const c of data.discovered_workflows) {
       const sequence = c.canonical_sequence.map(escapeHtml).join(" → ");
@@ -222,6 +348,20 @@ async function runImport() {
       }
     }
     results.innerHTML = html;
+    if (data.dataset_id) {
+      const quests = el("div", "wf-actions");
+      quests.style.marginTop = "10px";
+      data.dataset.workflows.forEach(name => {
+        const b = el("button", "btn", "Open: " + prettyName(name));
+        b.addEventListener("click", () => {
+          renderTabs();
+          const tab = Array.from(document.querySelectorAll(".tab")).find(t => t.dataset.workflow === name);
+          if (tab) selectTab(name, tab);
+        });
+        quests.appendChild(b);
+      });
+      results.appendChild(quests);
+    }
   } catch (e) {
     results.innerHTML = '<p class="status">Something went wrong reaching the backend.</p>';
     setMood("idle");
@@ -229,21 +369,25 @@ async function runImport() {
 }
 
 async function automateWorkflow(name) {
-  const proposal = await api("/api/propose", {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({workflow_name: name}),
-  });
+  const proposal = await api("/api/propose", { ...JSON_POST, body: dsBody({ workflow_name: name }) });
   if (!proposal.proposal_id) {
     setMood("watching");
-    return {ok: false, message: proposal.summary};
+    HexiGame.sfx("error");
+    return { ok: false, message: proposal.summary };
   }
-  await api("/api/confirm", {
-    method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({proposal_id: proposal.proposal_id}),
-  });
+  const confirmed = await api("/api/confirm", { ...JSON_POST, body: JSON.stringify({ proposal_id: proposal.proposal_id }) });
   setMood("confirmed");
   document.getElementById("bubble").style.display = "none";
-  return {ok: true, message: `Done — automated: ${proposal.proposed_automation.join(", ")}.`};
+  const report = confirmed && confirmed.report;
+  let message = `Done - automated: ${proposal.proposed_automation.join(", ")}.`;
+  if (report && report.time_saved) {
+    const t = report.time_saved, r = report.reliability;
+    message += ` Replaying your history, that saves about ${t.minutes_saved_per_run} min a run (~${t.hours_saved_per_week} h a week). Reliability ${r.score}/100, grade ${r.grade}.`;
+    showReport(report, name);
+    HexiGame.onAutomated(report);
+    showDiagnosis(name, true);
+  }
+  return { ok: true, message };
 }
 
 async function dismissWorkflow(name) {
@@ -256,9 +400,7 @@ async function dismissWorkflow(name) {
   return {message: `Got it — won't suggest '${name}' again, even after a restart.`};
 }
 
-document.querySelectorAll(".tab").forEach(btn => {
-  btn.addEventListener("click", () => selectTab(btn.dataset.workflow, btn));
-});
+renderTabs();
 
 document.getElementById("confirmBtn").addEventListener("click", async () => {
   const result = await automateWorkflow(currentTarget);
@@ -283,11 +425,17 @@ document.getElementById("resetBtn").addEventListener("click", async () => {
   }
   visited = new Set();
   currentTarget = null;
+  activeDataset = "sample";
+  activeLabel = "Built-in sample";
+  workflowTabs = null;
+  HexiIntents.setWorkflows(null);
+  HexiGame.reset();
+  reportArea().innerHTML = "";
+  renderTabs();
   document.getElementById("bubble").style.display = "none";
   document.getElementById("progressTrack").style.display = "none";
   document.getElementById("progressFill").style.width = "0%";
-  document.getElementById("panel").innerHTML = '<p class="status">Click a tab to load its real step breakdown.</p>';
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("panel").innerHTML = '<p class="status">Pick a quest tab to load its real step breakdown.</p>';
   document.getElementById("hexiWrap").style.left = "0px";
   checkBackend();
 });
@@ -366,7 +514,7 @@ function buildWorkflowCard(p, rank) {
   const why = el("button", "chip", "Why slow?");
   why.addEventListener("click", async () => {
     try {
-      const d = await api("/api/debug/" + encodeURIComponent(p.workflow_name));
+      const d = await api(dsq("/api/debug/" + encodeURIComponent(p.workflow_name)));
       const top = d.step_breakdown && d.step_breakdown[0];
       note.textContent = top
         ? `'${top.step}' takes ${Math.round(top.share_of_total * 100)}% of the time.`
@@ -376,27 +524,28 @@ function buildWorkflowCard(p, rank) {
   const automate = el("button", "chip", "Automate");
   automate.addEventListener("click", async () => {
     try {
-      const prop = await api("/api/propose", {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({workflow_name: p.workflow_name}),
-      });
-      if (!prop.proposal_id) { note.textContent = prop.summary || "Nothing here is safe to automate."; return; }
+      const prop = await api("/api/propose", { ...JSON_POST, body: dsBody({ workflow_name: p.workflow_name }) });
+      if (!prop.proposal_id) { note.textContent = prop.summary || "Nothing here is safe to automate."; HexiGame.sfx("error"); return; }
       note.textContent = prop.summary;
       automate.textContent = "Yes, automate";
       automate.onclick = async () => {
         automate.disabled = true;
         try {
-          await api("/api/confirm", {
-            method: "POST", headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({proposal_id: prop.proposal_id}),
-          });
-          note.textContent = "Done — marked as automated (execution is simulated in this build).";
+          const confirmed = await api("/api/confirm", { ...JSON_POST, body: JSON.stringify({ proposal_id: prop.proposal_id }) });
+          const report = confirmed && confirmed.report;
+          note.textContent = report && report.time_saved
+            ? `Done. ~${report.time_saved.hours_saved_per_week} h/week saved, reliability ${report.reliability.grade}.`
+            : "Done - marked as automated (execution is simulated in this build).";
           setMood("confirmed");
+          if (report && report.time_saved) { showReport(report, p.workflow_name); HexiGame.onAutomated(report); showDiagnosis(p.workflow_name, true); }
         } catch (e) { note.textContent = "Couldn't confirm that."; automate.disabled = false; }
       };
     } catch (e) { note.textContent = "Couldn't reach the backend."; }
   });
+  const diagnose = el("button", "chip", "Diagnose");
+  diagnose.addEventListener("click", () => showDiagnosis(p.workflow_name));
   actions.appendChild(why);
+  actions.appendChild(diagnose);
   actions.appendChild(automate);
   card.appendChild(actions);
   card.appendChild(note);
@@ -405,7 +554,7 @@ function buildWorkflowCard(p, rank) {
 
 async function showWorkflowCards() {
   try {
-    const top = await api("/api/friction-points?top_k=3");
+    const top = await api(dsq("/api/friction-points?top_k=3"));
     const pts = top.friction_points || [];
     if (!pts.length) return;
     const row = el("div", "wf-row");
@@ -429,19 +578,24 @@ function appendChat(who, text) {
   if (who === "hexi") speak(text);
 }
 
-const HELP_TEXT = "Try: what's costing me time, why is reporting slow, any unusual runs, automate it, stop suggesting bug triage, brief me, or what have I dismissed.";
+const HELP_TEXT = "Try: what's costing me time, why is it slow, is it worth automating, automate it, any unusual runs, brief me, or stop suggesting something.";
 
 async function handleChatMessageInner(raw) {
   appendChat("you", raw);
   if (!backendUp) { appendChat("hexi", "I'm asleep right now — start web/server.py, then reset."); return; }
 
   const { intent, workflow } = HexiIntents.classifyIntent(raw);
-  const name = workflow || currentTarget;
+  let name = workflow || currentTarget;
   const needName = (question) => { appendChat("hexi", question); };
+  // "Automate it" with nothing named means the biggest time sink right now.
+  if (!name && ["automate", "diagnose", "why", "anomalies"].includes(intent)) {
+    const top = await api(dsq("/api/friction-points?top_k=1"));
+    if (top.friction_points && top.friction_points.length) name = top.friction_points[0].workflow_name;
+  }
 
   switch (intent) {
     case "brief": {
-      const b = await api("/api/brief");
+      const b = await api(dsq("/api/brief"));
       const points = b.based_on.top_friction_points;
       if (points.length) currentTarget = points[0].workflow_name;
       setMood(points.length ? "curious" : "idle");
@@ -450,7 +604,7 @@ async function handleChatMessageInner(raw) {
       return;
     }
     case "friction": {
-      const top = await api("/api/friction-points?top_k=1");
+      const top = await api(dsq("/api/friction-points?top_k=1"));
       if (!top.friction_points.length) { appendChat("hexi", "Nothing to report yet — every workflow is dismissed or empty."); return; }
       const fp = top.friction_points[0];
       currentTarget = fp.workflow_name;
@@ -462,7 +616,7 @@ async function handleChatMessageInner(raw) {
     case "why": {
       if (!name) { needName("Which workflow? Try 'reporting', 'bug triage', or 'onboarding'."); return; }
       currentTarget = name;
-      const debug = await api("/api/debug/" + name);
+      const debug = await api(dsq("/api/debug/" + encodeURIComponent(name)));
       if (debug.error) { appendChat("hexi", debug.error); return; }
       const top = debug.step_breakdown[0];
       appendChat("hexi", `In '${name}', '${top.step}' takes the biggest share — ${Math.round(top.share_of_total * 100)}% of the total time.`);
@@ -470,7 +624,7 @@ async function handleChatMessageInner(raw) {
     }
     case "anomalies": {
       if (!name) { needName("Which workflow should I check for anomalies?"); return; }
-      const a = await api("/api/anomalies/" + name);
+      const a = await api(dsq("/api/anomalies/" + encodeURIComponent(name)));
       if (a.anomalies && a.anomalies.length) {
         appendChat("hexi", `One run of '${name}' ran unusually long — mainly '${a.anomalies[0].likely_cause_step}'.`);
       } else {
@@ -482,6 +636,18 @@ async function handleChatMessageInner(raw) {
       if (!name) { needName("Automate what? Ask what's costing you time first."); return; }
       const result = await automateWorkflow(name);
       appendChat("hexi", result.message);
+      return;
+    }
+    case "diagnose": {
+      if (!name) { needName("Diagnose which workflow? Ask what's costing you time first."); return; }
+      currentTarget = name;
+      const payload = await showDiagnosis(name);
+      if (payload && payload.advice) {
+        const a = payload.advice;
+        appendChat("hexi", `${a.headline} ${a.prescription[0] ? a.prescription[0].action + "." : ""}`.trim());
+      } else {
+        appendChat("hexi", (payload && payload.error) || "I couldn't diagnose that one.");
+      }
       return;
     }
     case "dismiss": {
@@ -529,7 +695,7 @@ let pendingProposal = null;
 async function handleVoice(said) {
   if (await tryAspen(said)) return;
   const { intent, workflow } = HexiIntents.classifyIntent(said);
-  const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "dismiss", "restore", "dismissed_list"];
+  const agentIntents = ["brief", "friction", "why", "anomalies", "automate", "diagnose", "dismiss", "restore", "dismissed_list"];
   if (!backendUp || !agentIntents.includes(intent)) { handleChatMessage(said); return; }
   appendChat("you", said);
   const confirming = intent === "automate" && !!pendingProposal;
@@ -537,7 +703,7 @@ async function handleVoice(said) {
   let res = null;
   try { res = await fetch(API + "/api/agent", {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({intent, workflow: name, proposal_id: intent === "automate" ? pendingProposal : null}),
+    body: JSON.stringify({intent, workflow: name, dataset_id: activeDataset, proposal_id: intent === "automate" ? pendingProposal : null}),
   }); } catch (e) { res = null; }
   const data = res ? await res.json().catch(() => ({})) : {};
   if (res && !res.ok && res.status !== 503) { appendChat("hexi", data.reply || HELP_TEXT); return; }
@@ -552,6 +718,8 @@ async function handleVoice(said) {
   setMood(data.mood);
   setStatus(`Answered through MCP (${(data.tools || []).join(", ")}, protocol ${data.protocol}).`);
   appendChat("hexi", data.reply);
+  if (data.report && data.report.time_saved) { showReport(data.report, name); HexiGame.onAutomated(data.report); }
+  if (data.diagnosis && data.diagnosis.advice) { reportArea().innerHTML = ""; HexiGame.renderAdvice(reportArea(), data.diagnosis); HexiGame.onDiagnosed(activeDataset + ":" + name); }
   if ((data.tools || []).some(t => CARD_TOOLS.includes(t))) await showWorkflowCards();
   maybeOfferAspen(confirming);
 }
