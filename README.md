@@ -9,25 +9,7 @@ Developer manual (PDF): [`docs/Isse-Automate-Kardo-Developer-Manual.pdf`](docs/I
 
 ## Quick start
 
-```bash
-git clone https://github.com/aashnology/Isse-Automate-Kardo.git && cd Isse-Automate-Kardo
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
-python src/mcp_server.py        # terminal 1: MCP server  -> http://localhost:8000/mcp
-python web/server.py            # terminal 2: Hexi        -> http://localhost:5000
-```
-
-Then, in the browser, to see it work on data it has never seen:
-
-1. Open the **My data** tab and paste the contents of
-   [`examples/sales_report_steps.txt`](examples/sales_report_steps.txt) into the step-list box.
-2. Click **Analyze this**. Hexi finds one repeating workflow.
-3. In the chat, type **Automate it.** Hexi proposes the steps that are safe to
-   automate, replays your history to measure the time saved, grades the
-   reliability, and writes a diagnosis and prescription.
-
-No API key is needed. Without a model configured, the diagnosis is written by a
-built-in template and labelled as such. Tests: `pip install pytest && pytest`.
+![Quick start](docs/assets/panels/00-quick-start.png)
 
 ## Meet Hexi
 
