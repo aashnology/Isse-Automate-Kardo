@@ -7,6 +7,28 @@ an entry in the **Open Source** mini challenge.
 
 Developer manual (PDF): [`docs/Isse-Automate-Kardo-Developer-Manual.pdf`](docs/Isse-Automate-Kardo-Developer-Manual.pdf)
 
+## Quick start
+
+```bash
+git clone https://github.com/aashnology/Isse-Automate-Kardo.git && cd Isse-Automate-Kardo
+python -m venv .venv && source .venv/bin/activate      # Windows: .venv\\Scripts\\activate
+pip install -r requirements.txt
+python src/mcp_server.py        # terminal 1: MCP server  -> http://localhost:8000/mcp
+python web/server.py            # terminal 2: Hexi        -> http://localhost:5000
+```
+
+Then, in the browser, to see it work on data it has never seen:
+
+1. Open the **My data** tab and paste the contents of
+   [`examples/sales_report_steps.txt`](examples/sales_report_steps.txt) into the step-list box.
+2. Click **Analyze this**. Hexi finds one repeating workflow.
+3. In the chat, type **Automate it.** Hexi proposes the steps that are safe to
+   automate, replays your history to measure the time saved, grades the
+   reliability, and writes a diagnosis and prescription.
+
+No API key is needed. Without a model configured, the diagnosis is written by a
+built-in template and labelled as such. Tests: `pip install pytest && pytest`.
+
 ## Meet Hexi
 
 ![Meet Hexi](docs/assets/panels/01-meet-hexi.png)
@@ -26,6 +48,58 @@ Try her yourself — see **Running it** below.
 ## How it's built
 
 ![How it's built](docs/assets/panels/03-how-its-built.png)
+
+## Any data, then a diagnosis
+
+**Imports are first-class datasets.** An import (ActivityWatch, Toggl, a
+pasted step list, a GitHub repo's PR history, a Google Sheet) is clustered
+into workflows and saved under a content-hash id (`src/workspace.py`). Every
+MCP tool and web route takes an optional `dataset_id`, so propose, confirm
+and diagnose run on whatever you brought, not only the built-in sample. State
+lives on disk rather than in a process global, so the web server and the MCP
+server (separate processes) see the same datasets and concurrent users do not
+overwrite each other. An earlier version analysed an import and then threw it
+away while propose and confirm kept reading the sample; that is the bug this
+layer removes.
+
+**Which steps are safe to automate is decided per step**
+(`src/automation_model.py`), from the verbs in the step name (download,
+export and rename are mechanical; review, approve and debug are not) and from
+the data: how consistently the step appears, how much its duration varies, and
+how often it needed rework. Steps the synthetic catalogue already defines keep
+their original verdicts. The per-workflow tier agrees with these verdicts, so
+a frequent, long workflow made of judgment steps is not called automatable.
+
+**Time saved is measured in shadow mode** (`src/diagnosis.py`). The approved
+steps are replayed against the recorded history, keeping 10% of their time for
+supervision, and the estimate is checked on a chronological holdout: fitted on
+the earlier runs, scored on the later ones. Weekly figures come with an 80%
+bootstrap interval. Nothing runs against live applications, and the report
+says so.
+
+**Reliability is a 0 to 100 score with named parts**: runs observed, how steady
+the step durations are, how many runs contain every proposed step, how alike
+the runs are, the holdout error, and whether the data carries outcomes. Data
+with no success or rework signal cannot score above 79, because the quality of
+an automated result cannot be verified from timings alone. Every caveat that
+applies is listed next to the grade.
+
+**Hexi's advisor** (`src/llm_advisor.py`) writes the diagnosis (what is wrong
+and why) and the prescription (what to do, in order) from that report. It
+works with Anthropic or any OpenAI-compatible endpoint, and otherwise uses a
+built-in template; the response says which wrote it. Three guards apply: step
+names are reduced to `[a-z0-9_]` and passed as data, the reply must match a
+fixed JSON shape, and every figure in it must trace to the report or the whole
+reply is discarded for the template.
+
+## Retro UI
+
+The web demo is a pixel-art interface in the spirit of the My-Woofie
+companion: navy panels, amber borders, Press Start 2P (SIL OFL, bundled in
+`web/static/fonts`), an XP bar, six trophies, 8-bit sound effects (toggle
+with SFX), a battle report and a diagnosis panel after each automation. XP and
+trophies are cosmetic and stored in your browser; the hours shown are the
+shadow-mode estimates, labelled as estimates. Hexi herself is unchanged.
 
 The full research citations behind the clustering and ranking methods,
 the complete MCP tool list, and an honest list of what hasn't been tested
@@ -52,6 +126,33 @@ limitations are in [docs/RESEARCH_AND_NOTES.md](docs/RESEARCH_AND_NOTES.md).
   tool). Carbonell & Goldstein,
   [The Use of MMR, Diversity-Based Reranking](https://blog.langchain.com/content/files/~jgc/publication/the_use_mmr_diversity_based_ltmir_1998.pdf)
   (SIGIR, 1998), keeps a top-k list from repeating one story.
+- **Which steps to automate, and how to specify them**, in
+  `src/automation_model.py` and `src/diagnosis.py`. Bosco, Augusto, Dumas,
+  La Rosa & Fortino, [Discovering Automatable Routines from User Interaction
+  Logs](https://kodu.ut.ee/~dumas/pubs/rpadiscovery.pdf) (BPM Forum, 2019),
+  separates discovering routines from deciding which are automatable; we take
+  the same split and decide automatability per step from determinism, presence
+  and rework. Leno et al., [Discovering executable routine specifications from
+  user interaction logs](https://arxiv.org/abs/2106.13446) (2021), turns an
+  automatable routine into an executable specification; our `automation_spec`
+  is the same idea at a lighter weight (a plan, not a script). Wewerka &
+  Reichert, [Robotic Process Automation: a systematic literature review and
+  assessment framework](https://arxiv.org/abs/2012.11951) (2020), is where the
+  suitability criteria we use (repetition, rule-based steps, error rate)
+  come from.
+- **Uncertainty on time saved**, in `src/diagnosis.py`. Efron, [Bootstrap
+  Methods: Another Look at the Jackknife](https://doi.org/10.1214/aos/1176344552)
+  (Annals of Statistics, 1979): a percentile bootstrap gives the 80% interval,
+  because per-run savings are few and skewed and a normal approximation
+  would overstate our certainty. The holdout is chronological, fit on earlier
+  runs and scored on later ones, so it cannot leak the future.
+- **Treating imported text as untrusted input to a model**, in
+  `src/llm_advisor.py`. Greshake et al., [Not what you've signed up for:
+  Compromising Real-World LLM-Integrated Applications with Indirect Prompt
+  Injection](https://arxiv.org/abs/2302.12173) (2023), shows that data an
+  application retrieves can act as instructions. Step names come from the
+  user's files, so they are normalised to a safe character set, passed as a
+  data block, and the model's reply is validated and numerically grounded.
 - **Anomalous runs**, in `src/workflow_discovery.py`. Tukey's IQR fence
   (*Exploratory Data Analysis*, 1977) rather than a z-score, because run
   durations are right-skewed.
@@ -71,6 +172,12 @@ Hexi's tabs, chat and voice ask the MCP server first. If it isn't running they
 fall back to calling the same Python functions directly, so the page still
 works; each API response has a `via` field (`mcp` or `direct`) saying which
 answered. The extension needs the MCP server running.
+
+Imported datasets live in a named Docker volume (`datasets`) shared by both
+services, so the non-root container user can always write them. The services
+were exercised outside Docker with the same environment variables the compose
+file sets; the image itself has not been built in the authoring environment,
+so the first `docker compose up --build` is the real test.
 
 ### Hexi (interactive browser demo)
 
@@ -153,6 +260,14 @@ this one page, not your real tabs, and the extension does not read page
 content either. Real cross-tab visibility would need broad permissions and
 a real consent design, which is a different, bigger product than this
 hackathon build attempts.
+
+### Hexi's advisor (optional)
+
+Diagnoses come from a built-in template unless a model is configured. Set
+`ANTHROPIC_API_KEY`, or `LLM_BASE_URL` and `LLM_API_KEY` for an
+OpenAI-compatible endpoint, in `.env` (see `.env.example`). The MCP server
+makes the call, so put the variables where it can read them; with Docker
+Compose both services read the same `.env`.
 
 ### Tests
 

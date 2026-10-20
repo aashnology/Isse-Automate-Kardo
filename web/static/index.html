@@ -4,93 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Isse Automate Kardo — Hexi</title>
-<style>
-  :root {
-    --bg: #f6f5f2; --card: #ffffff; --border: #e2e0da; --text: #2c2c2a; --muted: #6b6a63;
-  }
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 24px; }
-  .frame { max-width: 620px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: #d8d6cf; }
-  .url { flex: 1; margin-left: 8px; font-size: 12px; color: var(--muted); background: var(--bg); border-radius: 6px; padding: 4px 10px; }
-  .tabs { display: flex; gap: 6px; padding: 12px 16px 0; }
-  .tab { padding: 6px 12px; font-size: 13px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
-  .tab.active { background: var(--bg); border-color: #b8b6ad; }
-  .panel { padding: 16px; min-height: 150px; }
-  .row { font-size: 12px; padding: 7px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; }
-  .status-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--border); }
-  .status { font-size: 12px; color: var(--muted); }
-  .btn { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border); background: var(--card); border-radius: 8px; cursor: pointer; }
-  .btn:hover { background: var(--bg); }
-  .chip { font-size: 12px; padding: 4px 10px; border: 1px solid var(--border); background: var(--card); border-radius: 999px; cursor: pointer; }
-  .chip:hover { background: var(--bg); }
-  .chat-msg { font-size: 13px; padding: 7px 11px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
-  .wf-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; }
-  .wf-card { flex: 0 0 168px; scroll-snap-align: start; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
-  .wf-head { display: flex; align-items: baseline; gap: 6px; }
-  .wf-rank { color: var(--muted); font-size: 11px; }
-  .wf-name { font-weight: 600; text-transform: capitalize; }
-  .wf-hours { font-size: 18px; font-weight: 600; }
-  .wf-meta, .wf-tier { color: var(--muted); font-size: 11px; }
-  .wf-bar { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
-  .wf-bar-fill { height: 100%; background: #FAC775; }
-  .wf-actions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-  .wf-note { font-size: 11px; line-height: 1.35; min-height: 14px; }
-  .chat-msg.you { align-self: flex-end; background: #FAC775; color: #412402; }
-  .chat-msg.hexi { align-self: flex-start; background: var(--bg); border: 1px solid var(--border); }
-
-  .echo { display:flex; align-items:center; gap:10px; padding:8px 16px; border-top:1px solid var(--border); font-size:12px; color:var(--muted); }
-  #echoRing { width:18px; height:18px; border-radius:50%; border:3px solid #d8d6cf; flex:none; }
-  #echoRing[data-mode="listening"] { border-color:#2bb3d9; }
-  #echoRing[data-mode="followup"] { border-color:#2bb3d9; opacity:.55; }
-  #echoRing[data-mode="thinking"] { border-color:#2bb3d9; border-top-color:transparent; animation:spinRing .9s linear infinite; }
-  #echoRing[data-mode="speaking"] { border-color:#2bb3d9; animation:pulseSlow 1s ease-in-out infinite; }
-  @keyframes spinRing { to { transform:rotate(360deg); } }
-  .hexi-dock { position: relative; height: 60px; margin: 0 16px; }
-  .hexi-wrap { position: absolute; bottom: 0; transition: left 0.5s ease; display: flex; align-items: flex-end; gap: 10px; }
-  .bubble { display:none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; max-width: 230px; font-size: 13px; }
-  .bubble button { font-size: 12px; padding: 4px 10px; margin-top: 6px; margin-right: 6px; }
-
-  .hexi-pulse { animation: pulseSlow 2.2s ease-in-out infinite; transform-origin: center; }
-  .hexi-blink { animation: blinkEyes 3s steps(1) infinite; transform-origin: center; }
-  .hexi-scan { animation: scanX 1.6s ease-in-out infinite; }
-  .hexi-pop { animation: popIn 0.5s ease-out; }
-  .hexi-wiggle { animation: wiggle 0.7s ease-in-out infinite; transform-origin: center; }
-  .hexi-think { animation: think 2.4s ease-in-out infinite; transform-origin: center; }
-  .hexi-bob { animation: bob 3s ease-in-out infinite; }
-  .progress-track { width: 36px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 4px; }
-  .progress-fill { height: 100%; width: 0%; background: #854F0B; border-radius: 2px; transition: width 1.3s linear; }
-  .hexi-dot { width:4px; height:4px; border-radius:50%; background:#854F0B; display:inline-block; animation: dotPulse 1s ease-in-out infinite; }
-  .hexi-z { animation: floatZ 2.4s ease-in infinite; opacity: 0; }
-  .z2 { animation-delay: 0.6s; }
-  @keyframes pulseSlow { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
-  @keyframes blinkEyes { 0%,90%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.15);} }
-  @keyframes scanX { 0%,100%{transform:translateX(-1.5px);} 50%{transform:translateX(1.5px);} }
-  @keyframes popIn { 0%{transform:scale(0.8);} 60%{transform:scale(1.08);} 100%{transform:scale(1);} }
-  @keyframes wiggle { 0%,100%{transform:rotate(-4deg);} 50%{transform:rotate(4deg);} }
-  @keyframes think { 0%,100%{transform:rotate(-3deg);} 50%{transform:rotate(3deg);} }
-  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(2px);} }
-  @keyframes dotPulse { 0%,100%{opacity:0.25;} 50%{opacity:1;} }
-  @keyframes floatZ { 0%{opacity:0; transform:translateY(0);} 20%{opacity:0.9;} 100%{opacity:0; transform:translateY(-8px);} }
-</style>
+<link rel="stylesheet" href="/retro.css">
 </head>
 <body>
 
 <div class="frame">
   <div class="titlebar">
     <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-    <div class="url">isse-automate-kardo.app</div>
+    <div class="url">Isse Automate Kardo</div>
   </div>
 
-  <div class="tabs">
+  <div class="hud" id="hud" aria-label="Player progress">
+    <div class="lv" id="hudLevel">LV 1</div>
+    <div class="xp"><span id="hudXpText">XP 0 / 100</span><div class="bar"><i id="hudXpBar" style="--pct:0"></i></div></div>
+    <div class="stat">Est. h / week saved<b id="hudHours">0.0</b></div>
+    <div class="stat">Trophies<b id="hudTrophies">0 / 6</b></div>
+  </div>
+
+  <div class="tabs" id="tabs">
     <button class="tab" data-workflow="bug_triage">Ticket queue</button>
     <button class="tab" data-workflow="weekly_reporting">Spreadsheet</button>
     <button class="tab" data-workflow="onboarding_new_partner">Inbox</button>
     <button class="tab" data-workflow="import">My data</button>
   </div>
 
-  <div class="panel" id="panel"><p class="status">Click a tab to load its real step breakdown.</p></div>
+  <div class="panel" id="panel"><p class="status">Pick a quest tab to load its real step breakdown.</p></div>
+  <div class="area" id="reportArea" aria-live="polite"></div>
 
   <div class="hexi-dock">
     <div class="hexi-wrap" id="hexiWrap" style="left: 0px;">
@@ -113,33 +52,38 @@
     <span style="display:flex; gap:6px;">
       <button class="btn" id="handsFreeBtn" title="Simulated Alexa+: the laptop mic acts as an Echo. Say 'Alexa, ask Hexi ...'. In Chrome and Edge the audio is transcribed by the browser vendor's cloud service.">Hey Alexa: off</button>
       <button class="btn" id="voiceBtn" title="Hexi reads its replies aloud">Voice: on</button>
+      <button class="btn" id="sfxBtn" title="8-bit sound effects">SFX: on</button>
       <button class="btn" id="resetBtn">Reset demo</button>
     </span>
   </div>
 
   <div class="echo"><div id="echoRing" data-mode="off"></div><span id="heardLine">Simulated Echo (laptop mic). Turn on "Hey Alexa" and say: Alexa, ask Hexi what's costing me time.</span></div>
 
-  <div style="border-top: 1px solid var(--border); padding: 14px 16px;">
-    <div id="chatLog" style="max-height:170px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>
+  <div class="chatbox">
+    <div id="chatLog"></div>
     <div id="chips" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
       <button class="chip">What's costing me time?</button>
       <button class="chip">Brief me</button>
+      <button class="chip">Is it worth automating?</button>
       <button class="chip">Why is reporting slow?</button>
       <button class="chip">Stop suggesting bug triage</button>
     </div>
     <div style="display:flex; gap:6px;">
       <input id="chatInput" type="text"
         placeholder="Ask: what's costing me time? why is reporting slow? automate it. stop suggesting bug triage."
-        style="flex:1; font-size:13px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:inherit;">
+        >
       <button class="btn" id="micBtn" title="Speak to Hexi. In Chrome and Edge the audio is sent to the browser vendor's speech service to be transcribed.">Speak</button>
       <button class="btn" id="chatSend">Send</button>
     </div>
   </div>
 </div>
 
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
 <script src="/speech.js"></script>
 <script src="/intents.js"></script>
 <script src="/alexa.js"></script>
+<script src="/game.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

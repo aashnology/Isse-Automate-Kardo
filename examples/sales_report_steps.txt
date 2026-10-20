@@ -1,0 +1,47 @@
+Pull sales data, 4
+Clean data, 20
+Build charts, 11
+Write summary, 8
+Email report, 3
+
+Pull sales data, 5
+Clean data, 22
+Build charts, 12
+Write summary, 9
+Email report, 3
+
+Pull sales data, 6
+Clean data, 24
+Build charts, 13
+Write summary, 8
+Email report, 3
+
+Pull sales data, 4
+Clean data, 26
+Build charts, 11
+Write summary, 9
+Email report, 3
+
+Pull sales data, 5
+Clean data, 28
+Build charts, 12
+Write summary, 8
+Email report, 3
+
+Pull sales data, 6
+Clean data, 30
+Build charts, 13
+Write summary, 9
+Email report, 3
+
+Pull sales data, 4
+Clean data, 32
+Build charts, 11
+Write summary, 8
+Email report, 3
+
+Pull sales data, 5
+Clean data, 34
+Build charts, 12
+Write summary, 9
+Email report, 3

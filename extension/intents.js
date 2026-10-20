@@ -50,7 +50,7 @@
     "automate", "anomalies", "anomaly", "unusual", "outliers", "explain",
     "breakdown", "bottleneck", "wasting", "costing", "friction", "biggest",
     "reporting", "spreadsheet", "onboarding", "partner", "partners",
-    "tickets", "ticket", "triage", "weekly", "brief",
+    "tickets", "ticket", "triage", "weekly", "brief", "diagnose", "diagnosis", "reliable", "prescribe",
   ];
 
   function editDistance(a, b, limit) {
@@ -83,16 +83,36 @@
     return text.split(" ").slice(0, MAX_TOKENS).map(correctToken).join(" ");
   }
 
+  // Imported data brings its own workflow names. setWorkflows() swaps the
+  // fixed sample vocabulary for words taken from those names, so "automate the
+  // sales one" or "why is clean data slow" resolves to the right workflow.
+  // Pass null to go back to the sample's vocabulary.
+  var FILLER = { to: 1, loop: 1, and: 1, the: 1, of: 1, for: 1, data: 1 };
+  var dynamic = null;
+
+  function setWorkflows(names) {
+    if (!names || !names.length) { dynamic = null; return; }
+    dynamic = {};
+    names.forEach(function (n) {
+      var words = String(n).toLowerCase().split(/[^a-z0-9]+/).filter(function (w) {
+        return w.length >= 3 && !FILLER[w] && !/^\d+$/.test(w);
+      });
+      dynamic[n] = words;
+    });
+  }
+
   function matchWorkflow(text) {
     var lower = sanitize(text);
-    var names = Object.keys(WORKFLOW_SYNONYMS);
+    var table = dynamic || WORKFLOW_SYNONYMS;
+    var names = Object.keys(table), best = null, bestScore = 0;
     for (var i = 0; i < names.length; i++) {
-      var words = WORKFLOW_SYNONYMS[names[i]];
+      var words = table[names[i]], score = 0;
       for (var j = 0; j < words.length; j++) {
-        if (new RegExp("\\b" + words[j] + "\\b").test(lower)) return names[i];
+        if (new RegExp("\\b" + words[j] + "\\b").test(lower)) score++;
       }
+      if (score > bestScore) { best = names[i]; bestScore = score; }
     }
-    return null;
+    return best;
   }
 
   // Order matters: more specific intents come first. "restore" and
@@ -104,6 +124,7 @@
     ["dismissed_list", /\b(what|which|list|show)\b.*\bdismissed\b/],
     ["restore", /\b(restore|bring back|undo|resume)\b/],
     ["dismiss", /\b(stop|dismiss|never ?mind|no thanks|don'?t (suggest|ask|show|bring))\b/],
+    ["diagnose", /\b(diagnos\w*|prescri\w*|reliab\w*|worth (it|automating)|time saved|how much time|what should i do|next step)\b/],
     ["automate", /\b(automate|do it|handle it|go ahead|yes please|yes)\b/],
     ["anomalies", /\b(anomal\w*|unusual|weird|outliers?|spikes?)\b/],
     ["why", /\b(why|slow|debug|breakdown|bottleneck|explain)\b/],
@@ -134,7 +155,7 @@
     return { intent: intent, workflow: workflow, corrected: corrected };
   }
 
-  var api = { classifyIntent: classifyIntent, matchWorkflow: matchWorkflow, sanitize: sanitize, EXAMPLES: EXAMPLES };
+  var api = { setWorkflows: setWorkflows, classifyIntent: classifyIntent, matchWorkflow: matchWorkflow, sanitize: sanitize, EXAMPLES: EXAMPLES };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.HexiIntents = api;
 })(typeof window !== "undefined" ? window : globalThis);

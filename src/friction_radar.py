@@ -5,6 +5,8 @@ sequence aggregation over the event log.
 """
 
 from collections import defaultdict
+import statistics
+from automation_model import prior_judgment_cost, step_verdicts
 from synthetic_data import STEP_JUDGMENT_COST
 
 
@@ -41,12 +43,21 @@ class FrictionRadar:
                 1, sum(len(run) for run in runs)
             )
             steps = [e["activity"] for e in runs[0]]
-            avg_judgment_cost = sum(STEP_JUDGMENT_COST.get(s, 0.5) for s in steps) / len(steps)
+            avg_judgment_cost = sum(prior_judgment_cost(s) for s in steps) / len(steps)
             automation_potential = self._automation_score(
                 frequency, avg_judgment_cost, total_minutes, rework_rate
             )
+            # For steps outside the built-in catalogue the tier must agree with the
+            # per-step verdicts: a workflow whose time sits in steps that need a
+            # person cannot be "highly automatable" just because it is frequent
+            # and long. Scale by the share of time in steps judged safe.
+            breakdown = self.debug_workflow(name).get("step_breakdown", [])
+            safe_share = sum(b["share_of_total"] for b in breakdown if b.get("automatable"))
+            if any(st not in STEP_JUDGMENT_COST for st in steps):
+                automation_potential *= safe_share
             results.append({
                 "workflow_name": name,
+                "automatable_time_share": round(safe_share, 3),
                 "frequency": frequency,
                 "total_time_cost_minutes": round(total_minutes, 1),
                 "avg_duration_minutes": round(avg_minutes, 1),
@@ -104,8 +115,10 @@ class FrictionRadar:
 
         step_totals = defaultdict(list)
         rework_steps = defaultdict(int)
-        for run in runs:
+        runs_with_step = defaultdict(set)
+        for ri, run in enumerate(runs):
             for e in run:
+                runs_with_step[e["activity"]].add(ri)
                 step_totals[e["activity"]].append(e["duration_minutes"])
                 if e["outcome"] == "rework":
                     rework_steps[e["activity"]] += 1
@@ -119,6 +132,8 @@ class FrictionRadar:
                 "avg_minutes": round(avg, 1),
                 "share_of_total": round(avg / total_avg, 3) if total_avg else 0,
                 "rework_occurrences": rework_steps.get(step, 0),
+                "runs_with_step": len(runs_with_step[step]),
+                "cv": round(statistics.pstdev(durations) / avg, 3) if len(durations) > 1 and avg else 0.0,
             })
         step_stats.sort(key=lambda s: -s["avg_minutes"])
 
@@ -126,8 +141,12 @@ class FrictionRadar:
         top_names = ", ".join(f"'{b['step']}'" for b in bottlenecks[:2]) if bottlenecks else "no single step"
         bottleneck_share = round(sum(b["share_of_total"] for b in bottlenecks[:2]) * 100)
 
+        for stat, verdict in zip(step_stats, step_verdicts(step_stats, len(runs))):
+            stat["automatable"] = verdict["automatable"]
+            stat["judgment_cost"] = verdict["judgment_cost"]
         return {
             "workflow_name": workflow_name,
+            "total_runs": len(runs),
             "step_breakdown": step_stats,
             "bottleneck_steps": [b["step"] for b in bottlenecks],
             "narrative": (
