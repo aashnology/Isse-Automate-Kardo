@@ -407,11 +407,15 @@ def agent():
     if not isinstance(body, dict):
         body = {}
     try:
+        dataset = _dataset().id
+    except BadRequest as exc:
+        return _agent_error(f"{exc} Pick the sample or import again.", 400)
+    try:
         return jsonify(mcp_bridge.run_intent(
             _clean(body.get("intent"), _INTENT_RE),
             _clean(body.get("workflow"), _WORKFLOW_RE),
             _clean(body.get("proposal_id"), _PROPOSAL_RE),
-            dataset_id=_dataset().id))
+            dataset_id=dataset))
     except mcp_bridge.McpUnavailable as exc:
         return _agent_error(f"The MCP server isn't reachable ({exc}). Start src/mcp_server.py.", 503)
     except Exception:  # noqa: BLE001 -- a judge's odd input must not become a stack trace

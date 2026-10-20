@@ -226,3 +226,8 @@ def test_tier_agrees_with_step_verdicts_for_unknown_steps():
     point = w.radar.top_friction_points(top_k=1)[0]
     assert point["automatable_time_share"] == 0
     assert point["automation_tier"] == "poor automation candidate"
+
+
+def test_voice_route_answers_politely_for_an_unknown_dataset(client):
+    r = client.post("/api/agent", json={"intent": "brief", "dataset_id": "deadbeefdeadbeef"})
+    assert r.status_code == 400 and "import again" in r.get_json()["reply"].lower()
