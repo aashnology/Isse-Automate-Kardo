@@ -69,6 +69,10 @@ best guess dressed up as analysis.
 `get_top_friction_points`, `explain_friction`, `estimate_time_cost`,
 `debug_workflow`, `detect_anomalous_runs`, `narrate_briefing`,
 `propose_automation`, `confirm_automation`, `dismiss_workflow_suggestions`,
-`restore_workflow_suggestions`, `list_dismissed_workflow_suggestions` — 13
-in total, verified end to end with a real MCP client in
-`tests/test_mcp_protocol.py`.
+`restore_workflow_suggestions`, `list_dismissed_workflow_suggestions`,
+`diagnose_workflow`, `list_datasets` — 15 in total. The analysis tools take an
+optional `dataset_id` (default: the built-in sample); `diagnose_workflow`
+returns findings, ranked prescriptions, shadow-mode time saved and a
+reliability score. The original 13 are verified end to end with a real MCP
+client in `tests/test_mcp_protocol.py`; the two added later are covered by
+`tests/test_any_data.py` and `tests/test_tool_annotations.py`.

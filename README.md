@@ -5,6 +5,8 @@ Meet Hexi, an Alexa+ MCP assistant that finds where your time goes, pinpoints th
 Built for Amazon's **Build, Ship, Shape** hackathon, **Alexa+ track**, with
 an entry in the **Open Source** mini challenge.
 
+Developer manual (PDF): [`docs/Isse-Automate-Kardo-Developer-Manual.pdf`](docs/Isse-Automate-Kardo-Developer-Manual.pdf)
+
 ## Quick start
 
 ```bash
@@ -29,17 +31,7 @@ built-in template and labelled as such. Tests: `pip install pytest && pytest`.
 
 ## Meet Hexi
 
-<p align="center">
-  <img src="docs/assets/hexi/expression-sheet.png" width="720" alt="Hexi's six expressions: asleep, idle, watching, curious, suggesting, confirmed">
-</p>
-
-Hexi is the small hexagonal character who lives in this project's browser
-demo. She isn't decoration — every expression she makes is a direct
-reaction to a real call into the analysis pipeline underneath her, not a
-scripted animation.
-
-She starts out **asleep** if the server isn't running yet, and settles into
-a calm, breathing **idle** once it is:
+![Meet Hexi](docs/assets/panels/01-meet-hexi.png)
 
 <p align="center">
   <img src="docs/assets/hexi/asleep.gif" width="160" alt="Hexi asleep, bobbing gently with drifting z's">
@@ -47,78 +39,15 @@ a calm, breathing **idle** once it is:
   <img src="docs/assets/hexi/idle.gif" width="160" alt="Hexi idle, breathing with an occasional blink">
 </p>
 
-As you click through a simulated workspace, or just ask her something, she
-goes **watching**, then **curious** the moment a real pattern turns up in
-the data, then **suggesting** while she works out whether it's worth
-automating — and finally **confirmed** once you've said yes and the
-automation actually runs. Say "stop suggesting this" and she remembers it,
-even after the server restarts; ask "what's costing me the most time" or
-"brief me" and she'll tell you out loud.
-
 Try her yourself — see **Running it** below.
 
 ## The journey
 
-```
-"Alexa, what patterns are in my work?"
-   -> discover_workflows()             clusters raw event sequences into
-                                         workflows -- no pre-existing label,
-                                         genuine sequence-similarity clustering
-
-"Where am I wasting time?"
-   -> get_top_friction_points()        ranks workflows by total time cost
-                                         + automation tier
-
-"Why does bug triage take so long?"
-   -> debug_workflow()                 step-level bottleneck breakdown
-
-"Was there anything unusual?"
-   -> detect_anomalous_runs()          flags runs that blew past the usual
-                                         range, and names the likely cause
-
-"Can you automate the reporting steps?"
-   -> propose_automation()             concrete, step-level proposal;
-                                         never executes on its own
-"Yes."
-   -> confirm_automation()             executes only after you say so
-
-"Just give me the rundown."
-   -> narrate_briefing()               turns the already-computed findings
-                                         into one spoken answer
-```
+![The journey](docs/assets/panels/02-the-journey.png)
 
 ## How it's built
 
-<p align="center">
-  <img src="docs/assets/hexi/architecture.png" width="760" alt="Architecture diagram: Alexa+ and Hexi both call a shared, deterministic core">
-</p>
-
-**Protocol.** The MCP server (`src/mcp_server.py`) speaks Streamable HTTP
-at `/mcp` and negotiates MCP spec **2025-11-25**, the hackathon's minimum.
-That is checked by a real MCP client against the running process
-(`tests/test_mcp_protocol.py`), and the bridge Hexi uses refuses any server
-that negotiates an older version (`web/mcp_bridge.py`). It has not been
-tested inside an Alexa+ surface, because none is available to developers.
-
-Clustering, scoring, anomaly detection, time-saved and reliability figures
-are all deterministic: no model computes a number anywhere in this project.
-`narrate_briefing` turns numbers already computed into a sentence via a
-fixed template. The one optional model call is the diagnostic advisor
-(below), which only words a report the deterministic code has already
-produced, and is checked against it. With no credential configured,
-everything still works and returns the same answer every time.
-
-The pipeline isn't tied to synthetic data, either. `data_adapters.py` reads
-real [ActivityWatch](https://github.com/ActivityWatch/activitywatch) and
-Toggl Track exports, a public GitHub repo's own pull-request history (read
-only — it never clones or runs a repository's code), or a public Google
-Sheet, and runs the exact same label-free discovery against any of them.
-
-And one thing genuinely persists across sessions: `user_memory.py` is the
-one piece of state in this project backed by a file on disk rather than
-kept only for the length of a conversation. Tell it to stop suggesting a
-workflow, and it stays stopped — restart the server entirely, and it's
-still true.
+![How it's built](docs/assets/panels/03-how-its-built.png)
 
 ## Any data, then a diagnosis
 
@@ -230,30 +159,13 @@ limitations are in [docs/RESEARCH_AND_NOTES.md](docs/RESEARCH_AND_NOTES.md).
 
 ## Agent Skill
 
-`skills/friction-radar/SKILL.md` is an Agent Skill for any model that uses this
-MCP server: which tool to use for which request, and the consent rules around
-`confirm_automation` (propose first, execute only after an explicit yes in a
-later turn). A test checks that every tool the skill names exists on the
-running server. The skill is documentation for the client's model; nothing in
-this repo's runtime loads it.
+![Agent Skill](docs/assets/panels/04-agent-skill.png)
 
 ## Running it
 
-Two services, one shared core. Start both for the full demo:
-
-| Service | Command | Serves |
-|---|---|---|
-| MCP server | `python src/mcp_server.py` | MCP over Streamable HTTP, `http://localhost:8000/mcp` |
-| Hexi web demo | `python web/server.py` | The page and `/api/agent`, `http://localhost:5000` |
+![Running it: local and Docker](docs/assets/panels/05-running-it.png)
 
 ### Locally
-
-```bash
-pip install -r requirements.txt
-python src/synthetic_data.py     # generates data/*.json (idempotent)
-python src/mcp_server.py         # terminal 1: MCP server, Streamable HTTP at :8000/mcp
-python web/server.py             # terminal 2: Hexi on :5000
-```
 
 The MCP server alone is enough for any MCP client (Alexa+, MCP Inspector).
 Hexi's tabs, chat and voice ask the MCP server first. If it isn't running they
@@ -261,14 +173,7 @@ fall back to calling the same Python functions directly, so the page still
 works; each API response has a `via` field (`mcp` or `direct`) saying which
 answered. The extension needs the MCP server running.
 
-### With Docker
-
-```bash
-cp .env.example .env             # optional -- see .env.example; fine to skip
-docker compose up --build        # starts both services, ports bound to localhost
-```
-
-Imported datasets live in a named Docker volume (`datasets`), shared by both
+Imported datasets live in a named Docker volume (`datasets`) shared by both
 services, so the non-root container user can always write them. The services
 were exercised outside Docker with the same environment variables the compose
 file sets; the image itself has not been built in the authoring environment,
@@ -289,11 +194,6 @@ negotiated protocol. Automation is two utterances: "automate it" only calls
 `propose_automation`; the next "yes" calls `confirm_automation`, so one
 misheard word can't execute anything. If the MCP server isn't running,
 `/api/agent` returns 503 and the page says so and uses its direct path.
-
-```bash
-curl -s localhost:5000/api/agent -H 'content-type: application/json' \
-  -d '{"intent": "friction"}'
-```
 
 Request body: `{intent, workflow?, proposal_id?}`. Response: `reply`,
 `mood`, `tools`, `protocol`, `pending_proposal_id`. Malformed or unrecognised
@@ -371,14 +271,8 @@ Compose both services read the same `.env`.
 
 ### Tests
 
-```bash
-pytest tests/                     # unit + integration tests
-python tests/evaluation.py        # ranking-engine quality metrics
-python tests/segmentation_eval.py # segmentation quality vs. ground truth
-```
+![Tests](docs/assets/panels/06-tests.png)
 
-CI (`.github/workflows/ci.yml`) runs all three on every push to `main`.
+## License
 
----
-
-MIT licensed — see [`LICENSE`](LICENSE).
+![License](docs/assets/panels/07-license.png)
