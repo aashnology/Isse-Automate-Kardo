@@ -5,6 +5,8 @@ Meet Hexi, an Alexa+ MCP assistant that finds where your time goes, pinpoints th
 Built for Amazon's **Build, Ship, Shape** hackathon, **Alexa+ track**, with
 an entry in the **Open Source** mini challenge.
 
+Developer manual (PDF): [`docs/Isse-Automate-Kardo-Developer-Manual.pdf`](docs/Isse-Automate-Kardo-Developer-Manual.pdf)
+
 ## Meet Hexi
 
 ![Meet Hexi](docs/assets/panels/01-meet-hexi.png)
