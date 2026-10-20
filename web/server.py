@@ -120,6 +120,24 @@ def _enforce_rate_limit():
         return jsonify({"error": "Too many requests. Please slow down."}), 429
 
 
+def _build_id():
+    """Short id of the code this process is serving, shown in the page title
+    bar so a stale checkout or a leftover server is obvious at a glance."""
+    env = os.environ.get("HEXI_BUILD", "").strip()
+    if env:
+        return env[:12]
+    try:
+        import subprocess
+        out = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], cwd=os.path.dirname(__file__),
+                                      stderr=subprocess.DEVNULL, timeout=2)
+        return out.decode().strip() or "unknown"
+    except Exception:  # noqa: BLE001 -- no git (Docker image) is normal, not an error
+        return "unknown"
+
+
+BUILD_ID = _build_id()
+
+
 @app.after_request
 def _log_and_secure(response):
     log.info("%s %s -> %s", request.method, request.path, response.status_code)
@@ -132,6 +150,9 @@ def _log_and_secure(response):
         "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
     )
     response.headers["X-Content-Type-Options"] = "nosniff"
+    if not request.path.startswith("/api/"):
+        # the page is small; always revalidate so an edit shows up on refresh
+        response.headers["Cache-Control"] = "no-cache"
     return response
 
 
@@ -239,6 +260,11 @@ def _mcp_first(tool, args, direct):
 @app.route("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
+
+
+@app.route("/api/version")
+def version():
+    return jsonify({"build": BUILD_ID})
 
 
 @app.route("/api/friction-points")

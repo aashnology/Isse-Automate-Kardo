@@ -193,3 +193,11 @@ def test_import_github_repo_parses_full_url(client, monkeypatch):
 
     client.post("/api/import", json={"github_repo": "https://github.com/pallets/flask"})
     assert captured == {"owner": "pallets", "repo": "flask"}
+
+
+def test_version_endpoint_reports_a_build_id():
+    import server
+    client = server.app.test_client()
+    body = client.get("/api/version").get_json()
+    assert isinstance(body["build"], str) and body["build"]
+    assert client.get("/").headers["Cache-Control"] == "no-cache"

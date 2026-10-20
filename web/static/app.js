@@ -125,7 +125,16 @@ async function api(path, opts) {
   throw new Error("request failed");
 }
 
+async function showBuild() {
+  try {
+    const v = await api("/api/version");
+    const el = document.querySelector(".titlebar .url");
+    if (el && v.build) el.textContent = "Isse Automate Kardo · build " + v.build;
+  } catch (e) { /* the title bar just keeps its plain name */ }
+}
+
 async function checkBackend() {
+  showBuild();
   try {
     await api("/api/friction-points?top_k=1");
     backendUp = true;
