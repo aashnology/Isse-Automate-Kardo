@@ -28,6 +28,7 @@ services:
       - mcp
     environment:
       HEXI_MCP_URL: http://mcp:8000/mcp   # /api/agent reaches the MCP server over the compose network
+      WEB_BIND_HOST: "0.0.0.0"            # in-container bind; the published host port above stays loopback-only
     env_file:
       - path: .env
         required: false  # same as the mcp service: optional
