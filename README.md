@@ -13,6 +13,9 @@ This project is an entry in Amazon's **Build, Ship, Shape** hackathon, in the
 For the full technical write-up, read the
 [developer manual (PDF)](docs/Isse-Automate-Kardo-Developer-Manual.pdf).
 
+Judges: step-by-step testing instructions are in [docs/TESTING.md](docs/TESTING.md)
+and the friction log is in [docs/FRICTION_LOG.md](docs/FRICTION_LOG.md).
+
 ## Quick Start
 
 ```bash
